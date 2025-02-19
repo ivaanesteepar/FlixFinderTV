@@ -33,15 +33,15 @@ Este proyecto consiste en el desarrollo de una aplicación Android para la recom
    git clone <url del repositorio>
 2. Configura Firebase
 
-1. Crea un proyecto en Firebase Console.
-2. Añade el archivo `google-services.json` al proyecto de Android.
-3. Configura Firebase en el proyecto de Android siguiendo la [documentación oficial de Firebase para Android](https://firebase.google.com/docs/android/setup).
+   1. Crea un proyecto en Firebase Console.
+   2. Añade el archivo `google-services.json` al proyecto de Android.
+   3. Configura Firebase en el proyecto de Android siguiendo la [documentación oficial de Firebase para Android](https://firebase.google.com/docs/android/setup).
 
 3. Importa el dataset
 
-- El dataset de películas y series debe ser importado a Firebase una sola vez al ejecutar la aplicación, a partir de un archivo CSV.
+   - El dataset de películas y series debe ser importado a Firebase una sola vez al ejecutar la aplicación, a partir de un archivo CSV.
 
 4. Ejecuta la app
 
-1. Abre el proyecto en Android Studio.
-2. Compila y ejecuta la aplicación en un dispositivo o emulador Android.
+   1. Abre el proyecto en Android Studio.
+   2. Compila y ejecuta la aplicación en un dispositivo o emulador Android.
