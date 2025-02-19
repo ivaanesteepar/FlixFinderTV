@@ -8,14 +8,10 @@ import androidx.navigation.NavHostController
 import com.example.flixfindertv.utils.BottomNavigationBar
 
 @Composable
-fun HomeScreen(navController: NavHostController) {
+fun ExploreScreen(navController: NavHostController) {
     Scaffold(
-        bottomBar = { BottomNavigationBar(navController) }
+        bottomBar = { BottomNavigationBar(navController) } // Añadimos el menú inferior
     ) { paddingValues ->
         Modifier.padding(paddingValues)
     }
 }
-
-
-
-
