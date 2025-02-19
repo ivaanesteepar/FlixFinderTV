@@ -1,4 +1,7 @@
 package com.example.flixfindertv.ui
 
-class FlixFinderTVroutes {
+import androidx.compose.runtime.Composable
+
+@Composable
+fun FlixFinderTVroutes() {
 }
