@@ -25,12 +25,6 @@ El sistema de recomendaciones se basa en los datos almacenados en Firebase, lo q
 - **Interfaz fluida y moderna**: Usando Jetpack Compose, se ha logrado una interfaz de usuario intuitiva y atractiva.
 - **Almacenamiento en Firebase**: Los datos se almacenan en Firebase para facilitar su acceso y gestión desde cualquier dispositivo.
 
-## Estructura del Proyecto
-
-- **UI (Interfaz de usuario)**: La interfaz está estructurada con Jetpack Compose y se encuentra organizada en la carpeta `com.example.flixfindertv.ui.screens`.
-- **Firebase**: Los datos son almacenados en Firebase y la integración con la base de datos se realiza a través de las librerías oficiales de Firebase para Android.
-- **Navigation**: La navegación entre pantallas está manejada mediante un menú inferior, ubicado en la carpeta `com.example.flixfindertv.ui.screens`, con un código reutilizable en la carpeta `utils`.
-
 ## Cómo usar la aplicación
 
 1. **Clona este repositorio**:
