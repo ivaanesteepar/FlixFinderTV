@@ -19,12 +19,13 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.example.flixfindertv.models.Usuarios
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun RegisterScreen(navController: NavHostController) {
-    var nombreUsuario by remember { mutableStateOf(TextFieldValue()) }
+    var username by remember { mutableStateOf(TextFieldValue()) }
     var email by remember { mutableStateOf(TextFieldValue()) }
     var password by remember { mutableStateOf(TextFieldValue()) }
     var confirmPassword by remember { mutableStateOf(TextFieldValue()) }
@@ -37,7 +38,7 @@ fun RegisterScreen(navController: NavHostController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White) // Fondo oscuro tipo TV
+            .background(Color.White)
             .padding(24.dp)
     ) {
         Column(
@@ -45,16 +46,16 @@ fun RegisterScreen(navController: NavHostController) {
             modifier = Modifier.fillMaxSize()
         ) {
             Text(
-                text = "Registro",
+                text = "Register",
                 color = Color.Black,
                 fontSize = 24.sp,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
             OutlinedTextField(
-                value = nombreUsuario,
-                onValueChange = { nombreUsuario = it },
-                label = { Text("Nombre de usuario", color = Color.Black) },
+                value = username,
+                onValueChange = { username = it },
+                label = { Text("Username", color = Color.Black) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
@@ -65,7 +66,7 @@ fun RegisterScreen(navController: NavHostController) {
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("Correo electrónico", color = Color.Black) },
+                label = { Text("Email", color = Color.Black) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
@@ -76,7 +77,7 @@ fun RegisterScreen(navController: NavHostController) {
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text("Contraseña", color = Color.Black) },
+                label = { Text("Password", color = Color.Black) },
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 singleLine = true,
@@ -93,7 +94,7 @@ fun RegisterScreen(navController: NavHostController) {
             OutlinedTextField(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it },
-                label = { Text("Repetir contraseña", color = Color.Black) },
+                label = { Text("Confirm Password", color = Color.Black) },
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 singleLine = true,
@@ -104,35 +105,36 @@ fun RegisterScreen(navController: NavHostController) {
 
             Button(
                 onClick = {
-                    if (email.text.isEmpty() || password.text.isEmpty() || nombreUsuario.text.isEmpty()) {
-                        errorMessage = "Todos los campos son obligatorios"
+                    if (email.text.isEmpty() || password.text.isEmpty() || username.text.isEmpty()) {
+                        errorMessage = "All fields are required"
                     } else if (password.text != confirmPassword.text) {
-                        errorMessage = "Las contraseñas no coinciden"
+                        errorMessage = "Passwords do not match"
                     } else {
                         errorMessage = null
                         isLoading = true
-                        // Registrar el usuario con Firebase Authentication
                         auth.createUserWithEmailAndPassword(email.text, password.text)
                             .addOnCompleteListener { task ->
                                 isLoading = false
                                 if (task.isSuccessful) {
-                                    // Si el registro es exitoso, agregar el usuario a Firestore
                                     val user = auth.currentUser
                                     user?.let {
-                                        val userData = hashMapOf(
-                                            "uid" to user.uid,
-                                            "nombre" to nombreUsuario.text,
-                                            "email" to email.text
+                                        val newUser = Usuarios(
+                                            uid = user.uid,
+                                            nombre = username.text,
+                                            email = email.text,
+                                            fotoPerfil = "",
+                                            contenidoVisto = emptyList(),
+                                            generosFavoritos = emptyList()
                                         )
-                                        firestore.collection("usuarios")
-                                            .document(user.uid) // Usar UID único para el documento
-                                            .set(userData)
+
+                                        firestore.collection("users")
+                                            .document(user.uid)
+                                            .set(newUser)
                                             .addOnSuccessListener {
-                                                // Usuario agregado a Firestore exitosamente
-                                                navController.navigate("login") // Cambia "home" por la ruta de tu pantalla principal
+                                                navController.navigate("login")
                                             }
                                             .addOnFailureListener {
-                                                errorMessage = "Error al agregar el usuario a Firestore"
+                                                errorMessage = "Error adding user to Firestore"
                                             }
                                     }
                                 } else {
@@ -144,7 +146,7 @@ fun RegisterScreen(navController: NavHostController) {
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !isLoading
             ) {
-                Text(text = if (isLoading) "Registrando..." else "Registrarse")
+                Text(text = if (isLoading) "Registering..." else "Register")
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -152,8 +154,8 @@ fun RegisterScreen(navController: NavHostController) {
             Button(
                 onClick = { navController.popBackStack() },
                 modifier = Modifier.fillMaxWidth()
-            ){
-                Text(text = "Volver")
+            ) {
+                Text(text = "Back")
             }
         }
     }

@@ -34,7 +34,7 @@ fun ForgotPasswordScreen(navController: NavHostController) {
             modifier = Modifier.fillMaxSize()
         ) {
             Text(
-                text = "Recuperar Contraseña",
+                text = "Recover Password",
                 color = Color.Black,
                 fontSize = 24.sp,
                 modifier = Modifier.padding(bottom = 16.dp)
@@ -43,7 +43,7 @@ fun ForgotPasswordScreen(navController: NavHostController) {
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("Correo electrónico", color = Color.Black) },
+                label = { Text("Email", color = Color.Black) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
@@ -54,7 +54,7 @@ fun ForgotPasswordScreen(navController: NavHostController) {
             Button(
                 onClick = {
                     if (email.text.isEmpty()) {
-                        Toast.makeText(context, "Ingresa tu correo", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Enter your email", Toast.LENGTH_SHORT).show()
                     } else {
                         isLoading = true
                         auth.sendPasswordResetEmail(email.text)
@@ -63,10 +63,10 @@ fun ForgotPasswordScreen(navController: NavHostController) {
                                 if (task.isSuccessful) {
                                     Toast.makeText(
                                         context,
-                                        "Correo de recuperación enviado",
+                                        "Recovery email sent",
                                         Toast.LENGTH_LONG
                                     ).show()
-                                    navController.popBackStack() // Vuelve a LoginScreen
+                                    navController.popBackStack() // Go back to LoginScreen
                                 } else {
                                     Toast.makeText(
                                         context,
@@ -80,13 +80,13 @@ fun ForgotPasswordScreen(navController: NavHostController) {
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !isLoading
             ) {
-                Text(if (isLoading) "Enviando..." else "Enviar enlace de recuperación")
+                Text(if (isLoading) "Sending..." else "Send recovery link")
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
             TextButton(onClick = { navController.popBackStack() }) {
-                Text("Volver al inicio de sesión", color = Color.Blue)
+                Text("Back to login", color = Color.Blue)
             }
         }
     }

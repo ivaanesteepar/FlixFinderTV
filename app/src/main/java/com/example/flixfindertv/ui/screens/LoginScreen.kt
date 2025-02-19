@@ -52,7 +52,7 @@ fun LoginScreen(navController: NavHostController) {
             modifier = Modifier.fillMaxSize()
         ) {
             Text(
-                text = "Iniciar Sesión",
+                text = "Log In",
                 color = Color.Black,
                 fontSize = 24.sp,
                 modifier = Modifier.padding(bottom = 16.dp)
@@ -61,7 +61,7 @@ fun LoginScreen(navController: NavHostController) {
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("Correo electrónico", color = Color.Black) },
+                label = { Text("Email", color = Color.Black) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
@@ -72,7 +72,7 @@ fun LoginScreen(navController: NavHostController) {
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text("Contraseña", color = Color.Black) },
+                label = { Text("Password", color = Color.Black) },
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 singleLine = true,
@@ -89,37 +89,37 @@ fun LoginScreen(navController: NavHostController) {
             Button(
                 onClick = {
                     if (email.text.isEmpty() || password.text.isEmpty()) {
-                        errorMessage = "Todos los campos son obligatorios"
+                        errorMessage = "All fields are required"
                     } else {
                         isLoading = true
                         errorMessage = null
-                        // Intentar iniciar sesión con Firebase Authentication
+                        // Attempt to log in with Firebase Authentication
                         auth.signInWithEmailAndPassword(email.text, password.text)
                             .addOnCompleteListener { task ->
                                 isLoading = false
                                 if (task.isSuccessful) {
-                                    // Si el inicio de sesión es exitoso, navegar a la pantalla principal
-                                    navController.navigate("home") // Cambia "home" por la ruta de tu pantalla principal
+                                    // If login is successful, navigate to the home screen
+                                    navController.navigate("home") // Replace "home" with your main screen route
                                 } else {
-                                    // Si falla, mostrar el error
-                                    errorMessage = "¡Ups! Algo salió mal. Por favor, verifica tus credenciales e inténtalo nuevamente."
+                                    // If it fails, show the error
+                                    errorMessage = "Oops! Something went wrong. Please check your credentials and try again."
                                 }
                             }
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(text = "Iniciar Sesión")
+                Text(text = "Log In")
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             TextButton(onClick = { navController.navigate("forgot_password") }) {
-                Text("¿Olvidaste tu contraseña?", color = Color.Blue)
+                Text("Forgot your password?", color = Color.Blue)
             }
 
             TextButton(onClick = { navController.navigate("register") }) {
-                Text("¿No tienes cuenta? Regístrate", color = Color.Blue)
+                Text("Don't have an account? Sign up", color = Color.Blue)
             }
         }
     }
