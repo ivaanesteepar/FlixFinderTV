@@ -9,6 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.flixfindertv.ui.screens.ExploreScreen
+import com.example.flixfindertv.ui.screens.ForgotPasswordScreen
 import com.example.flixfindertv.ui.screens.HomeScreen
 import com.example.flixfindertv.ui.screens.LoginScreen
 import com.example.flixfindertv.ui.screens.ProfileScreen
@@ -21,7 +22,7 @@ fun FlixFinderTVroutes() {
     Scaffold { padding ->
         NavHost(
             navController = navController,
-            startDestination = "home", // Pantalla de inicio es el login
+            startDestination = "login", // Pantalla de inicio es el login
             modifier = Modifier.padding(padding)
         ) {
             composable("login") {
@@ -41,6 +42,9 @@ fun FlixFinderTVroutes() {
             }
             composable("profile") {
                 ProfileScreen(navController)  // Pantalla de perfil
+            }
+            composable("forgot_password") {
+                ForgotPasswordScreen(navController)  // Pantalla de recuperación de contraseña
             }
 
         }
