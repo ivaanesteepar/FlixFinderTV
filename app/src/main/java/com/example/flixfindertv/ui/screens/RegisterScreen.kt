@@ -1,19 +1,11 @@
 package com.example.flixfindertv.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,6 +19,8 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun RegisterScreen(navController: NavHostController) {
@@ -35,6 +29,10 @@ fun RegisterScreen(navController: NavHostController) {
     var password by remember { mutableStateOf(TextFieldValue()) }
     var confirmPassword by remember { mutableStateOf(TextFieldValue()) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var isLoading by remember { mutableStateOf(false) }
+
+    val auth = FirebaseAuth.getInstance()
+    val firestore = FirebaseFirestore.getInstance()
 
     Box(
         modifier = Modifier
@@ -106,16 +104,47 @@ fun RegisterScreen(navController: NavHostController) {
 
             Button(
                 onClick = {
-                    if (email.text.isEmpty() || password.text.isEmpty()) {
+                    if (email.text.isEmpty() || password.text.isEmpty() || nombreUsuario.text.isEmpty()) {
                         errorMessage = "Todos los campos son obligatorios"
+                    } else if (password.text != confirmPassword.text) {
+                        errorMessage = "Las contraseñas no coinciden"
                     } else {
                         errorMessage = null
-                        navController.navigate("home") // Cambia "home" por la ruta de tu pantalla principal
+                        isLoading = true
+                        // Registrar el usuario con Firebase Authentication
+                        auth.createUserWithEmailAndPassword(email.text, password.text)
+                            .addOnCompleteListener { task ->
+                                isLoading = false
+                                if (task.isSuccessful) {
+                                    // Si el registro es exitoso, agregar el usuario a Firestore
+                                    val user = auth.currentUser
+                                    user?.let {
+                                        val userData = hashMapOf(
+                                            "uid" to user.uid,
+                                            "nombre" to nombreUsuario.text,
+                                            "email" to email.text
+                                        )
+                                        firestore.collection("usuarios")
+                                            .document(user.uid) // Usar UID único para el documento
+                                            .set(userData)
+                                            .addOnSuccessListener {
+                                                // Usuario agregado a Firestore exitosamente
+                                                navController.navigate("login") // Cambia "home" por la ruta de tu pantalla principal
+                                            }
+                                            .addOnFailureListener {
+                                                errorMessage = "Error al agregar el usuario a Firestore"
+                                            }
+                                    }
+                                } else {
+                                    errorMessage = "Error: ${task.exception?.message}"
+                                }
+                            }
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isLoading
             ) {
-                Text(text = "Registrarse")
+                Text(text = if (isLoading) "Registrando..." else "Registrarse")
             }
 
             Spacer(modifier = Modifier.height(16.dp))

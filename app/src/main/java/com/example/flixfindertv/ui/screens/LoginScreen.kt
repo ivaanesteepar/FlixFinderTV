@@ -61,7 +61,7 @@ fun LoginScreen(navController: NavHostController) {
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("Nombre de usuario", color = Color.Black) },
+                label = { Text("Correo electrónico", color = Color.Black) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
