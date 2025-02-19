@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "607714097238",
+    "project_id": "flixfindertv",
+    "storage_bucket": "flixfindertv.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:607714097238:android:ea45f93b3e695be28863f7",
+        "android_client_info": {
+          "package_name": "com.example.flixfindertv"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDdpitQMX7EHpXSH2tZCkEBsGKa5BsZnOU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:607714097238:android:7e7aee4c3fe558ec8863f7",
+        "android_client_info": {
+          "package_name": "com.example.watchtv"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDdpitQMX7EHpXSH2tZCkEBsGKa5BsZnOU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
