@@ -102,7 +102,7 @@ fun LoginScreen(navController: NavHostController) {
                                     navController.navigate("home") // Cambia "home" por la ruta de tu pantalla principal
                                 } else {
                                     // Si falla, mostrar el error
-                                    errorMessage = "Error: ${task.exception?.message}"
+                                    errorMessage = "¡Ups! Algo salió mal. Por favor, verifica tus credenciales e inténtalo nuevamente."
                                 }
                             }
                     }
