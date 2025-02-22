@@ -5,7 +5,7 @@ Grado de Ingeniería Informática - Universidad de Burgos
 
 ## Descripción
 
-Este proyecto consiste en el desarrollo de una aplicación Android para la recomendación de películas y series, utilizando tecnologías modernas como **Jetpack Compose** para la interfaz de usuario y **Firebase** como backend. La app ofrece recomendaciones personalizadas basadas en un conjunto de datos de películas y series almacenados en Firebase, y utiliza un archivo CSV como fuente de datos.
+Este proyecto consiste en el desarrollo de una aplicación Android para la recomendación de películas y series, utilizando tecnologías modernas como **Jetpack Compose** para la interfaz de usuario y **Firebase** como backend. La app ofrece recomendaciones personalizadas basadas en un conjunto de datos de películas y series almacenados en Firebase.
 
 La aplicación cuenta con una **interfaz de usuario intuitiva y agradable**, diseñada para ofrecer una experiencia fluida y moderna. Aprovechando las ventajas de Jetpack Compose, la navegación entre las pantallas es simple y accesible. Además, el diseño se adapta de manera eficiente a diferentes tamaños de pantalla, brindando una experiencia consistente en dispositivos móviles y tablets. 
 
