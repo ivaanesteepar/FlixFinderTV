@@ -38,6 +38,10 @@ android {
     buildFeatures {
         compose = true
     }
+    packagingOptions {
+        exclude("META-INF/INDEX.LIST")
+    }
+
 }
 
 dependencies {
@@ -56,6 +60,12 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.firebase.auth.ktx)
     implementation(libs.firebase.firestore.ktx)
+    implementation(libs.gson)
+    implementation (libs.jsoup.v1153)
+    implementation (libs.squareup.retrofit)
+    implementation (libs.converter.gson)
+    implementation(libs.androidx.runtime.livedata)
+    implementation(libs.coil.compose)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

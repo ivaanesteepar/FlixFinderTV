@@ -66,7 +66,7 @@ fun ForgotPasswordScreen(navController: NavHostController) {
                                         "Recovery email sent",
                                         Toast.LENGTH_LONG
                                     ).show()
-                                    navController.popBackStack() // Go back to LoginScreen
+                                    navController.popBackStack()
                                 } else {
                                     Toast.makeText(
                                         context,

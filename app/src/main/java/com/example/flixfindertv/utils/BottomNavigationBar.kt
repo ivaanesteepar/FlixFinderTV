@@ -16,7 +16,7 @@ import com.example.flixfindertv.models.BottomItems
 fun BottomNavigationBar(navController: NavController) {
     NavigationBar(
         containerColor = androidx.compose.ui.graphics.Color.Gray, // Fondo grisáceo
-        modifier = Modifier.height(80.dp) // Aumentar la altura de la barra de navegación
+        modifier = Modifier.height(80.dp) // Altura de la barra de navegación
     ) {
         val items = listOf(
             BottomItems.Home,
@@ -30,8 +30,9 @@ fun BottomNavigationBar(navController: NavController) {
                     Icon(
                         imageVector = item.icono,
                         contentDescription = item.titulo,
-                        modifier = Modifier.padding(top = 20.dp), // Desplazar íconos hacia abajo
-                        tint = if (navController.currentDestination?.route == item.ruta) androidx.compose.ui.graphics.Color.Yellow else androidx.compose.ui.graphics.Color.Unspecified
+                        modifier = Modifier.padding(top = 20.dp), // Ajusta el espacio superior
+                        tint = if (navController.currentDestination?.route == item.ruta)
+                            androidx.compose.ui.graphics.Color.Yellow else androidx.compose.ui.graphics.Color.Unspecified
                     )
                 },
                 label = { Text(item.titulo) },
