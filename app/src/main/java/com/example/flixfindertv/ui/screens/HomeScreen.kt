@@ -17,22 +17,20 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
-import coil.compose.rememberImagePainter
 import com.example.flixfindertv.ui.viewmodels.MoviesViewModel
 import com.example.flixfindertv.utils.BottomNavigationBar
 
 @Composable
 fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel) {
 
-    // Obtenemos las películas de la lista de StateFlow
     val movies by viewModel.listaPeliculas.observeAsState(emptyList())
     val isLoading by viewModel.isLoading.observeAsState(true)
+    val series by viewModel.listaSeries.observeAsState(emptyList())
 
-    // Llamada a la función para obtener las películas de la API
     LaunchedEffect(Unit) {
-        if (movies.isEmpty() && !isLoading) {
-            println("Obteniendo películas...")
-            viewModel.obtenerTodasLasPeliculas(apiKey = "6ae1f349f576ac17daf45c3d7dfbae9e", language = "es-ES")
+        if (movies.isEmpty() && series.isEmpty() && !isLoading) {
+            viewModel.obtenerPeliculasPopulares(apiKey = "6ae1f349f576ac17daf45c3d7dfbae9e", language = "es-ES")
+            viewModel.obtenerSeriesPopulares(apiKey = "6ae1f349f576ac17daf45c3d7dfbae9e", language = "es-ES")
         }
     }
 
@@ -46,46 +44,38 @@ fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel) {
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            Text("Películas", style = MaterialTheme.typography.headlineMedium)
+            Text("Películas populares", style = MaterialTheme.typography.headlineMedium)
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Si está cargando, mostramos el cargador
             if (isLoading) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator()  // Indicador de carga
+                    CircularProgressIndicator()
                 }
             } else {
-                // Verifica si la lista tiene elementos
-                if (movies.isEmpty()) {
-                    println("No se han cargado películas")
-                } else {
-                    // Cuando los datos están cargados, mostramos las películas
-                    println("Películas cargadas: ${movies.size}")
+                if (movies.isNotEmpty()) {
                     LazyRow(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(200.dp),  // Altura de la fila de imágenes
+                            .height(200.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(movies) { movie ->
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier.width(120.dp) // Tamaño de cada imagen + título
+                                modifier = Modifier.width(120.dp)
                             ) {
-                                // Card que contiene la imagen y el título
                                 Card(
                                     modifier = Modifier.fillMaxWidth(),
                                     elevation = CardDefaults.cardElevation(4.dp)
                                 ) {
                                     Column {
-                                        // Imagen de la película
                                         Box(
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .height(160.dp)  // Ajusta la altura de la imagen
+                                                .height(160.dp)
                                         ) {
                                             val imageUrl = "https://image.tmdb.org/t/p/w500${movie.imagen}"
                                             Image(
@@ -95,16 +85,69 @@ fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel) {
                                                 contentScale = ContentScale.Crop
                                             )
                                         }
-
-                                        // Título de la película con fondo colorido
                                         Box(
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .background(Color(0xFF6200EE)) // Color de fondo para el título
+                                                .background(Color(0xFF6200EE))
                                                 .padding(4.dp)
                                         ) {
                                             Text(
-                                                text = movie.titulo,  // Título de la película
+                                                text = movie.titulo,
+                                                style = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
+                                                modifier = Modifier.padding(horizontal = 8.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Text("Series populares", style = MaterialTheme.typography.headlineMedium)
+                Spacer(modifier = Modifier.height(8.dp))
+
+                println("Series cargadas: ${series.size}")
+                if (series.isNotEmpty()) {
+                    LazyRow(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(series) { serie ->
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.width(120.dp)
+                            ) {
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    elevation = CardDefaults.cardElevation(4.dp)
+                                ) {
+                                    Column {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(160.dp)
+                                        ) {
+                                            val imageUrl = "https://image.tmdb.org/t/p/w500${serie.imagen}"
+                                            Image(
+                                                painter = rememberAsyncImagePainter(imageUrl),
+                                                contentDescription = "Imagen de la serie",
+                                                modifier = Modifier.fillMaxSize(),
+                                                contentScale = ContentScale.Crop
+                                            )
+                                        }
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .background(Color(0xFF03A9F4))
+                                                .padding(4.dp)
+                                        ) {
+                                            Text(
+                                                text = serie.titulo,
                                                 style = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
                                                 maxLines = 1,
                                                 overflow = TextOverflow.Ellipsis,
