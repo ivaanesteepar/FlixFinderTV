@@ -77,7 +77,7 @@ fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel) {
                                                 .fillMaxWidth()
                                                 .height(160.dp)
                                         ) {
-                                            val imageUrl = "https://image.tmdb.org/t/p/w500${movie.imagen}"
+                                            val imageUrl = "https://image.tmdb.org/t/p/w500${movie.portada}"
                                             Image(
                                                 painter = rememberAsyncImagePainter(imageUrl),
                                                 contentDescription = "Imagen de la película",
@@ -132,7 +132,7 @@ fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel) {
                                                 .fillMaxWidth()
                                                 .height(160.dp)
                                         ) {
-                                            val imageUrl = "https://image.tmdb.org/t/p/w500${serie.imagen}"
+                                            val imageUrl = "https://image.tmdb.org/t/p/w500${serie.portada}"
                                             Image(
                                                 painter = rememberAsyncImagePainter(imageUrl),
                                                 contentDescription = "Imagen de la serie",

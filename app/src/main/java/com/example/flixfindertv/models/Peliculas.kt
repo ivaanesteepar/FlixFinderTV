@@ -19,13 +19,24 @@ data class Peliculas (
     val fecha: String? = null,
 
     @SerializedName("poster_path")
-    val imagen: String,
+    val portada: String,
 
     @SerializedName("vote_average")
     val votoPromedio: String,
 
     @SerializedName("vote_count")
-    val numVotos: String
+    val numVotos: String,
+
+    @SerializedName("genre_ids")
+    val generos: List<String>,
+
+    @SerializedName("adult")
+    val esAdulto: Boolean,
+
+    @SerializedName("backdrop_path")
+    val banner: String
+
+
 ) {
     val titulo: String
         get() = tituloOriginal ?: nombreAlternativo ?: "Título desconocido"
