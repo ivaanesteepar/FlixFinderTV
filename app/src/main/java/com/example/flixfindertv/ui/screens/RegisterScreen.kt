@@ -123,8 +123,13 @@ fun RegisterScreen(navController: NavHostController) {
                                             nombre = username.text,
                                             email = email.text,
                                             fotoPerfil = "",
-                                            contenidoVisto = emptyList(),
-                                            generosFavoritos = emptyList()
+                                            contenidoVisto = "",
+                                            generosFavoritos = emptyList(),
+                                            peliculasFavoritas = emptyList(),
+                                            seriesFavoritas = emptyList(),
+                                            seguidores = emptyList(),
+                                            siguiendo = emptyList(),
+                                            numComentarios = 0
                                         )
 
                                         firestore.collection("users")
