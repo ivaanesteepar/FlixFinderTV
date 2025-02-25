@@ -32,7 +32,7 @@ fun BottomNavigationBar(navController: NavController) {
                         contentDescription = item.titulo,
                         modifier = Modifier.padding(top = 20.dp), // Ajusta el espacio superior
                         tint = if (navController.currentDestination?.route == item.ruta)
-                            androidx.compose.ui.graphics.Color.Yellow else androidx.compose.ui.graphics.Color.Unspecified
+                            androidx.compose.ui.graphics.Color.Blue else androidx.compose.ui.graphics.Color.Unspecified
                     )
                 },
                 label = { Text(item.titulo) },
