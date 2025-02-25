@@ -25,7 +25,7 @@ data class Peliculas (
     val votoPromedio: String,
 
     @SerializedName("vote_count")
-    val votos: String
+    val numVotos: String
 ) {
     val titulo: String
         get() = tituloOriginal ?: nombreAlternativo ?: "Título desconocido"
