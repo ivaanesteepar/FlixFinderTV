@@ -110,7 +110,6 @@ class MoviesViewModel : ViewModel() {
     }
 
 
-
     // Función para obtener todas las películas populares
     fun obtenerPeliculasPopulares(apiKey: String, language: String) {
         _isLoading.value = true
@@ -135,6 +134,7 @@ class MoviesViewModel : ViewModel() {
             _listaPeliculas.postValue(allMovies)  // Actualizamos la lista con las películas
             _isLoading.postValue(false)  // Indicamos que hemos terminado de cargar
         }
+        println("nada")
     }
 
     // Función para obtener todas las series populares
@@ -163,4 +163,35 @@ class MoviesViewModel : ViewModel() {
             _isLoading.postValue(false)  // Indicamos que hemos terminado de cargar
         }
     }
+
+    // Función para contar el número de documentos en la colección 'peliculas'
+    fun contarPeliculasEnFirestore() {
+        val moviesRef = db.collection("peliculas")
+
+        // Obtener el número de documentos en la colección
+        moviesRef.get()
+            .addOnSuccessListener { documents ->
+                val documentCount = documents.size()  // El tamaño de los documentos es el número de películas
+                println("Número de películas en Firestore: $documentCount")
+            }
+            .addOnFailureListener { e ->
+                println("Error al contar las películas: ${e.message}")
+            }
+    }
+
+    // Función para contar el número de documentos en la colección 'peliculas'
+    fun contarSeriesEnFirestore() {
+        val moviesRef = db.collection("series")
+
+        // Obtener el número de documentos en la colección
+        moviesRef.get()
+            .addOnSuccessListener { documents ->
+                val documentCount = documents.size()  // El tamaño de los documentos es el número de películas
+                println("Número de series en Firestore: $documentCount")
+            }
+            .addOnFailureListener { e ->
+                println("Error al contar las series: ${e.message}")
+            }
+    }
+
 }

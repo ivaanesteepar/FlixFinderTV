@@ -27,10 +27,14 @@ fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel) {
     val isLoading by viewModel.isLoading.observeAsState(true)
     val series by viewModel.listaSeries.observeAsState(emptyList())
 
-    LaunchedEffect(Unit) {
-        if (movies.isEmpty() && series.isEmpty() && !isLoading) {
+    DisposableEffect(key1 = navController) {
             viewModel.obtenerPeliculasPopulares(apiKey = "6ae1f349f576ac17daf45c3d7dfbae9e", language = "es-ES")
             viewModel.obtenerSeriesPopulares(apiKey = "6ae1f349f576ac17daf45c3d7dfbae9e", language = "es-ES")
+            viewModel.contarPeliculasEnFirestore()
+            viewModel.contarSeriesEnFirestore()
+        onDispose {
+            // Código para limpiar si es necesario cuando la pantalla se sale del ciclo de vida
+            println("Saliendo de la pantalla...")
         }
     }
 
