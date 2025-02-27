@@ -27,6 +27,7 @@ seleniumhqSeleniumJava = "4.11.0"
 seleniumJava = "4.11.0"
 squareupRetrofit = "2.9.0"
 runtimeLivedata = "1.7.8"
+firebaseFirestore = "25.1.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -61,6 +62,7 @@ selenium-java = { module = "org.seleniumhq.selenium:selenium-java", version.ref 
 selenium-java-v400 = { module = "org.seleniumhq.selenium:selenium-java", version.ref = "seleniumhqSeleniumJava" }
 squareup-retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "squareupRetrofit" }
 androidx-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata", version.ref = "runtimeLivedata" }
+firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore", version.ref = "firebaseFirestore" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
