@@ -34,10 +34,27 @@ data class Peliculas (
     val esAdulto: Boolean,
 
     @SerializedName("backdrop_path")
-    val banner: String
+    val banner: String,
+
+    val comentarios: List<Comentario> = listOf()
 
 
 ) {
+    constructor() : this(
+        id = "",
+        tituloOriginal = null,
+        nombreAlternativo = null,
+        descripcion = "",
+        fecha = null,
+        portada = "",
+        votoPromedio = "0.0",
+        numVotos = "0",
+        generos = listOf(),
+        esAdulto = false,
+        banner = "",
+        comentarios = listOf()
+    )
+
     val titulo: String
         get() = tituloOriginal ?: nombreAlternativo ?: "Título desconocido"
 }
@@ -46,5 +63,7 @@ data class Peliculas (
 data class MovieResponse(
     @SerializedName("results")
     val resultados: List<Peliculas>,
-    val total_pages: Int
+
+    @SerializedName("total_pages")
+    val totalPages: Int
 )

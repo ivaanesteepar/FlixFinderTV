@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.flixfindertv.ui.screens.DetailsScreen
 import com.example.flixfindertv.ui.screens.ExploreScreen
 import com.example.flixfindertv.ui.screens.ForgotPasswordScreen
 import com.example.flixfindertv.ui.screens.HomeScreen
@@ -24,7 +25,7 @@ fun FlixFinderTVroutes() {
     Scaffold { padding ->
         NavHost(
             navController = navController,
-            startDestination = "home", // Pantalla de inicio es el login
+            startDestination = "login", // Pantalla de inicio es el login
             modifier = Modifier.padding(padding)
         ) {
             composable("login") {
@@ -47,6 +48,13 @@ fun FlixFinderTVroutes() {
             }
             composable("forgot_password") {
                 ForgotPasswordScreen(navController)  // Pantalla de recuperación de contraseña
+            }
+            composable("detalles/{id}") { backStackEntry ->
+                val id = backStackEntry.arguments?.getString("id")
+                if (id != null){
+                    DetailsScreen(navController, id)
+                }
+
             }
 
         }

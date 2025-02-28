@@ -2,8 +2,8 @@ package com.example.flixfindertv.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
@@ -20,6 +20,12 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.flixfindertv.ui.viewmodels.MoviesViewModel
 import com.example.flixfindertv.utils.BottomNavigationBar
 
+fun contieneCaracteresNoLatinos(titulo: String): Boolean {
+    // Expresión regular para detectar caracteres en chino, japonés, coreano o ruso
+    val regex = "[\\u4E00-\\u9FFF\\u3040-\\u30FF\\uAC00-\\uD7AF\\u0400-\\u04FF]".toRegex()
+    return regex.containsMatchIn(titulo)
+}
+
 @Composable
 fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel) {
 
@@ -28,15 +34,35 @@ fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel) {
     val series by viewModel.listaSeries.observeAsState(emptyList())
 
     DisposableEffect(key1 = navController) {
-            viewModel.obtenerPeliculasPopulares(apiKey = "6ae1f349f576ac17daf45c3d7dfbae9e", language = "es-ES")
-            viewModel.obtenerSeriesPopulares(apiKey = "6ae1f349f576ac17daf45c3d7dfbae9e", language = "es-ES")
-            viewModel.contarPeliculasEnFirestore()
-            viewModel.contarSeriesEnFirestore()
+        viewModel.obtenerPeliculasPopulares(
+            apiKey = "6ae1f349f576ac17daf45c3d7dfbae9e",
+            language = "en-US"
+        )
+        viewModel.obtenerSeriesPopulares(
+            apiKey = "6ae1f349f576ac17daf45c3d7dfbae9e",
+            language = "en-US"
+        )
+        viewModel.obtenerPeliculasPopularesLocal(
+            apiKey = "6ae1f349f576ac17daf45c3d7dfbae9e",
+            language = "en-US"
+        )
+        viewModel.obtenerSeriesPopularesLocal(
+            apiKey = "6ae1f349f576ac17daf45c3d7dfbae9e",
+            language = "en-US"
+        )
+
         onDispose {
-            // Código para limpiar si es necesario cuando la pantalla se sale del ciclo de vida
             println("Saliendo de la pantalla...")
         }
     }
+
+    // Usa LaunchedEffect para las funciones suspend
+    LaunchedEffect(key1 = navController) {
+        val peliculasEnFirestore = viewModel.contarPeliculasEnFirestore()
+        val seriesEnFirestore = viewModel.contarSeriesEnFirestore()
+        println("Películas en Firestore: $peliculasEnFirestore y Series en Firestore: $seriesEnFirestore")
+    }
+
 
     Scaffold(
         bottomBar = { BottomNavigationBar(navController) }
@@ -59,6 +85,7 @@ fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel) {
                     CircularProgressIndicator()
                 }
             } else {
+                println("Peliculas cargadas: ${movies.size}")
                 if (movies.isNotEmpty()) {
                     LazyRow(
                         modifier = Modifier
@@ -66,13 +93,15 @@ fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel) {
                             .height(200.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(movies) { movie ->
+                        items(movies.filter { !contieneCaracteresNoLatinos(it.titulo) }) { movie ->
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 modifier = Modifier.width(120.dp)
                             ) {
                                 Card(
-                                    modifier = Modifier.fillMaxWidth(),
+                                    modifier = Modifier.fillMaxWidth().clickable {
+                                        navController.navigate("detalles/${movie.id}")
+                                    },
                                     elevation = CardDefaults.cardElevation(4.dp)
                                 ) {
                                     Column {
@@ -81,7 +110,8 @@ fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel) {
                                                 .fillMaxWidth()
                                                 .height(160.dp)
                                         ) {
-                                            val imageUrl = "https://image.tmdb.org/t/p/w500${movie.portada}"
+                                            val imageUrl =
+                                                "https://image.tmdb.org/t/p/w500${movie.portada}"
                                             Image(
                                                 painter = rememberAsyncImagePainter(imageUrl),
                                                 contentDescription = "Imagen de la película",
@@ -97,7 +127,9 @@ fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel) {
                                         ) {
                                             Text(
                                                 text = movie.titulo,
-                                                style = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
+                                                style = MaterialTheme.typography.bodyMedium.copy(
+                                                    color = Color.White
+                                                ),
                                                 maxLines = 1,
                                                 overflow = TextOverflow.Ellipsis,
                                                 modifier = Modifier.padding(horizontal = 8.dp)
@@ -121,13 +153,15 @@ fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel) {
                             .height(200.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(series) { serie ->
+                        items(series.filter { !contieneCaracteresNoLatinos(it.titulo) }) { serie ->
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 modifier = Modifier.width(120.dp)
                             ) {
                                 Card(
-                                    modifier = Modifier.fillMaxWidth(),
+                                    modifier = Modifier.fillMaxWidth().clickable {
+                                        navController.navigate("detalles/${serie.id}")
+                                    },
                                     elevation = CardDefaults.cardElevation(4.dp)
                                 ) {
                                     Column {
@@ -136,7 +170,8 @@ fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel) {
                                                 .fillMaxWidth()
                                                 .height(160.dp)
                                         ) {
-                                            val imageUrl = "https://image.tmdb.org/t/p/w500${serie.portada}"
+                                            val imageUrl =
+                                                "https://image.tmdb.org/t/p/w500${serie.portada}"
                                             Image(
                                                 painter = rememberAsyncImagePainter(imageUrl),
                                                 contentDescription = "Imagen de la serie",
@@ -152,7 +187,9 @@ fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel) {
                                         ) {
                                             Text(
                                                 text = serie.titulo,
-                                                style = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
+                                                style = MaterialTheme.typography.bodyMedium.copy(
+                                                    color = Color.White
+                                                ),
                                                 maxLines = 1,
                                                 overflow = TextOverflow.Ellipsis,
                                                 modifier = Modifier.padding(horizontal = 8.dp)

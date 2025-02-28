@@ -7,10 +7,11 @@ import retrofit2.Response
 
 interface WebService {
 
+    // Peliculas populares
     @GET("movie/popular")
     suspend fun getPopularMovies(
         @Query("api_key") apiKey: String,
-        @Query("language") language: String = "es-ES",
+        @Query("language") language: String = "en-US",
         @Query("page") page: Int
     ): Response<MovieResponse>
 
@@ -18,7 +19,7 @@ interface WebService {
     @GET("tv/popular")
     suspend fun getPopularTVShows(
         @Query("api_key") apiKey: String,
-        @Query("language") language: String = "es-ES",
+        @Query("language") language: String = "en-US",
         @Query("page") page: Int
     ): Response<MovieResponse>
 

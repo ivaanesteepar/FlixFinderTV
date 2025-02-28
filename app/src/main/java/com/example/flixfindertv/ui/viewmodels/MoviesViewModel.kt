@@ -8,6 +8,7 @@ import com.example.flixfindertv.models.Peliculas
 import com.example.flixfindertv.network.RetrofitClient
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 class MoviesViewModel : ViewModel() {
     private val db = FirebaseFirestore.getInstance()  // Instancia de Firestore
@@ -39,7 +40,8 @@ class MoviesViewModel : ViewModel() {
                 "numVotos" to movie.numVotos,
                 "generos" to movie.generos,
                 "esAdulto" to movie.esAdulto,
-                "banner" to movie.banner
+                "banner" to movie.banner,
+                "comentarios" to movie.comentarios
             )
 
             // Comprobar si la película ya existe en Firestore
@@ -83,7 +85,8 @@ class MoviesViewModel : ViewModel() {
                 "numVotos" to serie.numVotos,
                 "generos" to serie.generos,
                 "esAdulto" to serie.esAdulto,
-                "banner" to serie.banner
+                "banner" to serie.banner,
+                "comentarios" to serie.comentarios
             )
 
             // Comprobar si la serie ya existe en Firestore
@@ -109,13 +112,12 @@ class MoviesViewModel : ViewModel() {
         }
     }
 
-
     // Función para obtener todas las películas populares
-    fun obtenerPeliculasPopulares(apiKey: String, language: String) {
+    fun obtenerPeliculasPopularesLocal(apiKey: String, language: String) {
         _isLoading.value = true
         var page = 1
-        val totalPagesToLoad = 5  // Limitar a 5 páginas (100 películas)
-        val allMovies = mutableListOf<Peliculas>()
+        val totalPagesToLoad = 5
+        val peliculasList = mutableListOf<Peliculas>()
 
         viewModelScope.launch {
             while (page <= totalPagesToLoad) {
@@ -124,74 +126,140 @@ class MoviesViewModel : ViewModel() {
                 if (response.isSuccessful) {
                     val movieResponse = response.body()
                     movieResponse?.let {
-                        allMovies.addAll(it.resultados)  // Añadir películas de la página actual
-                        saveMoviesToFirestore(it.resultados)
+                        // Aquí agregas las películas de la página actual a la lista local
+                        peliculasList.addAll(it.resultados)
                     }
                 }
                 page++
             }
-
-            _listaPeliculas.postValue(allMovies)  // Actualizamos la lista con las películas
+            _listaPeliculas.postValue(peliculasList)
             _isLoading.postValue(false)  // Indicamos que hemos terminado de cargar
         }
-        println("nada")
     }
 
-    // Función para obtener todas las series populares
-    fun obtenerSeriesPopulares(apiKey: String, language: String) {
+    // Función para obtener todas las películas populares
+    fun obtenerSeriesPopularesLocal(apiKey: String, language: String) {
         _isLoading.value = true
         var page = 1
-        val totalPagesToLoad = 5  // Limitar a 5 páginas (100 series)
-        val allSeries = mutableListOf<Peliculas>()
+        val totalPagesToLoad = 5
+        val seriesList = mutableListOf<Peliculas>()
 
         viewModelScope.launch {
             while (page <= totalPagesToLoad) {
                 val response = RetrofitClient.webService.getPopularTVShows(apiKey, language, page)
 
                 if (response.isSuccessful) {
-                    val seriesResponse = response.body()
-                    println("Series Response: $seriesResponse")  // Imprimir la respuesta
-                    seriesResponse?.let {
-                        allSeries.addAll(it.resultados)  // Añadir series de la página actual
-                        saveSeriesToFirestore(it.resultados)  // Guardar las series en Firestore
+                    val movieResponse = response.body()
+                    movieResponse?.let {
+                        // Aquí agregas las películas de la página actual a la lista local
+                        seriesList.addAll(it.resultados)
                     }
                 }
                 page++
             }
 
-            _listaSeries.postValue(allSeries)  // Actualizamos la lista con las series
+            _listaSeries.postValue(seriesList)
             _isLoading.postValue(false)  // Indicamos que hemos terminado de cargar
         }
     }
 
-    // Función para contar el número de documentos en la colección 'peliculas'
-    fun contarPeliculasEnFirestore() {
-        val moviesRef = db.collection("peliculas")
 
-        // Obtener el número de documentos en la colección
-        moviesRef.get()
-            .addOnSuccessListener { documents ->
-                val documentCount = documents.size()  // El tamaño de los documentos es el número de películas
-                println("Número de películas en Firestore: $documentCount")
+
+    // Función para obtener todas las películas populares
+    fun obtenerPeliculasPopulares(apiKey: String, language: String) {
+        _isLoading.value = true
+        var page = 1
+        val totalPagesToLoad = 50
+        val maxPeliculasEnFirestore = 1000
+
+        viewModelScope.launch {
+            val peliculasEnFirestore = contarPeliculasEnFirestore()
+            if (peliculasEnFirestore >= maxPeliculasEnFirestore) {
+                _isLoading.postValue(false)
+                println("saliendoPelis")
+                return@launch
             }
-            .addOnFailureListener { e ->
-                println("Error al contar las películas: ${e.message}")
+
+            while (page <= totalPagesToLoad) {
+                val response = RetrofitClient.webService.getPopularMovies(apiKey, language, page)
+
+                if (response.isSuccessful) {
+                    val movieResponse = response.body()
+                    movieResponse?.let {
+                        val peliculasActuales = contarPeliculasEnFirestore()
+                        if (peliculasActuales < maxPeliculasEnFirestore) {
+                            saveMoviesToFirestore(it.resultados)
+                        } else {
+                            _isLoading.postValue(false)  // Finalizar carga
+                            return@launch  // Salir de la corrutina en lugar de usar break
+                        }
+                    }
+                }
+                page++
             }
+
+            _isLoading.postValue(false)
+        }
+    }
+
+
+    // Función para obtener todas las películas populares
+    fun obtenerSeriesPopulares(apiKey: String, language: String) {
+        _isLoading.value = true
+        var page = 1
+        val totalPagesToLoad = 50
+        val maxSeriesEnFirestore = 1000
+
+        viewModelScope.launch {
+            val seriesEnFirestore = contarSeriesEnFirestore()
+            if (seriesEnFirestore >= maxSeriesEnFirestore) {
+                _isLoading.postValue(false)
+                println("saliendoSeries")
+                return@launch
+            }
+
+            while (page <= totalPagesToLoad) {
+                val response = RetrofitClient.webService.getPopularMovies(apiKey, language, page)
+
+                if (response.isSuccessful) {
+                    val movieResponse = response.body()
+                    movieResponse?.let {
+                        val seriesActuales = contarSeriesEnFirestore()
+                        if (seriesActuales < maxSeriesEnFirestore) {
+                            saveSeriesToFirestore(it.resultados)
+                        } else {
+                            _isLoading.postValue(false)  // Finalizar carga
+                            return@launch  // Salir de la corrutina en lugar de usar break
+                        }
+                    }
+                }
+                page++
+            }
+
+            _isLoading.postValue(false)
+        }
     }
 
     // Función para contar el número de documentos en la colección 'peliculas'
-    fun contarSeriesEnFirestore() {
-        val moviesRef = db.collection("series")
+    suspend fun contarPeliculasEnFirestore(): Int {
+        return try {
+            val snapshot = db.collection("peliculas").get().await()
+            snapshot.size()  // Devuelve el número total de documentos en la colección
+        } catch (e: Exception) {
+            println("Error al contar películas: ${e.message}")
+            0
+        }
+    }
 
-        // Obtener el número de documentos en la colección
-        moviesRef.get()
-            .addOnSuccessListener { documents ->
-                val documentCount = documents.size()  // El tamaño de los documentos es el número de películas
-                println("Número de series en Firestore: $documentCount")
-            }
-            .addOnFailureListener { e ->
-                println("Error al contar las series: ${e.message}")
-            }
+    // Función para contar el número de documentos en la colección 'peliculas'
+    suspend fun contarSeriesEnFirestore(): Int {
+        return try {
+            val snapshot = db.collection("series").get().await()
+            snapshot.size()  // Devuelve el número total de documentos en la colección
+        } catch (e: Exception) {
+            println("Error al contar series: ${e.message}")
+            0
+        }
     }
 
 }
