@@ -16,6 +16,7 @@ import com.example.flixfindertv.ui.screens.LoginScreen
 import com.example.flixfindertv.ui.screens.ProfileScreen
 import com.example.flixfindertv.ui.screens.RegisterScreen
 import com.example.flixfindertv.ui.screens.SearchScreen
+import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.ui.viewmodels.MoviesViewModel
 
 @Composable
@@ -25,14 +26,15 @@ fun FlixFinderTVroutes() {
     Scaffold { padding ->
         NavHost(
             navController = navController,
-            startDestination = "login", // Pantalla de inicio es el login
+            startDestination = "home", // Pantalla de inicio es el login
             modifier = Modifier.padding(padding)
         ) {
             composable("login") {
                 LoginScreen(navController)  // Pantalla de login
             }
             composable("home") {
-                HomeScreen(navController, moviesViewModel)   // Pantalla de inicio
+                val conexionViewModel: ConexionViewModel = viewModel()
+                HomeScreen(navController, moviesViewModel, conexionViewModel)   // Pantalla de inicio
             }
             composable("register") {
                 RegisterScreen(navController)  // Pantalla de registro

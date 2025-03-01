@@ -17,8 +17,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
+import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.ui.viewmodels.MoviesViewModel
 import com.example.flixfindertv.utils.BottomNavigationBar
+import com.example.flixfindertv.utils.ScreenRecharge
+import java.io.IOException
+import java.net.SocketTimeoutException
 
 fun contieneCaracteresNoLatinos(titulo: String): Boolean {
     // Expresión regular para detectar caracteres en chino, japonés, coreano o ruso
@@ -27,32 +31,58 @@ fun contieneCaracteresNoLatinos(titulo: String): Boolean {
 }
 
 @Composable
-fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel) {
+fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel, conexionViewModel: ConexionViewModel) {
 
     val movies by viewModel.listaPeliculas.observeAsState(emptyList())
     val isLoading by viewModel.isLoading.observeAsState(true)
     val series by viewModel.listaSeries.observeAsState(emptyList())
+    val hayConexion by conexionViewModel.conexionEstablecida
+    var hecho by remember{mutableStateOf(true)}
 
-    DisposableEffect(key1 = navController) {
-        viewModel.obtenerPeliculasPopulares(
-            apiKey = "6ae1f349f576ac17daf45c3d7dfbae9e",
-            language = "en-US"
-        )
-        viewModel.obtenerSeriesPopulares(
-            apiKey = "6ae1f349f576ac17daf45c3d7dfbae9e",
-            language = "en-US"
-        )
-        viewModel.obtenerPeliculasPopularesLocal(
-            apiKey = "6ae1f349f576ac17daf45c3d7dfbae9e",
-            language = "en-US"
-        )
-        viewModel.obtenerSeriesPopularesLocal(
-            apiKey = "6ae1f349f576ac17daf45c3d7dfbae9e",
-            language = "en-US"
-        )
+    // Ejecutar la comprobación de conexión cuando la pantalla se renderiza
+    LaunchedEffect(key1 = navController) {
+        // Esperamos el resultado de la función isOnline() asincrónica
+        conexionViewModel.isOnline()
+        println("la conexion es: $hayConexion")
+    }
 
-        onDispose {
-            println("Saliendo de la pantalla...")
+    LaunchedEffect(hayConexion) {
+        println("la conexion en esta parte es: $hayConexion")
+
+        if (hayConexion && hecho) {
+            try {
+                // Intentamos realizar las peticiones a la API
+                viewModel.obtenerPeliculasPopulares(
+                    apiKey = "6ae1f349f576ac17daf45c3d7dfbae9e",
+                    language = "en-US"
+                )
+                viewModel.obtenerSeriesPopulares(
+                    apiKey = "6ae1f349f576ac17daf45c3d7dfbae9e",
+                    language = "en-US"
+                )
+                viewModel.obtenerPeliculasPopularesLocal(
+                    apiKey = "6ae1f349f576ac17daf45c3d7dfbae9e",
+                    language = "en-US"
+                )
+                viewModel.obtenerSeriesPopularesLocal(
+                    apiKey = "6ae1f349f576ac17daf45c3d7dfbae9e",
+                    language = "en-US"
+                )
+                hecho = false
+            } catch (e: SocketTimeoutException) {
+                // Manejo de timeout (conexión tardada)
+                println("Timeout: La solicitud de red ha tardado demasiado.")
+            } catch (e: IOException) {
+                // Manejo de otros errores de red (por ejemplo, sin conexión)
+                println("Error de red: ${e.message}")
+                // Notificar al usuario que la red no está disponible y permitir recargar
+            } catch (e: Exception) {
+                // Manejo de otras excepciones inesperadas
+                println("Error inesperado: ${e.message}")
+            }
+        } else {
+            println("No hay conexión. Se mostrarán datos locales.")
+            // Si no hay conexión, manejar UI mostrando los datos locales, y posiblemente mostrar mensaje de error
         }
     }
 
@@ -74,66 +104,90 @@ fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel) {
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            Text("Películas populares", style = MaterialTheme.typography.headlineMedium)
-            Spacer(modifier = Modifier.height(8.dp))
-
-            if (isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
+            if (!hayConexion) {
+                ScreenRecharge(conexionViewModel){
+                    if (hayConexion) {
+                        viewModel.obtenerPeliculasPopulares(
+                            apiKey = "6ae1f349f576ac17daf45c3d7dfbae9e",
+                            language = "en-US"
+                        )
+                        viewModel.obtenerSeriesPopulares(
+                            apiKey = "6ae1f349f576ac17daf45c3d7dfbae9e",
+                            language = "en-US"
+                        )
+                    } else {
+                        // Si no hay conexión, podrías mostrar un mensaje o manejar este caso.
+                        println("No se pudo recargar, sigue sin conexión.")
+                    }
                 }
-            } else {
-                println("Peliculas cargadas: ${movies.size}")
-                if (movies.isNotEmpty()) {
-                    LazyRow(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+            }
+
+            // Solo mostrar la lista de películas y series si hay conexión
+            if (hayConexion && !isLoading) {
+                // Popular Movies Section
+                Text("Popular movies", style = MaterialTheme.typography.headlineMedium)
+                Spacer(modifier = Modifier.height(8.dp))
+
+                if (isLoading) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
                     ) {
-                        items(movies.filter { !contieneCaracteresNoLatinos(it.titulo) }) { movie ->
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier.width(120.dp)
-                            ) {
-                                Card(
-                                    modifier = Modifier.fillMaxWidth().clickable {
-                                        navController.navigate("detalles/${movie.id}")
-                                    },
-                                    elevation = CardDefaults.cardElevation(4.dp)
+                        CircularProgressIndicator()
+                    }
+                } else {
+                    println("Peliculas cargadas: ${movies.size}")
+                    if (movies.isNotEmpty()) {
+                        LazyRow(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(movies.filter { !contieneCaracteresNoLatinos(it.titulo) }) { movie ->
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier.width(120.dp)
                                 ) {
-                                    Column {
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(160.dp)
-                                        ) {
-                                            val imageUrl =
-                                                "https://image.tmdb.org/t/p/w500${movie.portada}"
-                                            Image(
-                                                painter = rememberAsyncImagePainter(imageUrl),
-                                                contentDescription = "Imagen de la película",
-                                                modifier = Modifier.fillMaxSize(),
-                                                contentScale = ContentScale.Crop
-                                            )
-                                        }
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .background(Color(0xFF6200EE))
-                                                .padding(4.dp)
-                                        ) {
-                                            Text(
-                                                text = movie.titulo,
-                                                style = MaterialTheme.typography.bodyMedium.copy(
-                                                    color = Color.White
-                                                ),
-                                                maxLines = 1,
-                                                overflow = TextOverflow.Ellipsis,
-                                                modifier = Modifier.padding(horizontal = 8.dp)
-                                            )
+                                    Card(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                navController.navigate("detalles/${movie.id}")
+                                            },
+                                        elevation = CardDefaults.cardElevation(4.dp)
+                                    ) {
+                                        Column {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(160.dp)
+                                            ) {
+                                                val imageUrl =
+                                                    "https://image.tmdb.org/t/p/w500${movie.portada}"
+                                                Image(
+                                                    painter = rememberAsyncImagePainter(imageUrl),
+                                                    contentDescription = "Imagen de la película",
+                                                    modifier = Modifier.fillMaxSize(),
+                                                    contentScale = ContentScale.Crop
+                                                )
+                                            }
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .background(Color(0xFF6200EE))
+                                                    .padding(4.dp)
+                                            ) {
+                                                Text(
+                                                    text = movie.titulo,
+                                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                                        color = Color.White
+                                                    ),
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis,
+                                                    modifier = Modifier.padding(horizontal = 8.dp)
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -141,8 +195,11 @@ fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel) {
                         }
                     }
                 }
+
                 Spacer(modifier = Modifier.height(16.dp))
-                Text("Series populares", style = MaterialTheme.typography.headlineMedium)
+
+                // Popular Series Section
+                Text("Popular series", style = MaterialTheme.typography.headlineMedium)
                 Spacer(modifier = Modifier.height(8.dp))
 
                 println("Series cargadas: ${series.size}")
@@ -159,9 +216,11 @@ fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel) {
                                 modifier = Modifier.width(120.dp)
                             ) {
                                 Card(
-                                    modifier = Modifier.fillMaxWidth().clickable {
-                                        navController.navigate("detalles/${serie.id}")
-                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            navController.navigate("detalles/${serie.id}")
+                                        },
                                     elevation = CardDefaults.cardElevation(4.dp)
                                 ) {
                                     Column {
@@ -205,3 +264,4 @@ fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel) {
         }
     }
 }
+
