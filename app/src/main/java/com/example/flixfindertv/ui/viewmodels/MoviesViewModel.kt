@@ -219,7 +219,7 @@ class MoviesViewModel : ViewModel() {
             }
 
             while (page <= totalPagesToLoad) {
-                val response = RetrofitClient.webService.getPopularMovies(apiKey, language, page)
+                val response = RetrofitClient.webService.getPopularTVShows(apiKey, language, page)
 
                 if (response.isSuccessful) {
                     val movieResponse = response.body()
