@@ -1,0 +1,8 @@
+@Compo
+fun NewQuestionsScreen() {
+    Box(
+
+    ){
+
+    }
+}

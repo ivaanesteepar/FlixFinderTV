@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun LoginScreen(navController: NavHostController) {
@@ -93,15 +94,36 @@ fun LoginScreen(navController: NavHostController) {
                     } else {
                         isLoading = true
                         errorMessage = null
-                        // Attempt to log in with Firebase Authentication
                         auth.signInWithEmailAndPassword(email.text, password.text)
                             .addOnCompleteListener { task ->
-                                isLoading = false
                                 if (task.isSuccessful) {
-                                    // If login is successful, navigate to the home screen
-                                    navController.navigate("home") // Replace "home" with your main screen route
+                                    val user = auth.currentUser
+                                    if (user != null) {
+                                        val userId = user.uid
+                                        val db = FirebaseFirestore.getInstance()
+                                        val userRef = db.collection("usuarios").document(userId)
+
+                                        userRef.get()
+                                            .addOnSuccessListener { document ->
+                                                isLoading = false
+                                                if (document.exists()) {
+                                                    val esNuevo = document.getBoolean("esNuevo") ?: false
+                                                    if (esNuevo) {
+                                                        navController.navigate("questions") // Ir a la pantalla de preguntas
+                                                    } else {
+                                                        navController.navigate("home") // Ir a la pantalla principal
+                                                    }
+                                                } else {
+                                                    errorMessage = "User data not found"
+                                                }
+                                            }
+                                            .addOnFailureListener {
+                                                isLoading = false
+                                                errorMessage = "Error fetching user data"
+                                            }
+                                    }
                                 } else {
-                                    // If it fails, show the error
+                                    isLoading = false
                                     errorMessage = "Oops! Something went wrong. Please check your credentials and try again."
                                 }
                             }
@@ -111,6 +133,7 @@ fun LoginScreen(navController: NavHostController) {
             ) {
                 Text(text = "Log In")
             }
+
 
             Spacer(modifier = Modifier.height(16.dp))
 

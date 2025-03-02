@@ -132,7 +132,7 @@ fun RegisterScreen(navController: NavHostController) {
                                             numComentarios = 0
                                         )
 
-                                        firestore.collection("users")
+                                        firestore.collection("usuarios")
                                             .document(user.uid)
                                             .set(newUser)
                                             .addOnSuccessListener {

@@ -11,5 +11,6 @@ data class Usuarios (
     val seriesFavoritas: List<String> = emptyList(),
     val peliculasFavoritas: List<String> = emptyList(),
     val contenidoVisto: String = "", // para recomendaciones (solo se almacena 1 pelicula/serie)
-    val generosFavoritos: List<String> = emptyList() // para recomendaciones
+    val generosFavoritos: List<String> = emptyList(), // para recomendaciones
+    val esNuevo: Boolean = true
 )

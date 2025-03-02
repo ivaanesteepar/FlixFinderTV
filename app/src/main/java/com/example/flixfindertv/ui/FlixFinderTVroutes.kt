@@ -13,6 +13,7 @@ import com.example.flixfindertv.ui.screens.ExploreScreen
 import com.example.flixfindertv.ui.screens.ForgotPasswordScreen
 import com.example.flixfindertv.ui.screens.HomeScreen
 import com.example.flixfindertv.ui.screens.LoginScreen
+import com.example.flixfindertv.ui.screens.NewQuestionsScreen
 import com.example.flixfindertv.ui.screens.ProfileScreen
 import com.example.flixfindertv.ui.screens.RegisterScreen
 import com.example.flixfindertv.ui.screens.SearchScreen
@@ -26,7 +27,7 @@ fun FlixFinderTVroutes() {
     Scaffold { padding ->
         NavHost(
             navController = navController,
-            startDestination = "home", // Pantalla de inicio es el login
+            startDestination = "login", // Pantalla de inicio es el login
             modifier = Modifier.padding(padding)
         ) {
             composable("login") {
@@ -56,7 +57,9 @@ fun FlixFinderTVroutes() {
                 if (id != null){
                     DetailsScreen(navController, id)
                 }
-
+            }
+            composable("questions") {
+                NewQuestionsScreen(navController)
             }
 
         }
