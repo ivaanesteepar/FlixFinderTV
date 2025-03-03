@@ -27,7 +27,7 @@ fun FlixFinderTVroutes() {
     Scaffold { padding ->
         NavHost(
             navController = navController,
-            startDestination = "login", // Pantalla de inicio es el login
+            startDestination = "home", // Pantalla de inicio es el login
             modifier = Modifier.padding(padding)
         ) {
             composable("login") {
@@ -52,12 +52,15 @@ fun FlixFinderTVroutes() {
             composable("forgot_password") {
                 ForgotPasswordScreen(navController)  // Pantalla de recuperación de contraseña
             }
-            composable("detalles/{id}") { backStackEntry ->
+            composable("detalles/{id}/{esSerie}") { backStackEntry ->
                 val id = backStackEntry.arguments?.getString("id")
-                if (id != null){
-                    DetailsScreen(navController, id)
+                val esSerie = backStackEntry.arguments?.getString("esSerie")?.toBoolean() ?: false
+
+                if (id != null) {
+                    DetailsScreen(navController, id, esSerie)
                 }
             }
+
             composable("questions") {
                 NewQuestionsScreen(navController)
             }

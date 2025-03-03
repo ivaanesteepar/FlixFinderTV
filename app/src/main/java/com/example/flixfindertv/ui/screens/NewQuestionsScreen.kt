@@ -53,15 +53,15 @@ fun NewQuestionsScreen(navController: NavHostController) {
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     filaGeneros.forEach { genero ->
-                        Box(modifier = Modifier.weight(1f)) {  // Se aplica el peso aquí, no dentro de la Card
+                        Box(modifier = Modifier.weight(1f)) {  // Se aplica el peso de cada Card
                             GeneroCard(
                                 genero = genero,
                                 isSelected = generosSeleccionados.contains(genero),
                                 onClick = {
-                                    if (generosSeleccionados.contains(genero)) { // si deseleccionamos el género
+                                    if (generosSeleccionados.contains(genero)) { // Si deseleccionamos el género
                                         generosSeleccionados = generosSeleccionados - genero
                                         errorMessage = null
-                                    } else if (generosSeleccionados.size < 2) { // si seleccionamos el género
+                                    } else if (generosSeleccionados.size < 2) { // Si seleccionamos el género
                                         generosSeleccionados = generosSeleccionados + genero
                                         errorMessage = null
                                     } else {
@@ -85,7 +85,7 @@ fun NewQuestionsScreen(navController: NavHostController) {
 
         Button(
             onClick = {
-                if (generosSeleccionados.isNotEmpty()) {
+                if (generosSeleccionados.size == 2) {
                     // Obtener el ID del usuario actual
                     val userId = auth.currentUser?.uid
                     if (userId != null) {
@@ -107,7 +107,7 @@ fun NewQuestionsScreen(navController: NavHostController) {
                         errorMessage = "No se pudo obtener el usuario actual"
                     }
                 } else {
-                    errorMessage = "Debes seleccionar al menos un género"
+                    errorMessage = "Debes seleccionar dos géneros"
                 }
             },
             enabled = generosSeleccionados.isNotEmpty()

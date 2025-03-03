@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -20,6 +21,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.ui.viewmodels.MoviesViewModel
 import com.example.flixfindertv.utils.BottomNavigationBar
+import com.example.flixfindertv.utils.PreferencesManager
 import com.example.flixfindertv.utils.ScreenRecharge
 import java.io.IOException
 import java.net.SocketTimeoutException
@@ -37,7 +39,13 @@ fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel, con
     val isLoading by viewModel.isLoading.observeAsState(true)
     val series by viewModel.listaSeries.observeAsState(emptyList())
     val hayConexion by conexionViewModel.conexionEstablecida
-    var hecho by remember{mutableStateOf(true)}
+
+    val context = LocalContext.current
+    val preferencesManager = remember { PreferencesManager(context) }
+    val shouldFetch = preferencesManager.getShouldFetch()
+
+    println("Valor de shouldFetch en SharedPreferences: $shouldFetch")
+
 
     // Ejecutar la comprobación de conexión cuando la pantalla se renderiza
     LaunchedEffect(key1 = navController) {
@@ -46,10 +54,10 @@ fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel, con
         println("la conexion es: $hayConexion")
     }
 
+    // Se ejecuta siempre que cambie el valor de 'hayConexion'
     LaunchedEffect(hayConexion) {
         println("la conexion en esta parte es: $hayConexion")
-
-        if (hayConexion && hecho) {
+        if (hayConexion && shouldFetch) {
             try {
                 // Intentamos realizar las peticiones a la API
                 viewModel.obtenerPeliculasPopulares(
@@ -60,16 +68,10 @@ fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel, con
                     apiKey = "6ae1f349f576ac17daf45c3d7dfbae9e",
                     language = "en-US"
                 )
-                viewModel.obtenerPeliculasPopularesLocal(
-                    apiKey = "6ae1f349f576ac17daf45c3d7dfbae9e",
-                    language = "en-US"
-                )
-                viewModel.obtenerSeriesPopularesLocal(
-                    apiKey = "6ae1f349f576ac17daf45c3d7dfbae9e",
-                    language = "en-US"
-                )
-                hecho = false
-            } catch (e: SocketTimeoutException) {
+                // Guardamos en SharedPreferences que ya se han cargado los datos
+                preferencesManager.setShouldFetch(false)
+            }
+            catch (e: SocketTimeoutException) {
                 // Manejo de timeout (conexión tardada)
                 println("Timeout: La solicitud de red ha tardado demasiado.")
             } catch (e: IOException) {
@@ -80,13 +82,19 @@ fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel, con
                 // Manejo de otras excepciones inesperadas
                 println("Error inesperado: ${e.message}")
             }
-        } else {
-            println("No hay conexión. Se mostrarán datos locales.")
-            // Si no hay conexión, manejar UI mostrando los datos locales, y posiblemente mostrar mensaje de error
+        } else if (hayConexion) {
+            viewModel.obtenerPeliculasPopularesLocal(
+                apiKey = "6ae1f349f576ac17daf45c3d7dfbae9e",
+                language = "en-US"
+            )
+            viewModel.obtenerSeriesPopularesLocal(
+                apiKey = "6ae1f349f576ac17daf45c3d7dfbae9e",
+                language = "en-US"
+            )
         }
     }
 
-    // Usa LaunchedEffect para las funciones suspend
+    // Devuelve el número de películas y series en firestore cada vez que se entra en esta página
     LaunchedEffect(key1 = navController) {
         val peliculasEnFirestore = viewModel.contarPeliculasEnFirestore()
         val seriesEnFirestore = viewModel.contarSeriesEnFirestore()
@@ -107,87 +115,84 @@ fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel, con
             if (!hayConexion) {
                 ScreenRecharge(conexionViewModel){
                     if (hayConexion) {
-                        viewModel.obtenerPeliculasPopulares(
+                        viewModel.obtenerPeliculasPopularesLocal(
                             apiKey = "6ae1f349f576ac17daf45c3d7dfbae9e",
                             language = "en-US"
                         )
-                        viewModel.obtenerSeriesPopulares(
+                        viewModel.obtenerSeriesPopularesLocal(
                             apiKey = "6ae1f349f576ac17daf45c3d7dfbae9e",
                             language = "en-US"
                         )
                     } else {
-                        // Si no hay conexión, podrías mostrar un mensaje o manejar este caso.
                         println("No se pudo recargar, sigue sin conexión.")
                     }
                 }
             }
 
-            // Solo mostrar la lista de películas y series si hay conexión
-            if (hayConexion && !isLoading) {
-                // Popular Movies Section
-                Text("Popular movies", style = MaterialTheme.typography.headlineMedium)
-                Spacer(modifier = Modifier.height(8.dp))
+            // Mostrar el indicador de carga solo si hay conexión y estamos cargando datos
+            if (isLoading && (movies.isEmpty() && series.isEmpty())) {
+                // Mostrar el indicador de carga solo si los datos no están cargados y la carga está en proceso
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            } else {
+                // Mostrar las películas solo si hay películas cargadas
+                if (movies.isNotEmpty()) {
+                    Text("Popular movies", style = MaterialTheme.typography.headlineMedium)
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                if (isLoading) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
+                    LazyRow(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        CircularProgressIndicator()
-                    }
-                } else {
-                    println("Peliculas cargadas: ${movies.size}")
-                    if (movies.isNotEmpty()) {
-                        LazyRow(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(200.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            items(movies.filter { !contieneCaracteresNoLatinos(it.titulo) }) { movie ->
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    modifier = Modifier.width(120.dp)
+                        items(movies.filter { !contieneCaracteresNoLatinos(it.titulo) }) { movie ->
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.width(120.dp)
+                            ) {
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            navController.navigate("detalles/${movie.id}/false")
+                                        },
+                                    elevation = CardDefaults.cardElevation(4.dp)
                                 ) {
-                                    Card(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clickable {
-                                                navController.navigate("detalles/${movie.id}")
-                                            },
-                                        elevation = CardDefaults.cardElevation(4.dp)
-                                    ) {
-                                        Column {
-                                            Box(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .height(160.dp)
-                                            ) {
-                                                val imageUrl =
-                                                    "https://image.tmdb.org/t/p/w500${movie.portada}"
-                                                Image(
-                                                    painter = rememberAsyncImagePainter(imageUrl),
-                                                    contentDescription = "Imagen de la película",
-                                                    modifier = Modifier.fillMaxSize(),
-                                                    contentScale = ContentScale.Crop
-                                                )
-                                            }
-                                            Box(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .background(Color(0xFF6200EE))
-                                                    .padding(4.dp)
-                                            ) {
-                                                Text(
-                                                    text = movie.titulo,
-                                                    style = MaterialTheme.typography.bodyMedium.copy(
-                                                        color = Color.White
-                                                    ),
-                                                    maxLines = 1,
-                                                    overflow = TextOverflow.Ellipsis,
-                                                    modifier = Modifier.padding(horizontal = 8.dp)
-                                                )
-                                            }
+                                    Column {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(160.dp)
+                                        ) {
+                                            val imageUrl =
+                                                "https://image.tmdb.org/t/p/w500${movie.portada}"
+                                            Image(
+                                                painter = rememberAsyncImagePainter(imageUrl),
+                                                contentDescription = "Imagen de la película",
+                                                modifier = Modifier.fillMaxSize(),
+                                                contentScale = ContentScale.Crop
+                                            )
+                                        }
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .background(Color(0xFF6200EE))
+                                                .padding(4.dp)
+                                        ) {
+                                            Text(
+                                                text = movie.titulo,
+                                                style = MaterialTheme.typography.bodyMedium.copy(
+                                                    color = Color.White
+                                                ),
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
+                                                modifier = Modifier.padding(horizontal = 8.dp)
+                                            )
                                         }
                                     }
                                 }
@@ -198,12 +203,11 @@ fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel, con
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Popular Series Section
-                Text("Popular series", style = MaterialTheme.typography.headlineMedium)
-                Spacer(modifier = Modifier.height(8.dp))
-
-                println("Series cargadas: ${series.size}")
+                // Mostrar las series solo si hay series cargadas
                 if (series.isNotEmpty()) {
+                    Text("Popular series", style = MaterialTheme.typography.headlineMedium)
+                    Spacer(modifier = Modifier.height(8.dp))
+
                     LazyRow(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -219,7 +223,7 @@ fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel, con
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clickable {
-                                            navController.navigate("detalles/${serie.id}")
+                                            navController.navigate("detalles/${serie.id}/true")
                                         },
                                     elevation = CardDefaults.cardElevation(4.dp)
                                 ) {

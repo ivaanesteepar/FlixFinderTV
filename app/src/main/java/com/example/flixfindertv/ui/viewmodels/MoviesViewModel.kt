@@ -41,6 +41,7 @@ class MoviesViewModel : ViewModel() {
                 "generos" to movie.generos,
                 "esAdulto" to movie.esAdulto,
                 "banner" to movie.banner,
+                "popularidad" to movie.popularidad,
                 "comentarios" to movie.comentarios
             )
 
@@ -86,6 +87,7 @@ class MoviesViewModel : ViewModel() {
                 "generos" to serie.generos,
                 "esAdulto" to serie.esAdulto,
                 "banner" to serie.banner,
+                "popularidad" to serie.popularidad,
                 "comentarios" to serie.comentarios
             )
 

@@ -116,6 +116,7 @@ fun searchMovie(firestore: FirebaseFirestore, query: String, onResult: (List<Pel
                         generos = (document.get("generos") as? List<String>) ?: emptyList(),
                         esAdulto = document.getBoolean("esAdulto") ?: false,
                         banner = document.getString("banner") ?: "",
+                        popularidad = document.getDouble("popularity") ?: 0.0,
                         comentarios = (document.get("comentarios") as? List<Map<String, Any>>)?.map {
                             Comentario(
                                 usuario = it["usuario"] as? String ?: "",
@@ -139,6 +140,7 @@ fun searchMovie(firestore: FirebaseFirestore, query: String, onResult: (List<Pel
                         generos = (document.get("generos") as? List<String>) ?: emptyList(),
                         esAdulto = document.getBoolean("esAdulto") ?: false,
                         banner = document.getString("banner") ?: "",
+                        popularidad = document.getDouble("popularity") ?: 0.0,
                         comentarios = (document.get("comentarios") as? List<Map<String, Any>>)?.map {
                             Comentario(
                                 usuario = it["usuario"] as? String ?: "",

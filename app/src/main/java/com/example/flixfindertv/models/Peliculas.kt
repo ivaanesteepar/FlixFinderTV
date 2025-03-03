@@ -36,6 +36,9 @@ data class Peliculas (
     @SerializedName("backdrop_path")
     val banner: String,
 
+    @SerializedName("popularity")
+    val popularidad: Double,
+
     val comentarios: List<Comentario> = listOf()
 
 
@@ -52,6 +55,7 @@ data class Peliculas (
         generos = listOf(),
         esAdulto = false,
         banner = "",
+        popularidad = 0.0,
         comentarios = listOf()
     )
 

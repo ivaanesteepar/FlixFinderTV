@@ -14,20 +14,24 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.example.flixfindertv.models.Peliculas
 
 @Composable
-fun DetailsScreen(navController: NavHostController, id: String) {
+fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean) {
     var movieTitle by remember { mutableStateOf("") }
 
-    // Obtener los detalles de la película con el id
+    // Obtener los detalles de la película o serie con el id
     val firestore = FirebaseFirestore.getInstance()
+    val collectionName = if (esSerie) "series" else "peliculas" // Seleccionamos la colección dependiendo de si es una serie o no
 
-    // Cargar los detalles de la película cuando se entra en la pantalla
+    // Cargar los detalles de la película o serie cuando se entra en la pantalla
     LaunchedEffect(id) {
-        firestore.collection("peliculas")
+        firestore.collection(collectionName)
             .document(id)
             .get()
             .addOnSuccessListener { document ->
                 val movie = document.toObject(Peliculas::class.java)
-                movieTitle = movie?.tituloOriginal ?: "Título no encontrado"
+                println("Detalles: $movie")
+
+                // Si el título original no está disponible, usamos el nombre alternativo
+                movieTitle = movie?.tituloOriginal.takeIf { it?.isNotBlank() == true } ?: movie?.nombreAlternativo ?: "Título no encontrado"
             }
     }
 
@@ -35,6 +39,6 @@ fun DetailsScreen(navController: NavHostController, id: String) {
         Text("ID: $id")
         Text("Título: $movieTitle")
     }
-
 }
+
 
