@@ -16,6 +16,7 @@ import com.example.flixfindertv.models.Peliculas
 @Composable
 fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean) {
     var movieTitle by remember { mutableStateOf("") }
+    var moviePopularity by remember { mutableStateOf(0.0) }  // Para almacenar la popularidad
 
     // Obtener los detalles de la película o serie con el id
     val firestore = FirebaseFirestore.getInstance()
@@ -31,14 +32,14 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                 println("Detalles: $movie")
 
                 // Si el título original no está disponible, usamos el nombre alternativo
-                movieTitle = movie?.tituloOriginal.takeIf { it?.isNotBlank() == true } ?: movie?.nombreAlternativo ?: "Título no encontrado"
+                movieTitle = movie?.title.takeIf { it?.isNotBlank() == true } ?: movie?.name ?: "Título no encontrado"
+                moviePopularity = movie?.popularity ?: 0.0  // Asignamos la popularidad de la película o serie
             }
     }
 
     Column {
         Text("ID: $id")
         Text("Título: $movieTitle")
+        Text("Popularidad: $moviePopularity")  // Mostrar la popularidad correctamente
     }
 }
-
-

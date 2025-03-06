@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -36,7 +37,8 @@ fun contieneCaracteresNoLatinos(titulo: String): Boolean {
 fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel, conexionViewModel: ConexionViewModel) {
 
     val movies by viewModel.listaPeliculas.observeAsState(emptyList())
-    val isLoading by viewModel.isLoading.observeAsState(true)
+    val isLoading by viewModel.isLoading.observeAsState(false)
+    val isSeriesLoading by viewModel.isLoadingSeries.observeAsState(false)
     val series by viewModel.listaSeries.observeAsState(emptyList())
     val hayConexion by conexionViewModel.conexionEstablecida
 
@@ -44,63 +46,65 @@ fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel, con
     val preferencesManager = remember { PreferencesManager(context) }
     val shouldFetch = preferencesManager.getShouldFetch()
 
-    println("Valor de shouldFetch en SharedPreferences: $shouldFetch")
-
+    val maxMovies = 100  // Límite de películas
+    val maxSeries = 100  // Límite de series
 
     // Ejecutar la comprobación de conexión cuando la pantalla se renderiza
     LaunchedEffect(key1 = navController) {
-        // Esperamos el resultado de la función isOnline() asincrónica
         conexionViewModel.isOnline()
         println("la conexion es: $hayConexion")
     }
 
-    // Se ejecuta siempre que cambie el valor de 'hayConexion'
+    // Cargar películas y series iniciales cuando haya conexión
     LaunchedEffect(hayConexion) {
-        println("la conexion en esta parte es: $hayConexion")
         if (hayConexion && shouldFetch) {
             try {
-                // Intentamos realizar las peticiones a la API
-                viewModel.obtenerPeliculasPopulares(
-                    apiKey = "6ae1f349f576ac17daf45c3d7dfbae9e",
-                    language = "en-US"
-                )
-                viewModel.obtenerSeriesPopulares(
-                    apiKey = "6ae1f349f576ac17daf45c3d7dfbae9e",
-                    language = "en-US"
-                )
-                // Guardamos en SharedPreferences que ya se han cargado los datos
                 preferencesManager.setShouldFetch(false)
-            }
-            catch (e: SocketTimeoutException) {
-                // Manejo de timeout (conexión tardada)
+            } catch (e: SocketTimeoutException) {
                 println("Timeout: La solicitud de red ha tardado demasiado.")
             } catch (e: IOException) {
-                // Manejo de otros errores de red (por ejemplo, sin conexión)
                 println("Error de red: ${e.message}")
-                // Notificar al usuario que la red no está disponible y permitir recargar
             } catch (e: Exception) {
-                // Manejo de otras excepciones inesperadas
                 println("Error inesperado: ${e.message}")
             }
         } else if (hayConexion) {
-            viewModel.obtenerPeliculasPopularesLocal(
-                apiKey = "6ae1f349f576ac17daf45c3d7dfbae9e",
-                language = "en-US"
-            )
-            viewModel.obtenerSeriesPopularesLocal(
-                apiKey = "6ae1f349f576ac17daf45c3d7dfbae9e",
-                language = "en-US"
-            )
+            // Si no hay conexión, cargamos las películas y series desde la base de datos local
+            viewModel.obtenerPeliculasPopularesLocal()
+            viewModel.obtenerSeriesPopularesLocal()
         }
     }
 
-    // Devuelve el número de películas y series en firestore cada vez que se entra en esta página
-    LaunchedEffect(key1 = navController) {
-        val peliculasEnFirestore = viewModel.contarPeliculasEnFirestore()
-        val seriesEnFirestore = viewModel.contarSeriesEnFirestore()
-        println("Películas en Firestore: $peliculasEnFirestore y Series en Firestore: $seriesEnFirestore")
+    // Detectar cuando el usuario llega a la película 20, 40, 60, etc. y cargar más películas
+    val movieListState = rememberLazyListState()
+    val seriesListState = rememberLazyListState()
+
+    // Cargar más películas cuando llegas al final de la lista de películas
+    LaunchedEffect(movieListState.firstVisibleItemIndex) {
+        val threshold = 5  // Umbral de carga
+
+        // Verificar si estamos cerca del final de la lista de películas y si no se ha alcanzado el límite de 100
+        if (movieListState.firstVisibleItemIndex >= (movies.size - threshold) && !isLoading && movies.size < maxMovies) {
+            viewModel.obtenerPeliculasPopularesLocal()  // Cargar más películas
+        }
     }
 
+    LaunchedEffect(seriesListState.firstVisibleItemIndex) {
+        val threshold = 8  // Umbral de carga
+
+        // Verificar si estamos cerca del final de la lista de series y si no se ha alcanzado el límite de 100
+        if (seriesListState.firstVisibleItemIndex >= (series.size - threshold) && !isSeriesLoading && series.size < maxSeries) {
+            viewModel.obtenerSeriesPopularesLocal()
+        }
+    }
+
+
+    LaunchedEffect(movies) {
+        println("Películas cargadas: ${movies.size}")
+    }
+
+    LaunchedEffect(series) {
+        println("Series cargadas: ${series.size}")
+    }
 
     Scaffold(
         bottomBar = { BottomNavigationBar(navController) }
@@ -113,25 +117,18 @@ fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel, con
                 .padding(16.dp)
         ) {
             if (!hayConexion) {
-                ScreenRecharge(conexionViewModel){
+                ScreenRecharge(conexionViewModel) {
                     if (hayConexion) {
-                        viewModel.obtenerPeliculasPopularesLocal(
-                            apiKey = "6ae1f349f576ac17daf45c3d7dfbae9e",
-                            language = "en-US"
-                        )
-                        viewModel.obtenerSeriesPopularesLocal(
-                            apiKey = "6ae1f349f576ac17daf45c3d7dfbae9e",
-                            language = "en-US"
-                        )
+                        viewModel.obtenerPeliculasPopularesLocal()
+                        viewModel.obtenerSeriesPopularesLocal()
                     } else {
                         println("No se pudo recargar, sigue sin conexión.")
                     }
                 }
             }
 
-            // Mostrar el indicador de carga solo si hay conexión y estamos cargando datos
+            // Mostrar el indicador de carga solo si estamos cargando y no hay películas ni series
             if (isLoading && (movies.isEmpty() && series.isEmpty())) {
-                // Mostrar el indicador de carga solo si los datos no están cargados y la carga está en proceso
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -139,7 +136,7 @@ fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel, con
                     CircularProgressIndicator()
                 }
             } else {
-                // Mostrar las películas solo si hay películas cargadas
+                // Mostrar las películas cargadas
                 if (movies.isNotEmpty()) {
                     Text("Popular movies", style = MaterialTheme.typography.headlineMedium)
                     Spacer(modifier = Modifier.height(8.dp))
@@ -148,6 +145,7 @@ fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel, con
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(200.dp),
+                        state = movieListState,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(movies.filter { !contieneCaracteresNoLatinos(it.titulo) }) { movie ->
@@ -169,8 +167,7 @@ fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel, con
                                                 .fillMaxWidth()
                                                 .height(160.dp)
                                         ) {
-                                            val imageUrl =
-                                                "https://image.tmdb.org/t/p/w500${movie.portada}"
+                                            val imageUrl = "https://image.tmdb.org/t/p/w500${movie.poster_path}"
                                             Image(
                                                 painter = rememberAsyncImagePainter(imageUrl),
                                                 contentDescription = "Imagen de la película",
@@ -186,9 +183,7 @@ fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel, con
                                         ) {
                                             Text(
                                                 text = movie.titulo,
-                                                style = MaterialTheme.typography.bodyMedium.copy(
-                                                    color = Color.White
-                                                ),
+                                                style = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
                                                 maxLines = 1,
                                                 overflow = TextOverflow.Ellipsis,
                                                 modifier = Modifier.padding(horizontal = 8.dp)
@@ -212,6 +207,7 @@ fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel, con
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(200.dp),
+                        state = seriesListState,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(series.filter { !contieneCaracteresNoLatinos(it.titulo) }) { serie ->
@@ -233,8 +229,7 @@ fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel, con
                                                 .fillMaxWidth()
                                                 .height(160.dp)
                                         ) {
-                                            val imageUrl =
-                                                "https://image.tmdb.org/t/p/w500${serie.portada}"
+                                            val imageUrl = "https://image.tmdb.org/t/p/w500${serie.poster_path}"
                                             Image(
                                                 painter = rememberAsyncImagePainter(imageUrl),
                                                 contentDescription = "Imagen de la serie",
@@ -250,9 +245,7 @@ fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel, con
                                         ) {
                                             Text(
                                                 text = serie.titulo,
-                                                style = MaterialTheme.typography.bodyMedium.copy(
-                                                    color = Color.White
-                                                ),
+                                                style = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
                                                 maxLines = 1,
                                                 overflow = TextOverflow.Ellipsis,
                                                 modifier = Modifier.padding(horizontal = 8.dp)
@@ -268,4 +261,7 @@ fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel, con
         }
     }
 }
+
+
+
 

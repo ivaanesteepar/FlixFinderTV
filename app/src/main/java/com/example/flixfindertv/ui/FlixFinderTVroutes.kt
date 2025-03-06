@@ -53,14 +53,10 @@ fun FlixFinderTVroutes() {
                 ForgotPasswordScreen(navController)  // Pantalla de recuperación de contraseña
             }
             composable("detalles/{id}/{esSerie}") { backStackEntry ->
-                val id = backStackEntry.arguments?.getString("id")
+                val id = backStackEntry.arguments?.getString("id") ?: ""
                 val esSerie = backStackEntry.arguments?.getString("esSerie")?.toBoolean() ?: false
-
-                if (id != null) {
-                    DetailsScreen(navController, id, esSerie)
-                }
+                DetailsScreen(navController, id, esSerie)
             }
-
             composable("questions") {
                 NewQuestionsScreen(navController)
             }

@@ -12,6 +12,7 @@ import java.net.URL
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.State
 
+// ViewModel que maneja la conexión
 class ConexionViewModel(application: Application) : AndroidViewModel(application) {
 
     // Usamos un MutableState para manejar el estado de la conexión
@@ -36,7 +37,7 @@ class ConexionViewModel(application: Application) : AndroidViewModel(application
                 println("internet: $internetAvailable")
                 _conexionEstablecida.value = internetAvailable  // Actualizamos el estado
                 println("conexion establecida: ${_conexionEstablecida.value}")
-                return internetAvailable
+                return internetAvailable // true
             }
             _conexionEstablecida.value = false  // No hay conexión
             return false

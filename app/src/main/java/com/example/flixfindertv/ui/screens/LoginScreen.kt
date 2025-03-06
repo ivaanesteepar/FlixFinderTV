@@ -38,7 +38,6 @@ fun LoginScreen(navController: NavHostController) {
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
 
-    val context = LocalContext.current
     val auth = FirebaseAuth.getInstance()
 
     Box(
