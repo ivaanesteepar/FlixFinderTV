@@ -1,7 +1,5 @@
 package com.example.flixfindertv.models
 
-import com.google.gson.annotations.SerializedName
-
 data class Peliculas(
     val id: String = "", // ID de Firebase
     val title: String? = null,
@@ -22,11 +20,3 @@ data class Peliculas(
     val titulo: String
         get() = title ?: name ?: "Título desconocido"
 }
-
-data class MovieResponse(
-    @SerializedName("results")
-    val resultados: List<Peliculas>,
-
-    @SerializedName("total_pages")
-    val totalPages: Int
-)

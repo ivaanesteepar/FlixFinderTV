@@ -25,7 +25,6 @@ import com.example.flixfindertv.models.Peliculas
 import com.example.flixfindertv.ui.viewmodels.GenresViewModel
 import com.example.flixfindertv.ui.viewmodels.MoviesViewModel
 import com.example.flixfindertv.utils.BottomNavigationBar
-import com.example.flixfindertv.utils.PreferencesManager
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.delay
 
@@ -54,30 +53,7 @@ fun SearchScreen(navController: NavHostController) {
         "History", "Western", "Thriller", "Crime", "Science\nFiction", "Mystery", "Documentary"
     )
 
-
-    val context = LocalContext.current
-    val preferencesManager = remember { PreferencesManager(context) }
-    val generosCargados = preferencesManager.getCargarGeneros()
-
     val genreColumns = genres.chunked(9) // Divide la lista en 3 columnas de 9 elementos
-
-    if (generosCargados){
-        LaunchedEffect(Unit) {
-            // Llamar a las funciones de obtener géneros de películas y series
-            genresViewModel.obtenerGenerosPeliculas("6ae1f349f576ac17daf45c3d7dfbae9e", "en-US")
-            genresViewModel.obtenerGenerosSeries("6ae1f349f576ac17daf45c3d7dfbae9e", "en-US")
-
-            // Esperar hasta que los géneros estén disponibles para almacenarlos en Firestore
-            genresViewModel.listaGeneros.observeForever { generos ->
-                if (generos.isNotEmpty()) {
-                    // Almacenar los géneros en Firestore
-                    genresViewModel.almacenarGenerosEnFirestore(generos)
-                }
-            }
-            preferencesManager.setCargarGeneros(false)
-        }
-    }
-
 
     LaunchedEffect(searchQuery) {
         if (searchQuery.isNotEmpty()) {

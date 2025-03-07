@@ -22,7 +22,6 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.ui.viewmodels.MoviesViewModel
 import com.example.flixfindertv.utils.BottomNavigationBar
-import com.example.flixfindertv.utils.PreferencesManager
 import com.example.flixfindertv.utils.ScreenRecharge
 import java.io.IOException
 import java.net.SocketTimeoutException
@@ -42,10 +41,6 @@ fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel, con
     val series by viewModel.listaSeries.observeAsState(emptyList())
     val hayConexion by conexionViewModel.conexionEstablecida
 
-    val context = LocalContext.current
-    val preferencesManager = remember { PreferencesManager(context) }
-    val shouldFetch = preferencesManager.getShouldFetch()
-
     val maxMovies = 100  // Límite de películas
     val maxSeries = 100  // Límite de series
 
@@ -57,17 +52,7 @@ fun HomeScreen(navController: NavHostController, viewModel: MoviesViewModel, con
 
     // Cargar películas y series iniciales cuando haya conexión
     LaunchedEffect(hayConexion) {
-        if (hayConexion && shouldFetch) {
-            try {
-                preferencesManager.setShouldFetch(false)
-            } catch (e: SocketTimeoutException) {
-                println("Timeout: La solicitud de red ha tardado demasiado.")
-            } catch (e: IOException) {
-                println("Error de red: ${e.message}")
-            } catch (e: Exception) {
-                println("Error inesperado: ${e.message}")
-            }
-        } else if (hayConexion) {
+        if (hayConexion) {
             // Si no hay conexión, cargamos las películas y series desde la base de datos local
             viewModel.obtenerPeliculasPopularesLocal()
             viewModel.obtenerSeriesPopularesLocal()
