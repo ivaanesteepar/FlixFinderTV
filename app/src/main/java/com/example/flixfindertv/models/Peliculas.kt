@@ -10,7 +10,7 @@ data class Peliculas(
     val poster_path: String = "",
     val voteAverage: String = "0.0",
     val voteCount: String = "0",
-    val genreIds: List<Int> = emptyList(),
+    val genre_ids: List<Int> = emptyList(),
     val adult: Boolean = false,
     val backdropPath: String = "",
     val popularity: Double = 0.0,

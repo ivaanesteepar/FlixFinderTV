@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "840671473974",
-    "project_id": "flixfindertv-d2340",
-    "storage_bucket": "flixfindertv-d2340.firebasestorage.app"
+    "project_number": "592326014799",
+    "project_id": "flixfindertv-42323",
+    "storage_bucket": "flixfindertv-42323.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:840671473974:android:61499638b19823f61c4397",
+        "mobilesdk_app_id": "1:592326014799:android:53a7c2bc580870ffea373a",
         "android_client_info": {
           "package_name": "com.example.flixfindertv"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCuipTMkYIQnAibxCnKxgeN1a44tecaUDk"
+          "current_key": "AIzaSyDPPlUDGbOvjBhkDluvkgxQVndSp3BLESo"
         }
       ],
       "services": {

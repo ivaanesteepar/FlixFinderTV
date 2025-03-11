@@ -1,8 +1,0 @@
-@Compo
-fun NewQuestionsScreen() {
-    Box(
-
-    ){
-
-    }
-}

@@ -16,7 +16,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -106,14 +105,15 @@ fun SearchScreen(navController: NavHostController) {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(600.dp) // Mantener la caja gris con altura fija de 600.dp
+                                .height(550.dp) // Mantener la caja gris con altura fija de 600.dp
                         ) {
                             // Column con scroll, ajustamos el padding inferior para evitar que se solape con el botón
                             Column(
                                 modifier = Modifier
+                                    .fillMaxHeight()
                                     .verticalScroll(rememberScrollState())  // Permite el desplazamiento vertical
                                     .padding(8.dp)  // Añadir padding si es necesario
-                                    .padding(bottom = 44.dp)  // Ajustamos el padding inferior para no llegar hasta el botón
+
                             ) {
                                 DropdownMenuItem(text = { Text("Filtrar por género") }, onClick = {})
 
@@ -172,7 +172,8 @@ fun SearchScreen(navController: NavHostController) {
                                     Spacer(modifier = Modifier.width(4.dp))
                                     Text("Series")
                                 }
-                                Spacer(modifier = Modifier.height(8.dp))
+                                Spacer(modifier = Modifier.height(40.dp))
+
                             }
 
                             // Colocamos el botón de forma fija al final

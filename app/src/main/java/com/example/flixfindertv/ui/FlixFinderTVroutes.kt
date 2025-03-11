@@ -41,7 +41,8 @@ fun FlixFinderTVroutes() {
                 RegisterScreen(navController)  // Pantalla de registro
             }
             composable("explore") {
-                ExploreScreen(navController)  // Pantalla de exploración
+                val conexionViewModel: ConexionViewModel = viewModel()
+                ExploreScreen(navController, moviesViewModel, conexionViewModel)  // Pantalla de exploración
             }
             composable("search") {
                 SearchScreen(navController)  // Pantalla de búsqueda
