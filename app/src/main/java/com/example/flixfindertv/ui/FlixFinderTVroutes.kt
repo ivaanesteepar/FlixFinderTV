@@ -16,7 +16,6 @@ import com.example.flixfindertv.ui.screens.LoginScreen
 import com.example.flixfindertv.ui.screens.NewQuestionsScreen
 import com.example.flixfindertv.ui.screens.ProfileScreen
 import com.example.flixfindertv.ui.screens.RegisterScreen
-import com.example.flixfindertv.ui.screens.SearchScreen
 import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.ui.viewmodels.MoviesViewModel
 
@@ -27,7 +26,7 @@ fun FlixFinderTVroutes() {
     Scaffold { padding ->
         NavHost(
             navController = navController,
-            startDestination = "home", // Pantalla de inicio es el login
+            startDestination = "login", // Pantalla de inicio es el login
             modifier = Modifier.padding(padding)
         ) {
             composable("login") {
@@ -44,11 +43,9 @@ fun FlixFinderTVroutes() {
                 val conexionViewModel: ConexionViewModel = viewModel()
                 ExploreScreen(navController, moviesViewModel, conexionViewModel)  // Pantalla de exploración
             }
-            composable("search") {
-                SearchScreen(navController)  // Pantalla de búsqueda
-            }
-            composable("profile") {
-                ProfileScreen(navController)  // Pantalla de perfil
+            composable("profile/{uid}") { backStackEntry ->
+                val uid = backStackEntry.arguments?.getString("uid") ?: ""
+                ProfileScreen(navController, uid)
             }
             composable("forgot_password") {
                 ForgotPasswordScreen(navController)  // Pantalla de recuperación de contraseña

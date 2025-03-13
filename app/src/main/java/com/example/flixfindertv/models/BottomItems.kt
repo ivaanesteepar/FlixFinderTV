@@ -14,7 +14,6 @@ sealed class BottomItems(
 ){
     object Home: BottomItems("home", "Home", Icons.Default.Home)
     object Explore: BottomItems("explore", "Explore", Icons.Default.LiveTv)
-    object Search: BottomItems("search", "Search", Icons.Default.Search)
     object Profile: BottomItems("profile", "Profile", Icons.Default.Person)
 
 }
