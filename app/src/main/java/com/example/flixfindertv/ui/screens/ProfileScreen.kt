@@ -34,6 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -45,7 +46,6 @@ import com.example.flixfindertv.utils.BottomNavigationBar
 fun ProfileScreen(navController: NavHostController, uid: String) {
     val auth = FirebaseAuth.getInstance()
     val firestore = FirebaseFirestore.getInstance()
-
 
     // Usamos un estado para que la UI se actualice cuando los datos cambien
     var userName by remember { mutableStateOf("Usuario desconocido") }
@@ -104,7 +104,7 @@ fun ProfileScreen(navController: NavHostController, uid: String) {
             ) {
                 Box(
                     modifier = Modifier
-                        .size(150.dp)  // Tamaño de la caja
+                        .size(150.dp)  // Tamaño del contenedor circular
                         .background(Color.White, shape = CircleShape)
                         .border(2.dp, Color.Black, shape = CircleShape)
                 ) {
@@ -114,9 +114,10 @@ fun ProfileScreen(navController: NavHostController, uid: String) {
                             painter = painterResource(id = R.drawable.no_profile_icon),
                             contentDescription = "Sin icono",
                             modifier = Modifier
-                                .size(100.dp)
-                                .align(Alignment.Center),
-                            contentScale = ContentScale.Crop
+                                .fillMaxSize()
+                                .align(Alignment.Center)
+                                .clip(CircleShape),  // Asegura que la imagen se ajuste al círculo
+                            contentScale = ContentScale.Crop  // Recorta la imagen para ajustarla al círculo sin deformarla
                         )
                     } else {
                         Image(
@@ -124,8 +125,9 @@ fun ProfileScreen(navController: NavHostController, uid: String) {
                             contentDescription = "Foto de perfil",
                             modifier = Modifier
                                 .fillMaxSize()
-                                .align(Alignment.Center),
-                            contentScale = ContentScale.Crop
+                                .align(Alignment.Center)
+                                .clip(CircleShape),  // Asegura que la imagen se ajuste al círculo
+                            contentScale = ContentScale.Crop  // Recorta la imagen para ajustarla al círculo sin deformarla
                         )
                     }
                 }
@@ -140,7 +142,21 @@ fun ProfileScreen(navController: NavHostController, uid: String) {
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
-
+                Button(
+                    modifier = Modifier.fillMaxWidth(0.3f),
+                    onClick = {
+                        navController.navigate("edit_profile")
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFD3D3D3) // Color naranja
+                    )
+                ){
+                    Text(
+                        text = "Edit",
+                        color = Color.Black
+                    )
+                }
+                Spacer(modifier = Modifier.height(24.dp))
                 // Fila de Siguiendo, Seguidores y Comentarios
                 Row(
                     modifier = Modifier
@@ -153,6 +169,7 @@ fun ProfileScreen(navController: NavHostController, uid: String) {
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(text = "Siguiendo")
+                        Spacer(modifier = Modifier.height(5.dp))
                         Text(text = followingCount.toString(), style = MaterialTheme.typography.bodySmall)
                     }
 
@@ -161,6 +178,7 @@ fun ProfileScreen(navController: NavHostController, uid: String) {
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(text = "Seguidores")
+                        Spacer(modifier = Modifier.height(5.dp))
                         Text(text = followersCount.toString(), style = MaterialTheme.typography.bodySmall)
                     }
 
@@ -169,6 +187,7 @@ fun ProfileScreen(navController: NavHostController, uid: String) {
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(text = "Comentarios")
+                        Spacer(modifier = Modifier.height(5.dp))
                         Text(text = commentsCount.toString(), style = MaterialTheme.typography.bodySmall)
                     }
                 }

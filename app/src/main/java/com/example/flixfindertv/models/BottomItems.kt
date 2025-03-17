@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LiveTv
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Quiz
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.ui.graphics.vector.ImageVector
 
@@ -15,5 +16,6 @@ sealed class BottomItems(
     object Home: BottomItems("home", "Home", Icons.Default.Home)
     object Explore: BottomItems("explore", "Explore", Icons.Default.LiveTv)
     object Profile: BottomItems("profile", "Profile", Icons.Default.Person)
+    object Trivia: BottomItems("trivia", "Trivia", Icons.Default.Quiz)
 
 }

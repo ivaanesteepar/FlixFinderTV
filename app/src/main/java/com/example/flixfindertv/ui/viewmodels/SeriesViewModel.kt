@@ -72,9 +72,37 @@ class SeriesViewModel : ViewModel() {
     var lastVisibleFamilySeries: DocumentSnapshot? = null
     var lastVisibleKids: DocumentSnapshot? = null
 
-    // Funcion para actualizar las series
-    fun setSeries(series: List<Peliculas>) {
+    // Métodos públicos para actualizar las listas de series
+    fun actualizarSeriesPopulares(series: List<Peliculas>) {
         _listaSeries.value = series
+    }
+
+    fun actualizarSeriesAccionAventura(series: List<Peliculas>) {
+        _listaSeriesActionAdventure.value = series
+    }
+
+    fun actualizarSeriesAnimacion(series: List<Peliculas>) {
+        _listaSeriesAnimation.value = series
+    }
+
+    fun actualizarSeriesComedia(series: List<Peliculas>) {
+        _listaSeriesComedy.value = series
+    }
+
+    fun actualizarSeriesCrimen(series: List<Peliculas>) {
+        _listaSeriesCrime.value = series
+    }
+
+    fun actualizarSeriesDrama(series: List<Peliculas>) {
+        _listaSeriesDrama.value = series
+    }
+
+    fun actualizarSeriesFamily(series: List<Peliculas>) {
+        _listaSeriesFamily.value = series
+    }
+
+    fun actualizarSeriesKids(series: List<Peliculas>) {
+        _listaSeriesKids.value = series
     }
 
     fun obtenerSeriesPopulares() {

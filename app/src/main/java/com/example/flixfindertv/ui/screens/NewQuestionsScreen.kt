@@ -86,23 +86,25 @@ fun NewQuestionsScreen(navController: NavHostController) {
         Button(
             onClick = {
                 if (generosSeleccionados.size == 2) {
-                    // Obtener el ID del usuario actual
                     val userId = auth.currentUser?.uid
                     if (userId != null) {
-                        // Obtener referencia a la colección de usuarios
                         val userRef = firestore.collection("usuarios").document(userId)
 
-                        // Actualizar los campos 'esNuevo' y 'generosFavoritos' del usuario
-                        userRef.update(
-                            "esNuevo", false,
-                            "generosFavoritos", generosSeleccionados
-                        ).addOnSuccessListener {
-                            // Si la actualización fue exitosa, navegar a la pantalla principal
-                            navController.navigate("home")
-                        }.addOnFailureListener { e ->
-                            // Si ocurre un error, mostrar mensaje de error
-                            errorMessage = "Error al guardar la selección: ${e.message}"
-                        }
+                        val timestamp = System.currentTimeMillis()
+                        val generosConFecha = generosSeleccionados.associateWith { timestamp }
+
+                        val datos = mapOf(
+                            "esNuevo" to false,
+                            "generosFavoritos" to generosConFecha
+                        )
+
+                        userRef.update(datos)
+                            .addOnSuccessListener {
+                                navController.navigate("home")
+                            }
+                            .addOnFailureListener { e ->
+                                errorMessage = "Error al guardar la selección: ${e.message}"
+                            }
                     } else {
                         errorMessage = "No se pudo obtener el usuario actual"
                     }

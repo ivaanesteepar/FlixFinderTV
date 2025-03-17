@@ -9,6 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.flixfindertv.ui.screens.DetailsScreen
+import com.example.flixfindertv.ui.screens.EditProfileScreen
 import com.example.flixfindertv.ui.screens.ExploreScreen
 import com.example.flixfindertv.ui.screens.ForgotPasswordScreen
 import com.example.flixfindertv.ui.screens.HomeScreen
@@ -16,6 +17,7 @@ import com.example.flixfindertv.ui.screens.LoginScreen
 import com.example.flixfindertv.ui.screens.NewQuestionsScreen
 import com.example.flixfindertv.ui.screens.ProfileScreen
 import com.example.flixfindertv.ui.screens.RegisterScreen
+import com.example.flixfindertv.ui.screens.TriviaScreen
 import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.ui.viewmodels.MoviesViewModel
 
@@ -40,8 +42,7 @@ fun FlixFinderTVroutes() {
                 RegisterScreen(navController)  // Pantalla de registro
             }
             composable("explore") {
-                val conexionViewModel: ConexionViewModel = viewModel()
-                ExploreScreen(navController, moviesViewModel, conexionViewModel)  // Pantalla de exploración
+                ExploreScreen(navController, moviesViewModel)  // Pantalla de exploración
             }
             composable("profile/{uid}") { backStackEntry ->
                 val uid = backStackEntry.arguments?.getString("uid") ?: ""
@@ -57,6 +58,12 @@ fun FlixFinderTVroutes() {
             }
             composable("questions") {
                 NewQuestionsScreen(navController)
+            }
+            composable("edit_profile") {
+                EditProfileScreen(navController)  // Pantalla de exploración
+            }
+            composable("trivia"){
+                TriviaScreen(navController)
             }
 
         }

@@ -75,9 +75,37 @@ class MoviesViewModel : ViewModel() {
     var lastVisibleHorror: DocumentSnapshot? = null
     var lastVisibleScienceFiction: DocumentSnapshot? = null
 
-    // Funcion para actualizar las películas
-    fun setPeliculas(peliculas: List<Peliculas>) {
+    // Métodos públicos para actualizar las listas de películas
+    fun actualizarPeliculasPopulares(peliculas: List<Peliculas>) {
         _listaPeliculas.value = peliculas
+    }
+
+    fun actualizarPeliculasAccion(peliculas: List<Peliculas>) {
+        _listaPeliculasAccion.value = peliculas
+    }
+
+    fun actualizarPeliculasRomance(peliculas: List<Peliculas>) {
+        _listaPeliculasRomance.value = peliculas
+    }
+
+    fun actualizarPeliculasFamily(peliculas: List<Peliculas>) {
+        _listaPeliculasFamily.value = peliculas
+    }
+
+    fun actualizarPeliculasComedy(peliculas: List<Peliculas>) {
+        _listaPeliculasComedy.value = peliculas
+    }
+
+    fun actualizarPeliculasThriller(peliculas: List<Peliculas>) {
+        _listaPeliculasThriller.value = peliculas
+    }
+
+    fun actualizarPeliculasHorror(peliculas: List<Peliculas>) {
+        _listaPeliculasHorror.value = peliculas
+    }
+
+    fun actualizarPeliculasScienceFiction(peliculas: List<Peliculas>) {
+        _listaPeliculasScienceFiction.value = peliculas
     }
 
     fun obtenerPeliculasPopulares() {
