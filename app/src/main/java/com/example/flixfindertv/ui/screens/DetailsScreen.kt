@@ -9,6 +9,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Reply
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
@@ -29,6 +30,7 @@ import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.flixfindertv.models.Peliculas
+import com.example.flixfindertv.utils.MovieDetailsContent
 
 @Composable
 fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean) {
@@ -123,7 +125,7 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                     .padding(8.dp) // Espacio alrededor del icono dentro del círculo
             ) {
                 Icon(
-                    imageVector = Icons.Filled.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Volver",
                     tint = Color.White // Cambia el color del icono a blanco
                 )
@@ -226,124 +228,6 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
         }
     }
 }
-
-@Composable
-fun MovieDetailsContent(
-    movieCoverUrl: String,
-    movieTitle: String,
-    movieDescription: String,
-    movieGenre: String,
-    moviePopularity: Double,
-    releaseDate: String,
-    voteAverage: String
-) {
-    val voteAvg = voteAverage.toDoubleOrNull() ?: 0.0
-    val truncatedVoteAvg = (voteAvg * 10).toInt() / 10.0
-    val voteAvgFormatted = String.format("%.1f", truncatedVoteAvg)
-
-    val color = when {
-        voteAvg in 0.0..4.9 -> Color(0xFFFF6F61)
-        voteAvg in 5.0..7.5 -> Color(0xFF00B0FF)
-        voteAvg in 7.5..10.0 -> Color(0xFF2ECC71)
-        else -> Color.Gray
-    }
-
-    Row(modifier = Modifier.padding(horizontal = 16.dp)) {
-        Box(
-            modifier = Modifier
-                .width(160.dp)
-                .height(240.dp)
-                .padding(end = 8.dp)
-        ) {
-            Image(
-                painter = rememberAsyncImagePainter(movieCoverUrl),
-                contentDescription = "Portada",
-                modifier = Modifier.fillMaxSize()
-            )
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(color)
-            ) {
-                Text(
-                    text = voteAvgFormatted,
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold // Esto pone el texto en negrita
-                    ),
-                    modifier = Modifier.padding(4.dp)
-                )
-            }
-        }
-
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f)) {
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = movieTitle,
-                style = MaterialTheme.typography.headlineMedium,
-                color = Color.Black,
-                modifier = Modifier.padding(start = 16.dp)
-            )
-
-            Text(
-                text = buildAnnotatedString {
-                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                        append("Genre: ")
-                    }
-                    append(movieGenre)
-                },
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.Black.copy(alpha = 0.7f)
-            )
-
-
-            Text(
-                text = buildAnnotatedString {
-                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                        append("Popularity: ")
-                    }
-                    append(String.format("%.1f", moviePopularity))
-                },
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.Black.copy(alpha = 0.7f)
-            )
-
-            Text(
-                text = buildAnnotatedString {
-                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                        append("Release Date: ")
-                    }
-                    append(releaseDate)
-                },
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.Black.copy(alpha = 0.7f)
-            )
-
-        }
-    }
-
-    // Descripción de la película o serie
-    Spacer(modifier = Modifier.height(16.dp))
-
-    Text(
-        text = "Description",
-        style = MaterialTheme.typography.headlineSmall,
-        modifier = Modifier.padding(start = 16.dp, end = 16.dp),
-        color = Color.Black
-    )
-    Spacer(modifier = Modifier.height(16.dp))
-    Text(
-        text = movieDescription,
-        style = MaterialTheme.typography.bodyMedium,
-        color = Color.Black,
-        modifier = Modifier.padding(start = 16.dp, end = 16.dp)
-    )
-}
-
 
 fun fetchGenreNames(genreIds: List<Int>, onResult: (List<String>) -> Unit) {
     val firestore = FirebaseFirestore.getInstance()

@@ -1,80 +1,61 @@
 package com.example.flixfindertv.ui.viewmodels
 
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.flixfindertv.models.GPTRequest
-import com.example.flixfindertv.models.Message
-import com.example.flixfindertv.models.OpenAIResponse
-import com.example.flixfindertv.network.OpenAiRetrofitClient
+import com.example.flixfindertv.interfaces.UiState
+import com.google.ai.client.generativeai.GenerativeModel
+import com.google.ai.client.generativeai.type.content
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
+
 
 class TriviaViewModel : ViewModel() {
+    private val _uiState: MutableStateFlow<UiState> = MutableStateFlow(UiState.Initial)
+    val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
-    val gptResponse = mutableStateOf("")
-    val question = mutableStateOf("")
-    val options = mutableStateOf(listOf<String>())
-    val correctAnswer = mutableStateOf("")
+    private val generativeModel = GenerativeModel(
+        modelName = "gemini-1.5-flash",
+        apiKey = "AIzaSyAHR1-WLxXl3sbcABH-vPyLJT4nnBfHcDk"
+    )
 
-    // Función para obtener la respuesta de GPT (pregunta sobre películas y series con opciones)
-    fun getGPTResponse() {
-        viewModelScope.launch {
+    fun generateQuestion() {
+        _uiState.value = UiState.Loading
+        val prompt = "Hazme una pregunta sobre películas o series con 4 opciones de respuesta."
+
+        viewModelScope.launch(Dispatchers.IO) {
             try {
-                // Crear el request con el prompt específico para generar preguntas sobre películas y series
-                val request = GPTRequest(
-                    messages = listOf(
-                        Message(
-                            role = "user",
-                            content = "Genera una pregunta sobre películas o series con cuatro opciones de respuesta. Luego, proporciona una línea diciendo... La respuesta correcta es: (A, B, C o D)."
-                        )
-                    )
-                )
-
-                // Realizar la solicitud usando Retrofit
-                val response: OpenAIResponse = OpenAiRetrofitClient.api.getTrivia(request)
-                println("Respuesta de OpenAI recibida: ${response.choices[0].message.content}") // Mostrar la respuesta de GPT
-
-                // Extraer la respuesta de GPT (se espera que sea una pregunta con 4 opciones y una línea con la letra de la respuesta correcta)
-                val responseContent = response.choices[0].message.content
-                gptResponse.value = responseContent
-
-                val splitContent = responseContent.split("\n")
-
-                // Procesar la pregunta y las opciones
-                if (splitContent.size >= 6) {
-                    question.value = splitContent[0] // La primera línea es la pregunta
-                    options.value = splitContent.drop(1).take(4) // Las siguientes líneas son las opciones
-                    println("Pregunta: ${question.value}") // Imprimir la pregunta
-                    println("Opciones: ${options.value.joinToString()}")
-
-                    // La última línea contiene la respuesta correcta como una letra (A, B, C, D)
-                    val correctOptionLetter = splitContent.last().split(":")[1].trim() // "A"
-                    correctAnswer.value = correctOptionLetter
-                    println("Respuesta correcta: ${correctAnswer.value}")
+                val response = generativeModel.generateContent(content { text(prompt) })
+                response.text?.let { question ->
+                    _uiState.value = UiState.Success(question)
                 }
-
-            } catch (e: HttpException) {
-                // Imprimir detalles más completos del error HTTP
-                val response = e.response() // Obtener la respuesta completa de la excepción
-                val errorMessage = response?.errorBody()?.string() // Extraer el cuerpo del error
-                println("Error HTTP: ${response?.code()}") // Código de estado
-                println("Mensaje de error: ${e.message()}") // Mensaje de error
-                println("Cuerpo de la respuesta de error: $errorMessage") // Cuerpo de la respuesta de error
-
-                gptResponse.value = "Error en la solicitud HTTP: ${e.message()}"
-                e.printStackTrace() // Esto imprimirá la traza completa del error
             } catch (e: Exception) {
-                // Captura otros errores generales
-                println("Error general: ${e.localizedMessage}")
-                gptResponse.value = "Error: ${e.localizedMessage}"
-                e.printStackTrace() // Esto imprimirá la traza completa del error
+                _uiState.value = UiState.Error(e.localizedMessage ?: "")
             }
         }
     }
 
-    // Función para comprobar si la respuesta del usuario es correcta
-    fun checkAnswer(userAnswer: String): Boolean {
-        return userAnswer.uppercase() == correctAnswer.value.uppercase()
+    fun checkAnswer(answer: String) {
+        val currentQuestion = (uiState.value as? UiState.Success)?.outputText
+        if (currentQuestion != null) {
+            _uiState.value = UiState.Loading
+            viewModelScope.launch(Dispatchers.IO) {
+                try {
+                    // Modificación: incluir "Tu respuesta es: [respuesta]" antes de la respuesta correcta
+                    val evaluation = generativeModel.generateContent(content {
+                        text("$currentQuestion Tu respuesta es: $answer. ¿Cuál es la respuesta correcta y por qué? Explica por qué la respuesta correcta es la que es, en un párrafo separado. No uses markdown")
+                    })
+                    evaluation.text?.let { result ->
+                        // Aquí se espera que el resultado contenga primero la respuesta del usuario
+                        _uiState.value = UiState.Success(result)
+                    }
+                } catch (e: Exception) {
+                    _uiState.value = UiState.Error(e.localizedMessage ?: "")
+                }
+            }
+        }
     }
 }
+

@@ -1,187 +1,153 @@
 package com.example.flixfindertv.ui.screens
 
-import com.example.flixfindertv.ui.viewmodels.TriviaViewModel
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.example.flixfindertv.interfaces.UiState
+import com.example.flixfindertv.ui.viewmodels.TriviaViewModel
 import com.example.flixfindertv.utils.BottomNavigationBar
 import com.google.firebase.auth.FirebaseAuth
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 
 @Composable
-fun TriviaScreen(navController: NavHostController) {
-    val triviaViewModel: TriviaViewModel = viewModel()
-    val firebaseAuth = FirebaseAuth.getInstance()
-    val uid = firebaseAuth.currentUser?.uid
+fun TriviaScreen(
+    navController: NavHostController,
+    triviaViewModel: TriviaViewModel = viewModel()
+) {
+    var answer by rememberSaveable { mutableStateOf("") }
+    var result by rememberSaveable { mutableStateOf("") }
+    val uiState by triviaViewModel.uiState.collectAsState()
+    val uid = FirebaseAuth.getInstance().currentUser?.uid
 
-    var userAnswer by remember { mutableStateOf("") }
-    var isAnswerChecked by remember { mutableStateOf(false) }
-    var isCorrect by remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(true) }
-    var isInvalidAnswer by remember { mutableStateOf(false) }
+    // Estado para mostrar el botón de siguiente pregunta
+    var showNextButton by rememberSaveable { mutableStateOf(false) }
 
-    // Obtener la respuesta de GPT cuando la pantalla se lanza
-    LaunchedEffect(true) {
-        triviaViewModel.getGPTResponse()
-        isLoading = false
+    // Estado para controlar si ya se mostró la explicación
+    var explanationShown by rememberSaveable { mutableStateOf(false) }
+
+    // Estado para saber si se ha enviado una respuesta
+    var hasAnswered by rememberSaveable { mutableStateOf(false) }
+
+    // Genera la pregunta automáticamente cuando se entra en la pantalla
+    LaunchedEffect(Unit) {
+        if (uiState !is UiState.Success) {  // Solo generar si no hay una pregunta guardada
+            triviaViewModel.generateQuestion()
+        }
+
+        // Si ya se ha mostrado la explicación, no restablecer el botón
+        if (!explanationShown) {
+            showNextButton = false  // Asegúrate de ocultar el botón al principio
+        }
     }
+
+    println("ExplanationShown: $explanationShown")
 
     Scaffold(
         bottomBar = {
-            Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-                // Cuadro de texto para la respuesta del usuario
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.LightGray)
-                        .padding(8.dp)
-                ) {
-                    // Placeholder, visible cuando no hay texto
-                    if (userAnswer.isEmpty()) {
-                        Text(
-                            text = "Responde aquí...",
-                            style = MaterialTheme.typography.bodyMedium.copy(color = Color.Gray)
-                        )
-                    }
-
-                    // BasicTextField para la entrada del usuario
-                    BasicTextField(
-                        value = userAnswer,
-                        onValueChange = { userAnswer = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        textStyle = MaterialTheme.typography.bodyMedium
-                    )
-                }
-
-
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Botón para enviar la respuesta
-                Button(
-                    onClick = {
-                        if (userAnswer.trim().isEmpty()) {
-                            isInvalidAnswer = true
-                            isAnswerChecked = false
-                        } else {
-                            isAnswerChecked = true
-                            isCorrect = triviaViewModel.checkAnswer(userAnswer)
-                            isInvalidAnswer = false
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Responder")
-                }
-
-                // Si el usuario está autenticado, muestra el BottomNavigationBar
-                if (uid != null) {
-                    BottomNavigationBar(
-                        navController = navController,
-                        uid = uid
-                    )
-                }
+            if (uid != null) {
+                BottomNavigationBar(navController, uid)
             }
         }
     ) { paddingValues ->
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.Start
         ) {
-            item {
-                if (isLoading) {
-                    // Mostrar el progreso mientras se obtiene la respuesta de GPT
-                    CircularProgressIndicator()
-                } else {
-                    // Mostrar la pregunta recibida de GPT
-                    Row(
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+            ) {
+                // Mostramos la pregunta solo si está disponible
+                if (uiState is UiState.Loading) {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+                } else if (uiState is UiState.Success) {
+                    val question = (uiState as UiState.Success).outputText
+                    Text(
+                        text = question,
+                        textAlign = TextAlign.Start,
+                        color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(Color.White)
-                            .padding(8.dp),
-                        horizontalArrangement = Arrangement.Start
-                    ) {
-                        Text(
-                            text = triviaViewModel.question.value,
-                            style = MaterialTheme.typography.bodyMedium,
-                            textAlign = TextAlign.Start,
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Mostrar las opciones de respuesta
-                    triviaViewModel.options.value.forEach { option ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Start
-                        ) {
-                            Text("• $option", style = MaterialTheme.typography.bodyMedium)
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
+                            .height(500.dp)  // Deja que la pregunta ocupe el espacio restante
+                            .padding(bottom = 16.dp)
+                            .verticalScroll(rememberScrollState())  // Habilita desplazamiento solo para la pregunta
+                    )
+                } else if (uiState is UiState.Error) {
+                    Text(
+                        text = (uiState as UiState.Error).errorMessage,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier
+                            .padding(bottom = 16.dp)
+                            .align(Alignment.CenterHorizontally)
+                    )
                 }
             }
 
-            item {
-                // Mostrar si la respuesta ha sido verificada
-                if (isAnswerChecked) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(Color.LightGray)
-                            .padding(8.dp),
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        Text(
-                            text = if (isCorrect) "✅ ¡Correcto!" else "❌ Incorrecto. La respuesta correcta es: ${triviaViewModel.correctAnswer.value}",
-                            color = if (isCorrect) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
-                            textAlign = TextAlign.End,
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                }
-            }
+            // Campo de texto y botones fijos en la parte inferior
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(16.dp)
+                    .fillMaxWidth() // Asegúrate de que la columna ocupe el ancho completo
+            ) {
+                // Campo de texto para la respuesta
+                TextField(
+                    value = answer,
+                    label = { Text("Write your response") },
+                    onValueChange = { answer = it },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp)
+                        .heightIn(min = 56.dp) // Controlar la altura mínima del campo de texto
+                )
 
-            item {
-                // Mostrar mensaje de error si la respuesta es inválida
-                if (isInvalidAnswer) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(Color.LightGray)
-                            .padding(8.dp),
-                        horizontalArrangement = Arrangement.End
+                // Botón para enviar respuesta
+                Button(
+                    onClick = {
+                        triviaViewModel.checkAnswer(answer)
+                        showNextButton = true  // Muestra el botón de siguiente pregunta después de responder
+                        answer = "" // Limpia el campo de respuesta
+                        hasAnswered = true // Marca que ya se ha respondido
+                    },
+                    enabled = answer.isNotEmpty(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp)
+                ) {
+                    Text(text = "Send response")
+                }
+
+                // Mostrar el resultado de la respuesta solo si se ha respondido
+                if (hasAnswered) {
+                    explanationShown = true
+                }
+
+                // Botón de siguiente pregunta
+                if (showNextButton) {
+                    Button(
+                        onClick = {
+                            triviaViewModel.generateQuestion()  // Genera una nueva pregunta
+                            showNextButton = false  // Oculta el botón de siguiente pregunta
+                            result = ""  // Limpia el resultado anterior
+                            explanationShown = false // Resetear el estado de explicación mostrada
+                            hasAnswered = false  // Resetear el estado de respuesta
+                        },
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text(
-                            text = "❌ Respuesta inválida. Por favor, elige una de las opciones.",
-                            color = MaterialTheme.colorScheme.error,
-                            textAlign = TextAlign.End,
-                            modifier = Modifier.weight(1f)
-                        )
+                        Text(text = "Next question")
                     }
                 }
             }
         }
     }
 }
-

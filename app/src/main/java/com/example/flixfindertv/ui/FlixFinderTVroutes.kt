@@ -20,6 +20,7 @@ import com.example.flixfindertv.ui.screens.RegisterScreen
 import com.example.flixfindertv.ui.screens.TriviaScreen
 import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.ui.viewmodels.MoviesViewModel
+import com.example.flixfindertv.ui.viewmodels.TriviaViewModel
 
 @Composable
 fun FlixFinderTVroutes() {
@@ -63,7 +64,8 @@ fun FlixFinderTVroutes() {
                 EditProfileScreen(navController)  // Pantalla de exploración
             }
             composable("trivia"){
-                TriviaScreen(navController)
+                val triviaViewModel: TriviaViewModel = viewModel()
+                TriviaScreen(navController, triviaViewModel)
             }
 
         }

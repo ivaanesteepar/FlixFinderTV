@@ -16,7 +16,12 @@ android {
         versionCode = 1
         versionName = "1.0"
 
+        buildConfigField("String", "apiKey", "\"AIzaSyAHR1-WLxXl3sbcABH-vPyLJT4nnBfHcDk\"")
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+    buildFeatures {
+        buildConfig = true // Habilitar la generación de BuildConfig
     }
 
     buildTypes {
@@ -67,6 +72,8 @@ dependencies {
     implementation(libs.firebase.firestore.ktx)
     implementation(libs.firebase.auth.ktx)
     implementation(libs.firebase.firestore)
+    implementation(libs.generativeai)
+    implementation(libs.androidx.benchmark.common)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
