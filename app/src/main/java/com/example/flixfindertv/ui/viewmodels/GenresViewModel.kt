@@ -35,12 +35,15 @@ class GenresViewModel : ViewModel() {
     var lastVisibleGenero1: DocumentSnapshot? = null
     var lastVisibleGenero2: DocumentSnapshot? = null
 
-    fun resetPeliculasGenero(genero: Int) {
-        when (genero) {
-            1 -> _peliculasGenero1.value = emptyList()
-            2 -> _peliculasGenero2.value = emptyList()
-        }
+
+    fun limpiarPeliculasGenero1() {
+        _peliculasGenero1.postValue(emptyList()) // Vacía la lista antes de actualizarla
     }
+
+    fun limpiarPeliculasGenero2() {
+        _peliculasGenero2.postValue(emptyList()) // Vacía la lista del segundo género
+    }
+
 
     private suspend fun getMoviesAndSeriesByGenreId(genreId: Int) {
         val peliculasList = mutableListOf<Peliculas>()

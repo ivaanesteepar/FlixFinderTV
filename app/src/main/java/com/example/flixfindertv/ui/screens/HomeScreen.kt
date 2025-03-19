@@ -14,6 +14,7 @@ import com.example.flixfindertv.utils.MovieList
 import com.google.firebase.auth.FirebaseAuth
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.saveable.rememberSaveable
 import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.utils.BottomNavigationBar
 
@@ -45,34 +46,45 @@ fun HomeScreen(
     val listStateGenero1 = rememberLazyListState()
     val listStateGenero2 = rememberLazyListState()
 
-    // Obtener y observar los géneros favoritos
+    val prevGenero1 = remember { mutableStateOf(genresViewModel.nombreGenero1.value) }
+    val prevGenero2 = remember { mutableStateOf(genresViewModel.nombreGenero2.value) }
+
     LaunchedEffect(uid) {
         if (uid != null) {
-            genresViewModel.obtenerGenerosFavoritos(uid) // Obtener los géneros favoritos del usuario
+            genresViewModel.obtenerGenerosFavoritos(uid)
         }
     }
 
-    LaunchedEffect(nombreGenero1) {
-        if (nombreGenero1.isNotEmpty()) {
-            genresViewModel.resetPeliculasGenero(1)  // Limpiar las películas del género 1
-            if (uid != null) {
-                genresViewModel.obtenerPeliculasYSeriesGenero1(uid)
+    println("genero1: $nombreGenero1 genero2: $nombreGenero2")
+
+    LaunchedEffect(key1 = genresViewModel.nombreGenero1.value) {
+        val nuevoGenero = genresViewModel.nombreGenero1.value
+        if (nuevoGenero != prevGenero1.value) {
+            prevGenero1.value = nuevoGenero // Actualizamos el estado previo
+            if (!nuevoGenero.isNullOrEmpty()) {
+                genresViewModel.limpiarPeliculasGenero1()
+                listStateGenero1.scrollToItem(0)
+                if (uid != null) {
+                    println("llegaa")
+                    genresViewModel.obtenerPeliculasYSeriesGenero1(uid)
+                }
             }
         }
     }
 
-    LaunchedEffect(nombreGenero2) {
-        if (nombreGenero2.isNotEmpty()) {
-            genresViewModel.resetPeliculasGenero(2)  // Limpiar las películas del género 2
-            if (uid != null) {
-                genresViewModel.obtenerPeliculasYSeriesGenero2(uid)
+    LaunchedEffect(key1 = genresViewModel.nombreGenero2.value) {
+        val nuevoGenero = genresViewModel.nombreGenero2.value
+        if (nuevoGenero != prevGenero2.value) {
+            prevGenero2.value = nuevoGenero // Actualizamos el estado previo
+            if (!nuevoGenero.isNullOrEmpty()) {
+                genresViewModel.limpiarPeliculasGenero2()
+                listStateGenero2.scrollToItem(0)
+                if (uid != null) {
+                    genresViewModel.obtenerPeliculasYSeriesGenero2(uid)
+                }
             }
         }
     }
-
-    println("genero1: $nombreGenero1")
-    println("genero2: $nombreGenero2")
-
 
     // Efectos de carga para manejar la carga incremental de las listas
     LaunchedEffect(listStateGenero1.firstVisibleItemIndex) {

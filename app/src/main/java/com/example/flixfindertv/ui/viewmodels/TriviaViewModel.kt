@@ -2,6 +2,7 @@ package com.example.flixfindertv.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.flixfindertv.BuildConfig
 import com.example.flixfindertv.interfaces.UiState
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
@@ -15,10 +16,11 @@ import kotlinx.coroutines.launch
 class TriviaViewModel : ViewModel() {
     private val _uiState: MutableStateFlow<UiState> = MutableStateFlow(UiState.Initial)
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
+    private val apiKey = BuildConfig.apiKey
 
     private val generativeModel = GenerativeModel(
         modelName = "gemini-1.5-flash",
-        apiKey = "AIzaSyAHR1-WLxXl3sbcABH-vPyLJT4nnBfHcDk"
+        apiKey = apiKey
     )
 
     fun generateQuestion() {
