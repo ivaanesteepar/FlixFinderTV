@@ -22,9 +22,12 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -113,16 +116,20 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
     val contenidoPorGenero = genresViewModel.peliculasPorGenero.observeAsState(emptyList())
     val listState = rememberLazyListState()
 
-    var searchQuery by remember { mutableStateOf("") }
-    var movieResults by remember { mutableStateOf<List<Peliculas>>(emptyList()) }
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+    var movieResults by rememberSaveable { mutableStateOf<List<Peliculas>>(emptyList()) }
     var isSearching by remember { mutableStateOf(false) }
     var filterExpanded by remember { mutableStateOf(false) }
     var filterMovie by remember { mutableStateOf(false) }
     var filterSerie by remember { mutableStateOf(false) }
     val firestore = FirebaseFirestore.getInstance()
 
-    var selectedGenre by remember { mutableStateOf<String?>(null) }
-    var selectedGenreId by remember { mutableStateOf<Int?>(null) }
+    var selectedGenre by rememberSaveable { mutableStateOf<String?>(null) }
+    var selectedGenreId by rememberSaveable { mutableStateOf<Int?>(null) }
+
+    val options = listOf("Sin orden", "Ascendente", "Descendente")
+
+    println("selected genre id: $selectedGenreId")
 
     val genres = listOf(
         "Music", "Romance", "Family", "War", "Action & Adventure", "Kids", "News",
@@ -487,89 +494,171 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                     Box(
                         modifier = Modifier.fillMaxSize() // ✅ Define el tamaño del contenedor padre
                     ) {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize() // ✅ Asegura que el LazyColumn tenga tamaño
+                        // Dropdown para seleccionar el tipo de orden
+                        var expandedSearch by remember { mutableStateOf(false) }
+                        var selectedTextSearch by rememberSaveable { mutableStateOf("Sin orden") }
+
+                        // Contenedor para el menú desplegable
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                                .align(Alignment.TopCenter)
                         ) {
-                            items(movieResults.filter {
-                                (filterMovie && !it.esSerie) || (filterSerie && it.esSerie) || (!filterMovie && !filterSerie)
-                            }) { movie ->
+                            ExposedDropdownMenuBox(
+                                expanded = expandedSearch,
+                                onExpandedChange = { expandedSearch = !expandedSearch } // Se encarga de abrir y cerrar el menú
+                            ) {
+                                OutlinedTextField(
+                                    value = selectedTextSearch,
+                                    onValueChange = {},
+                                    readOnly = true,
+                                    label = { Text("Ordenar por popularidad") },
+                                    shape = MaterialTheme.shapes.large, // Hace que la caja sea ovalada
+                                    trailingIcon = {
+                                        Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = "Expandir")
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .menuAnchor() // Necesario para que funcione con ExposedDropdownMenuBox
+                                )
+
+                                ExposedDropdownMenu(
+                                    expanded = expandedSearch,
+                                    onDismissRequest = { expandedSearch = false }
+                                ) {
+                                    options.forEach { option ->
+                                        DropdownMenuItem(
+                                            text = { Text(option) },
+                                            onClick = {
+                                                selectedTextSearch = option
+                                                expandedSearch = false
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        // Filtrar los resultados de búsqueda según el tipo (película o serie)
+                        val filteredSearchResults = movieResults.filter {
+                            (filterMovie && !it.esSerie) || (filterSerie && it.esSerie) || (!filterMovie && !filterSerie)
+                        }
+
+                        // Ordenar los resultados de la búsqueda según la opción seleccionada en el menú
+                        val sortedSearchResults = when (selectedTextSearch) {
+                            "Ascendente" -> filteredSearchResults.sortedBy { it.popularity }
+                            "Descendente" -> filteredSearchResults.sortedByDescending { it.popularity }
+                            else -> filteredSearchResults // Sin orden
+                        }
+
+                        // Mostrar la lista ordenada
+                        LazyColumn(
+                            modifier = Modifier.padding(top = 120.dp), // ✅ Asegura que el LazyColumn tenga tamaño
+                        ) {
+                            items(sortedSearchResults) { movie ->
                                 // Mostrar una tarjeta de película o serie basada en los resultados de búsqueda
                                 MovieCard(movie = movie, navController = navController)
                             }
                         }
                     }
-                } else if (selectedGenreId != null) {
+                }
+                else if (selectedGenreId != null) {
                     Box(
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                        modifier = Modifier.fillMaxSize() // ✅ Define el tamaño del contenedor padre
                     ) {
-                        // Botón para activar el filtro
-                        IconButton(onClick = { expanded = true }) {
-                            Icon(imageVector = Icons.Default.Reorder, contentDescription = "Ordenar")
-                        }
-
-                        // Menú desplegable que se muestra cuando expanded es true
-                        DropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = { expanded = false },
-                            modifier = Modifier
-                                .height(100.dp)  // Altura fija del Dropdown
-                                .padding(8.dp)  // Padding para no solaparse
-                        ) {
-                            // Column con scroll
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxHeight()
-                                    .verticalScroll(rememberScrollState())  // Permite el desplazamiento vertical
-                            ) {
-                                // Opciones del menú
-                                DropdownMenuItem(
-                                    text = { Text("Ascendente") },
-                                    onClick = { /* Acción del filtro Ascendente */ }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text("Descendente") },
-                                    onClick = { /* Acción del filtro Descendente */ }
-                                )
-                            }
-                        }
-                    }
-
-                    // Aquí sigue tu código para mostrar la lista de elementos o cualquier otro contenido
-                    val filteredItems = contenidoPorGenero.value.filter {
-                        (filterMovie && !it.esSerie) || (filterSerie && it.esSerie) || (!filterMovie && !filterSerie)
-                    }
-
-                    if (filteredItems.isEmpty()) {
-                        val noResultsText = when {
-                            filterMovie -> "No se encontraron películas de este género."
-                            filterSerie -> "No se encontraron series de este género."
-                            else -> "No se encontraron resultados."
-                        }
-
+                        var selectedText by rememberSaveable { mutableStateOf("Ordena por...") } // Valor inicial
                         Box(
-                            modifier = Modifier.fillMaxSize() // Asegura que el Box ocupe todo el espacio disponible
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                                .align(Alignment.TopCenter)
                         ) {
-                            Text(
-                                text = noResultsText,
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontSize = 16.sp,
-                                color = Color.Black,
-                                modifier = Modifier.align(Alignment.Center) // Alineamos el texto al centro dentro del Box
-                            )
-                        }
-                    } else {
-                        LazyColumn(
-                            modifier = Modifier.padding(top = 30.dp),
-                            state = listState
-                        ) {
-                            items(filteredItems) { movie ->
-                                MovieCard(movie = movie, navController = navController)
+                            ExposedDropdownMenuBox(
+                                expanded = expanded,
+                                onExpandedChange = {
+                                    expanded = !expanded
+                                } // Se encarga de abrir y cerrar el menú
+                            ) {
+                                OutlinedTextField(
+                                    value = selectedText,
+                                    onValueChange = {},
+                                    readOnly = true,
+                                    label = { Text("Ordenar por popularidad") },
+                                    shape = MaterialTheme.shapes.large, // Hace que la caja sea ovalada
+                                    trailingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Default.ArrowDropDown,
+                                            contentDescription = "Expandir"
+                                        )
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .menuAnchor() // Necesario para que funcione con ExposedDropdownMenuBox
+                                )
+
+                                ExposedDropdownMenu(
+                                    expanded = expanded,
+                                    onDismissRequest = { expanded = false }
+                                ) {
+                                    options.forEach { option ->
+                                        DropdownMenuItem(
+                                            text = { Text(option) },
+                                            onClick = {
+                                                selectedText = option
+                                                expanded = false
+                                                // Aquí se puede cambiar la lógica de ordenación
+                                            }
+                                        )
+                                    }
+                                }
                             }
                         }
 
-                        // Desplazar al principio cuando se seleccione un nuevo género
-                        LaunchedEffect(selectedGenreId) {
-                            listState.scrollToItem(0)
+                        // Filtramos los elementos según el género y tipo (película o serie)
+                        val filteredItems = contenidoPorGenero.value.filter {
+                            (filterMovie && !it.esSerie) || (filterSerie && it.esSerie) || (!filterMovie && !filterSerie)
+                        }
+
+                        // Ordenamos los elementos según la opción seleccionada en el menú desplegable
+                        val sortedItems = when (selectedText) {
+                            "Ascendente" -> filteredItems.sortedBy { it.popularity }
+                            "Descendente" -> filteredItems.sortedByDescending { it.popularity }
+                            else -> filteredItems // Sin orden
+                        }
+
+                        if (sortedItems.isEmpty()) {
+                            val noResultsText = when {
+                                filterMovie -> "No se encontraron películas de este género."
+                                filterSerie -> "No se encontraron series de este género."
+                                else -> "No se encontraron resultados."
+                            }
+
+                            Box(
+                                modifier = Modifier.fillMaxSize() // Asegura que el Box ocupe todo el espacio disponible
+                            ) {
+                                Text(
+                                    text = noResultsText,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontSize = 16.sp,
+                                    color = Color.Black,
+                                    modifier = Modifier.align(Alignment.Center) // Alineamos el texto al centro dentro del Box
+                                )
+                            }
+                        } else {
+                            LazyColumn(
+                                modifier = Modifier.padding(top = 120.dp),
+                                state = listState
+                            ) {
+                                items(sortedItems) { movie ->
+                                    MovieCard(movie = movie, navController = navController)
+                                }
+                            }
+
+                            // Desplazar al principio cuando se seleccione un nuevo género
+                            LaunchedEffect(selectedGenreId) {
+                                listState.scrollToItem(0)
+                            }
                         }
                     }
                 }

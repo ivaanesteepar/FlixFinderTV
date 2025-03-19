@@ -114,10 +114,15 @@ fun TriviaScreen(
                 // Botón para enviar respuesta
                 Button(
                     onClick = {
-                        triviaViewModel.checkAnswer(answer)
-                        showNextButton = true  // Muestra el botón de siguiente pregunta después de responder
-                        answer = "" // Limpia el campo de respuesta
-                        hasAnswered = true // Marca que ya se ha respondido
+                        val normalizedAnswer = answer.lowercase().trim() // Convertir a minúsculas y eliminar espacios
+                        if (normalizedAnswer in listOf("a", "b", "c", "d")) {
+                            triviaViewModel.checkAnswer(normalizedAnswer)
+                            showNextButton = true  // Muestra el botón de siguiente pregunta después de responder
+                            answer = "" // Limpia el campo de respuesta
+                            hasAnswered = true // Marca que ya se ha respondido
+                        } else {
+                            result = "Invalid answer. Please enter a, b, c, or d."
+                        }
                     },
                     enabled = answer.isNotEmpty(),
                     modifier = Modifier
@@ -125,6 +130,15 @@ fun TriviaScreen(
                         .padding(bottom = 8.dp)
                 ) {
                     Text(text = "Send response")
+                }
+
+                // Mostrar mensaje de error si la respuesta es inválida
+                if (result.isNotEmpty()) {
+                    Text(
+                        text = result,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
                 }
 
                 // Mostrar el resultado de la respuesta solo si se ha respondido

@@ -55,8 +55,8 @@ class ConexionViewModel(application: Application) : AndroidViewModel(application
             withContext(Dispatchers.IO) {
                 val url = URL("https://www.google.com")  // Usar HTTP para mayor compatibilidad
                 val connection = url.openConnection() as HttpURLConnection
-                connection.connectTimeout = 2000  // Timeout de 2 segundos
-                connection.readTimeout = 2000  // Timeout de 2 segundos
+                connection.connectTimeout = 5000  // Timeout de 5 segundos
+                connection.readTimeout = 5000  // Timeout de 5 segundos
 
                 try {
                     connection.connect()  // Intentar la conexión
