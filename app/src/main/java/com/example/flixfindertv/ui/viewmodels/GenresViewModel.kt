@@ -9,8 +9,6 @@ import com.example.flixfindertv.models.Generos
 import com.example.flixfindertv.models.Peliculas
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
@@ -36,6 +34,13 @@ class GenresViewModel : ViewModel() {
 
     var lastVisibleGenero1: DocumentSnapshot? = null
     var lastVisibleGenero2: DocumentSnapshot? = null
+
+    fun resetPeliculasGenero(genero: Int) {
+        when (genero) {
+            1 -> _peliculasGenero1.value = emptyList()
+            2 -> _peliculasGenero2.value = emptyList()
+        }
+    }
 
     private suspend fun getMoviesAndSeriesByGenreId(genreId: Int) {
         val peliculasList = mutableListOf<Peliculas>()

@@ -5,9 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.flixfindertv.models.Comentario
 import com.example.flixfindertv.models.Peliculas
-import com.example.flixfindertv.network.RetrofitClient
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
@@ -75,38 +73,6 @@ class MoviesViewModel : ViewModel() {
     var lastVisibleHorror: DocumentSnapshot? = null
     var lastVisibleScienceFiction: DocumentSnapshot? = null
 
-    // Métodos públicos para actualizar las listas de películas
-    fun actualizarPeliculasPopulares(peliculas: List<Peliculas>) {
-        _listaPeliculas.value = peliculas
-    }
-
-    fun actualizarPeliculasAccion(peliculas: List<Peliculas>) {
-        _listaPeliculasAccion.value = peliculas
-    }
-
-    fun actualizarPeliculasRomance(peliculas: List<Peliculas>) {
-        _listaPeliculasRomance.value = peliculas
-    }
-
-    fun actualizarPeliculasFamily(peliculas: List<Peliculas>) {
-        _listaPeliculasFamily.value = peliculas
-    }
-
-    fun actualizarPeliculasComedy(peliculas: List<Peliculas>) {
-        _listaPeliculasComedy.value = peliculas
-    }
-
-    fun actualizarPeliculasThriller(peliculas: List<Peliculas>) {
-        _listaPeliculasThriller.value = peliculas
-    }
-
-    fun actualizarPeliculasHorror(peliculas: List<Peliculas>) {
-        _listaPeliculasHorror.value = peliculas
-    }
-
-    fun actualizarPeliculasScienceFiction(peliculas: List<Peliculas>) {
-        _listaPeliculasScienceFiction.value = peliculas
-    }
 
     fun obtenerPeliculasPopulares() {
         if (isLoadingPeliculas.value == true) return

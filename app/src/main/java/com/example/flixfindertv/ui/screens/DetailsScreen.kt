@@ -2,28 +2,31 @@ package com.example.flixfindertv.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.Reply
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.flixfindertv.models.Peliculas
+import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 import com.example.flixfindertv.utils.MovieDetailsContent
 
 @Composable
 fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean) {
+    val usersViewModel: UsersViewModel = viewModel()
     var movieTitle by remember { mutableStateOf("") }
     var movieDescription by remember { mutableStateOf("") }
     var movieBannerUrl by remember { mutableStateOf("") }
@@ -33,18 +36,10 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
     var releaseDate by remember { mutableStateOf("") }
     var voteAverage by remember { mutableStateOf("") }
 
-    // Estado para mostrar el dialogo de calificación
-    var showRatingDialog by remember { mutableStateOf(false) }
-    var ratingValue by remember { mutableStateOf(0) } // Valor de la calificación sobre 10
-    var commentText by remember { mutableStateOf("") }
-
-    // Estado para mostrar el diálogo de respuesta
-    var showReplyDialog by remember { mutableStateOf(false) }
-    var replyText by remember { mutableStateOf("") }
-
     // Base URL para TMDb
     val imageBaseUrl = "https://image.tmdb.org/t/p/w500"
     val firestore = FirebaseFirestore.getInstance()
+
     val collectionName = if (esSerie) "series" else "peliculas"
 
     // Cargar los detalles de la película o serie
@@ -81,6 +76,9 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                     movie?.release_date ?: "Fecha no disponible"
                 }
                 voteAverage = movie?.vote_average ?: "N/A"
+
+                // Verificar si está en los favoritos
+                usersViewModel.checkIfFavorite(id, esSerie)
             }
             .addOnFailureListener { e ->
                 movieGenre = "Error al cargar géneros"
@@ -103,6 +101,35 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                 contentDescription = "Banner",
                 modifier = Modifier.fillMaxSize()
             )
+
+            // Corazón en la esquina superior derecha
+            IconButton(
+                onClick = {
+                    val isCurrentlyFavorite = usersViewModel.isFavorite.value
+                    if (!isCurrentlyFavorite) {
+                        // Si no está en favoritos, añadimos a favoritos
+                        usersViewModel.saveToFavorites(id, movieTitle, movieDescription, movieCoverUrl, esSerie)
+                    } else {
+                        // Si ya está en favoritos, lo eliminamos de favoritos
+                        usersViewModel.removeFromFavorites(id, esSerie)
+                    }
+                    // Asegurarnos de que el estado del corazón se actualice inmediatamente
+                    usersViewModel.checkIfFavorite(id, esSerie)
+                },
+                modifier = Modifier
+                    .padding(16.dp) // Ajusta el espacio alrededor del icono
+                    .align(Alignment.TopEnd) // Posiciona el botón en la parte superior derecha
+                    .background(Color.Gray.copy(alpha = 0.5f), CircleShape) // Fondo gris con forma circular
+                    .size(50.dp)
+                    .padding(8.dp) // Espacio alrededor del icono dentro del círculo
+            ) {
+                // Icono que cambia de color dependiendo de si está en favoritos
+                Icon(
+                    imageVector = if (usersViewModel.isFavorite.value) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                    contentDescription = "Favorito",
+                    tint = if (usersViewModel.isFavorite.value) Color.Red else Color.White // Rojo si está favorito, blanco si no
+                )
+            }
 
             // Botón para volver atrás en la esquina superior izquierda dentro de un círculo gris
             IconButton(
@@ -133,7 +160,7 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
             voteAverage = voteAverage
         )
 
-        // Comentarios
+        // Comentarios y demás contenido
         Spacer(modifier = Modifier.height(36.dp))
         Text(
             text = "Comments",
@@ -141,83 +168,11 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
             modifier = Modifier.padding(start = 16.dp, end = 16.dp),
             color = Color.Black
         )
-
-        // Lista de comentarios
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-                .padding(8.dp)
-        ) {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                repeat(5) { index -> // Reemplaza este bloque con tus datos reales
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 8.dp), // Espacio entre tarjetas
-                        elevation = CardDefaults.cardElevation(4.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text(
-                                text = "Comentario #${index + 1}: Este es un comentario de ejemplo123456.",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = Color.Black
-                            )
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            // Ícono de respuesta
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 4.dp),
-                                horizontalArrangement = Arrangement.Start
-                            ) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.Reply,
-                                    contentDescription = "Responder",
-                                    modifier = Modifier
-                                        .size(24.dp)
-                                        .clickable { showReplyDialog = true }, // Al hacer clic, mostrar el diálogo
-                                    tint = Color.Blue
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // Mostrar el AlertDialog para responder
-        if (showReplyDialog) {
-            AlertDialog(
-                onDismissRequest = { showReplyDialog = false },
-                title = { Text("Escribe tu respuesta") },
-                text = {
-                    OutlinedTextField(
-                        value = replyText,
-                        onValueChange = { replyText = it },
-                        label = { Text("Respuesta") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                },
-                confirmButton = {
-                    Button(onClick = {
-                        // Lógica para manejar la respuesta (podrías agregar la respuesta a la base de datos)
-                        showReplyDialog = false
-                    }) {
-                        Text("Enviar")
-                    }
-                },
-                dismissButton = {
-                    Button(onClick = { showReplyDialog = false }) {
-                        Text("Cancelar")
-                    }
-                }
-            )
-        }
     }
 }
+
+
+
 
 fun fetchGenreNames(genreIds: List<Int>, onResult: (List<String>) -> Unit) {
     val firestore = FirebaseFirestore.getInstance()
