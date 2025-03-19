@@ -4,13 +4,23 @@ import time
 from firebase_admin import credentials, firestore
 
 # Configuración de la API de TMDb
-API_KEY = '6ae1f349f576ac17daf45c3d7dfbae9e'
 BASE_URL = 'https://api.themoviedb.org/3'
 
 # Inicializar Firebase
 cred = credentials.Certificate('C:\\Users\\Usuario\\Documents\\KeyFirebase\\flixfindertv-42323-firebase-adminsdk-fbsvc-927ed2eb0d.json')
 firebase_admin.initialize_app(cred)
 db = firestore.client()
+
+# Accede al documento tmdbApiKey dentro de la colección apiKeys
+doc_ref = db.collection('apiKeys').document('tmdbApiKey')
+doc = doc_ref.get()
+
+if doc.exists:
+    # Obtén el valor del campo 'key'
+    API_KEY = doc.to_dict().get('key')
+    print("API Key recuperada:", API_KEY)
+else:
+    print("No se encontró el documento o la clave API no está almacenada.")
 
 # Colecciones de Firestore
 peliculas_collection = db.collection('peliculas')
@@ -289,8 +299,6 @@ def eliminar_5_antiguas(coleccion, peliculas_o_series_ordenadas):
     print(f"Se eliminaron {contador_eliminaciones} elementos.")
 
 
-
-
 def contar_duplicados(coleccion):
     # Obtener todos los documentos de la colección
     documentos = coleccion.get()
@@ -360,14 +368,6 @@ def obtener_y_guardar():
     # Continuar con el proceso de obtener y guardar las películas y series más recientes
     # Obtener la página actual
     pagina_actual = obtener_pagina_actual()
-
-    # Obtener el número de documentos en la colección de películas y series
-    peliculas_count = len(peliculas_collection.get())
-    series_count = len(series_collection.get())
-
-    # Imprimir las cantidades de películas y series en las colecciones
-    print(f"Cantidad de películas en Firestore al principio: {peliculas_count}")
-    print(f"Cantidad de series en Firestore al principio: {series_count}")
 
     peliculas_eliminadas, series_eliminadas = obtener_eliminadas()
 
