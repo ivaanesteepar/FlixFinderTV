@@ -8,16 +8,9 @@ plugins {
 
 sonarqube {
     properties {
-        property("sonar.projectKey", "com.example.flixfindertv")  // Ajusta esto a tu propio proyecto
-        property("sonar.projectName", "FlixFinderTV")
-        property("sonar.projectVersion", "1.0")
-        property("sonar.token", "squ_f47a24e3ac663dec6795d954d40816376a468b66")
-        property("sonar.sources", listOf("src/main/java"))  // O la ruta correspondiente a tu código
-        property("sonar.tests", "src/androidTest/java")  // Rutas de tests
-        property("sonar.java.binaries", "build/intermediates/classes/debug")  // Compilados del código
-//        property("sonar.androidLint.reportPaths", "build/reports/lint-results.xml")  // Informe de lint
-//        property("sonar.junit.reportPaths", "build/test-results/testDebugUnitTest/")  // Resultados de JUnit
-//        property("sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/testDebugUnitTestCoverage/testDebugUnitTestCoverage.xml")  // Cobertura de tests
+        property("sonar.projectKey", "0ece760d21b905eaf28bb4a6ea329ca506210576")
+        property("sonar.organization", "Iván Estépar")
+        property("sonar.host.url", "https://sonarcloud.io")
     }
 }
 

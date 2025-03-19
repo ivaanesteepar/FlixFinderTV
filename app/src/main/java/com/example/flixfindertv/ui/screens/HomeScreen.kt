@@ -14,7 +14,6 @@ import com.example.flixfindertv.utils.MovieList
 import com.google.firebase.auth.FirebaseAuth
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.saveable.rememberSaveable
 import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.utils.BottomNavigationBar
 
@@ -39,8 +38,8 @@ fun HomeScreen(
     val peliculasGenero2 by genresViewModel.peliculasGenero2.observeAsState(emptyList())
 
     // Nombres de los géneros
-    val nombreGenero1 = rememberSaveable { genresViewModel.nombreGenero1 }
-    val nombreGenero2 = rememberSaveable { genresViewModel.nombreGenero2 }
+    val nombreGenero1 = genresViewModel.nombreGenero1.value
+    val nombreGenero2 = genresViewModel.nombreGenero2.value
 
     // LazyListState para manejar el estado de desplazamiento
     val listStateGenero1 = rememberLazyListState()
@@ -54,7 +53,7 @@ fun HomeScreen(
     }
 
     LaunchedEffect(nombreGenero1) {
-        if (nombreGenero1.value.isNotEmpty()) {
+        if (nombreGenero1.isNotEmpty()) {
             genresViewModel.resetPeliculasGenero(1)  // Limpiar las películas del género 1
             if (uid != null) {
                 genresViewModel.obtenerPeliculasYSeriesGenero1(uid)
@@ -63,7 +62,7 @@ fun HomeScreen(
     }
 
     LaunchedEffect(nombreGenero2) {
-        if (nombreGenero2.value.isNotEmpty()) {
+        if (nombreGenero2.isNotEmpty()) {
             genresViewModel.resetPeliculasGenero(2)  // Limpiar las películas del género 2
             if (uid != null) {
                 genresViewModel.obtenerPeliculasYSeriesGenero2(uid)
@@ -117,9 +116,9 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(20.dp))
 
             // Mostrar películas y series del primer género
-            if (peliculasGenero1.isNotEmpty() && nombreGenero1.value.isNotEmpty()) {
+            if (peliculasGenero1.isNotEmpty() && nombreGenero1.isNotEmpty()) {
                 Text(
-                    text = nombreGenero1.value, // Usamos el nombre del género
+                    text = nombreGenero1, // Usamos el nombre del género
                     style = MaterialTheme.typography.bodyMedium.copy(fontSize = 20.sp),
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
@@ -134,9 +133,9 @@ fun HomeScreen(
             }
 
             // Mostrar películas y series del segundo género
-            if (peliculasGenero2.isNotEmpty() && nombreGenero2.value.isNotEmpty()) {
+            if (peliculasGenero2.isNotEmpty() && nombreGenero2.isNotEmpty()) {
                 Text(
-                    text = nombreGenero2.value, // Usamos el nombre del género
+                    text = nombreGenero2, // Usamos el nombre del género
                     style = MaterialTheme.typography.bodyMedium.copy(fontSize = 20.sp),
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
