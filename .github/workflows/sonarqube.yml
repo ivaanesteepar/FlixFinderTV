@@ -33,8 +33,8 @@ jobs:
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle.kts', '**/gradle-wrapper.properties') }}
           restore-keys: gradle-${{ runner.os }}
 
-      - name: Dar permisos de ejecución a gradlew
-        run: chmod +x gradlew
+      - name: Forzar permisos de ejecución en gradlew
+        run: sudo chmod +x gradlew
 
       - name: Compilar proyecto
         run: ./gradlew build
