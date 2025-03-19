@@ -14,7 +14,6 @@ import com.example.flixfindertv.utils.MovieList
 import com.google.firebase.auth.FirebaseAuth
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.saveable.rememberSaveable
 import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.utils.BottomNavigationBar
 
