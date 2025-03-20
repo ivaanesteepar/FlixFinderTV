@@ -4,6 +4,7 @@
   <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV">
     <img src="https://sonarcloud.io/api/project_badges/measure?project=ivaanesteepar_FlixFinderTV&metric=alert_status" alt="Quality Gate Status"/>
   </a>
+  &nbsp;&nbsp;&nbsp;&nbsp;
   <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV">
     <img src="https://sonarcloud.io/api/project_badges/measure?project=ivaanesteepar_FlixFinderTV&metric=security_rating" alt="Security Rating"/>
   </a>
