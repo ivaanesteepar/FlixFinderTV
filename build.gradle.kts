@@ -8,7 +8,7 @@ plugins {
 
 sonarqube {
     properties {
-        property("sonar.projectKey", "0ece760d21b905eaf28bb4a6ea329ca506210576")
+        property("sonar.projectKey", "ivaanesteepar_FlixFinderTV")
         property("sonar.organization", "ivaanesteepar")
         property("sonar.host.url", "https://sonarcloud.io")
     }
