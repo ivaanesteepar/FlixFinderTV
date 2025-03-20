@@ -24,4 +24,4 @@ El sistema de recomendaciones se basa en los datos almacenados en Firebase, lo q
 
 - **Recomendaciones personalizadas**: Ofrece sugerencias de películas y series basadas en un conjunto de datos.
 - **Interfaz fluida y moderna**: Usando Jetpack Compose, se ha logrado una interfaz de usuario intuitiva y atractiva.
-- **Almacenamiento en Firebase**: Los datos se almacenan en Firebase para facilitar su acceso y gestión desde cualquier dispositivo.
+- **Búsqueda avanzada**: Permite a los usuarios buscar películas y series por título y género, gracias a la integración con la API de TMDB.
