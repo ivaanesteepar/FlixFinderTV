@@ -16,6 +16,8 @@ El sistema de recomendaciones se basa en los datos almacenados en Firebase, lo q
 
 - **Jetpack Compose**: Para el diseño y la creación de la interfaz de usuario de manera moderna y eficiente.
 - **Firebase**: Para el almacenamiento en la nube de los datos de películas/series y para la autenticación de usuarios si es necesario.
+- **IA de Gemini**: Para la implementación de un pequeño Trivia.
+- **API de TMDB**: Para acceder a una extensa base de datos de películas y series, mejorando la variedad y calidad de las sugerencias.
 - **Kotlin**: Lenguaje de programación utilizado para el desarrollo de la app Android.
 
 ## Funcionalidades principales
