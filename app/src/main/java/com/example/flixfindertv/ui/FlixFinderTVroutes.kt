@@ -23,7 +23,7 @@ import com.example.flixfindertv.ui.viewmodels.MoviesViewModel
 import com.example.flixfindertv.ui.viewmodels.TriviaViewModel
 
 @Composable
-fun FlixFinderTVroutes() {
+fun FlixFinderTVroutes(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
     val moviesViewModel: MoviesViewModel = viewModel()
     Scaffold { padding ->
