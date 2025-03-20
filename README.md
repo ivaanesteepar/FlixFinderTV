@@ -9,7 +9,7 @@ Este proyecto consiste en el desarrollo de una aplicación Android para la recom
 
 La aplicación cuenta con una **interfaz de usuario intuitiva y agradable**, diseñada para ofrecer una experiencia fluida y moderna. Aprovechando las ventajas de Jetpack Compose, la navegación entre las pantallas es simple y accesible. Además, el diseño se adapta de manera eficiente a diferentes tamaños de pantalla, brindando una experiencia consistente en dispositivos móviles y tablets. 
 
-El sistema de recomendaciones se basa en los datos almacenados en Firebase, lo que permite un acceso rápido y flexible a las sugerencias. La aplicación está pensada para que los usuarios puedan descubrir nuevas películas y series de forma cómoda y personalizada, según sus gustos y preferencias.
+La aplicación está pensada para que los usuarios puedan descubrir nuevas películas y series de forma cómoda y personalizada, según sus gustos y preferencias.
 
 
 ## Tecnologías utilizadas
