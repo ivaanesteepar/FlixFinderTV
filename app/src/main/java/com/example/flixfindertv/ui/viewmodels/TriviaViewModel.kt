@@ -7,15 +7,17 @@ import com.example.flixfindertv.interfaces.UiState
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.*
 
 class TriviaViewModel() : ViewModel() {
     private val _uiState: MutableStateFlow<UiState> = MutableStateFlow(UiState.Initial)
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
+
+    private val _languageState: MutableStateFlow<String> = MutableStateFlow(Locale.getDefault().language)
+    val languageState: StateFlow<String> = _languageState.asStateFlow()
+
     private val apiKey = BuildConfig.apiKey
 
     private val generativeModel = GenerativeModel(
@@ -23,8 +25,22 @@ class TriviaViewModel() : ViewModel() {
         apiKey = apiKey
     )
 
+    init {
+        // Escuchar cambios en el idioma
+        languageState.onEach {
+            println("cambio")
+            // Regenerar la pregunta cuando el idioma cambia
+            generateQuestion()
+        }.launchIn(viewModelScope)
+    }
+
+    // Método para actualizar el idioma
+    fun updateLanguage(language: String) {
+        _languageState.value = language
+    }
+
     private fun getPrompt(): String {
-        val language = Locale.getDefault().language
+        val language = _languageState.value
         return if (language == "es") {
             // Prompt en español
             """
@@ -64,9 +80,20 @@ class TriviaViewModel() : ViewModel() {
             _uiState.value = UiState.Loading
             viewModelScope.launch(Dispatchers.IO) {
                 try {
+                    // Obtener el idioma actual del dispositivo
+                    val language = _languageState.value
+
+                    // Generar el contenido en base al idioma
                     val evaluation = generativeModel.generateContent(content {
-                        text("$currentQuestion Your answer is: $answer. What is the correct answer and why? Explain why the correct answer is what it is, in a separate paragraph. Do not use markdown.")
+                        if (language == "es") {
+                            // Si el idioma es español, la respuesta debe estar en español
+                            text("$currentQuestion Tu respuesta es: $answer. ¿Cuál es la respuesta correcta y por qué? Explica por qué la respuesta correcta es lo que es, en un párrafo separado. No uses markdown.")
+                        } else {
+                            // Por defecto en inglés
+                            text("$currentQuestion Your answer is: $answer. What is the correct answer and why? Explain why the correct answer is what it is, in a separate paragraph. Do not use markdown.")
+                        }
                     })
+
                     evaluation.text?.let { result ->
                         _uiState.value = UiState.Success(result)
                     }

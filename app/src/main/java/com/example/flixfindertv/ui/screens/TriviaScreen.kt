@@ -1,5 +1,7 @@
 package com.example.flixfindertv.ui.screens
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.content.Intent
@@ -20,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.flixfindertv.interfaces.UiState
@@ -49,6 +52,15 @@ fun TriviaScreen(
 
     var isAnswered by rememberSaveable { mutableStateOf(false) }
 
+    val languageState by triviaViewModel.languageState.collectAsState()
+
+    println("languageState: $languageState")
+
+    // Genera la pregunta automáticamente cuando se entra en la pantalla
+    LaunchedEffect(languageState) {
+        triviaViewModel.generateQuestion() // Genera una nueva pregunta cada vez que el idioma cambie
+    }
+
     // Genera la pregunta automáticamente cuando se entra en la pantalla
     LaunchedEffect(Unit) {
         if (uiState !is UiState.Success) {  // Solo generar si no hay una pregunta guardada
@@ -61,15 +73,7 @@ fun TriviaScreen(
         }
     }
 
-    // Configuración del SpeechRecognizer
-    val speechRecognizer = remember { SpeechRecognizer.createSpeechRecognizer(context) }
-    val speechIntent = remember {
-        Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US")
-        }
-    }
-
+    // Cambiar la ubicación de la declaración de `speechResultLauncher`
     val speechResultLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -77,6 +81,23 @@ fun TriviaScreen(
             result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.let {
                 answer = it[0]
             }
+        }
+    }
+
+    val speechIntent = remember {
+        Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US")
+        }
+    }
+
+    // Lanzador de permisos para la grabación de audio
+    val recordAudioPermissionRequest = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+        if (isGranted) {
+            // Permiso concedido, puedes continuar con la grabación de audio
+            speechResultLauncher.launch(speechIntent) // Inicia el reconocimiento de voz
+        } else {
+            // Permiso denegado, puedes mostrar un mensaje o hacer algo al respecto
         }
     }
 
@@ -144,12 +165,19 @@ fun TriviaScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 8.dp)
-                            .heightIn(min = 56.dp) // Controlar la altura mínima del campo de texto
-                            .border(1.dp, Color.Gray), // Borde gris para el campo de texto
+                            .heightIn(min = 56.dp)
+                            .border(1.dp, Color.Gray),
                         trailingIcon = {
                             IconButton(
                                 onClick = {
-                                    speechResultLauncher.launch(speechIntent)  // Inicia el reconocimiento de voz
+                                    // Verificar si el permiso de grabar audio está concedido
+                                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                                        // Si el permiso ya ha sido concedido, lanzar el reconocimiento de voz
+                                        speechResultLauncher.launch(speechIntent)
+                                    } else {
+                                        // Solicitar el permiso
+                                        recordAudioPermissionRequest.launch(Manifest.permission.RECORD_AUDIO)
+                                    }
                                 }
                             ) {
                                 Icon(imageVector = Icons.Filled.Mic, contentDescription = "Voice Input")
