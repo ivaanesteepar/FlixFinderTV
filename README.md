@@ -1,5 +1,18 @@
 # Recomendador de Películas y Series con Jetpack Compose y Firebase
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ivaanesteepar_FlixFinderTV&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV)
+
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=ivaanesteepar_FlixFinderTV&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV)
+
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=ivaanesteepar_FlixFinderTV&metric=bugs)](https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV)
+
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=ivaanesteepar_FlixFinderTV&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV)
+
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=ivaanesteepar_FlixFinderTV&metric=coverage)](https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV)
+
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=ivaanesteepar_FlixFinderTV&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV)
+
+
 **Trabajo de Fin de Grado**  
 Grado de Ingeniería Informática - Universidad de Burgos
 
