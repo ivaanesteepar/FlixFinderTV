@@ -24,7 +24,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
-import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.flixfindertv.R
@@ -222,38 +221,6 @@ fun EditProfileScreen(navController: NavHostController) {
                                 Toast.makeText(context, "Error al actualizar", Toast.LENGTH_SHORT).show()
                             }
                         navController.popBackStack()
-
-                        // Si el usuario cambió el correo, autenticarse antes de actualizarlo
-                        if (showPasswordField && newEmail.isNotEmpty() && newEmail != userEmail) {
-                            // Si el correo no está verificado, enviamos un correo de verificación
-                            if (!currentUser.isEmailVerified) {
-                                currentUser.sendEmailVerification()
-                                    .addOnSuccessListener {
-                                        Toast.makeText(context, "Correo de verificación enviado. Verifica tu correo antes de continuar.", Toast.LENGTH_SHORT).show()
-                                    }
-                                    .addOnFailureListener { exception ->
-                                        Toast.makeText(context, "Error al enviar correo de verificación: ${exception.message}", Toast.LENGTH_SHORT).show()
-                                    }
-                            } else {
-                                // Si el correo está verificado, reautenticamos al usuario y actualizamos el correo
-                                val credential = EmailAuthProvider.getCredential(userEmail, password)
-                                currentUser.reauthenticate(credential)
-                                    .addOnSuccessListener {
-                                        currentUser.updateEmail(newEmail)
-                                            .addOnSuccessListener {
-                                                firestore.collection("usuarios").document(uid)
-                                                    .update("email", newEmail)
-                                                Toast.makeText(context, "Correo actualizado", Toast.LENGTH_SHORT).show()
-                                            }
-                                            .addOnFailureListener { exception ->
-                                                Toast.makeText(context, "Error al actualizar el correo: ${exception.message}", Toast.LENGTH_SHORT).show()
-                                            }
-                                    }
-                                    .addOnFailureListener { exception ->
-                                        Toast.makeText(context, "Contraseña incorrecta: ${exception.message}", Toast.LENGTH_SHORT).show()
-                                    }
-                            }
-                        }
                     }
                 },
                 modifier = Modifier.fillMaxWidth()

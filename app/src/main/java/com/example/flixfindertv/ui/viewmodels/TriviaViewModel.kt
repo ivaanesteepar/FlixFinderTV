@@ -11,9 +11,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.util.*
 
-
-class TriviaViewModel : ViewModel() {
+class TriviaViewModel() : ViewModel() {
     private val _uiState: MutableStateFlow<UiState> = MutableStateFlow(UiState.Initial)
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
     private val apiKey = BuildConfig.apiKey
@@ -23,9 +23,28 @@ class TriviaViewModel : ViewModel() {
         apiKey = apiKey
     )
 
+    private fun getPrompt(): String {
+        val language = Locale.getDefault().language
+        return if (language == "es") {
+            // Prompt en español
+            """
+                Hazme una pregunta sobre películas o series de TV con 4 opciones de respuesta.
+                Asegúrate de que la pregunta sea única y no repetida.
+                No uses markdown. La pregunta debe ser atractiva y relevante.
+            """.trimIndent()
+        } else {
+            // Prompt en inglés
+            """
+                Ask me a question about movies or TV shows with 4 answer options.
+                Ensure the question is unique and not repeated.
+                Do not use markdown. The question should be engaging and relevant.
+            """.trimIndent()
+        }
+    }
+
     fun generateQuestion() {
         _uiState.value = UiState.Loading
-        val prompt = "Hazme una pregunta sobre películas o series con 4 opciones de respuesta."
+        val prompt = getPrompt()
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -45,12 +64,10 @@ class TriviaViewModel : ViewModel() {
             _uiState.value = UiState.Loading
             viewModelScope.launch(Dispatchers.IO) {
                 try {
-                    // Modificación: incluir "Tu respuesta es: [respuesta]" antes de la respuesta correcta
                     val evaluation = generativeModel.generateContent(content {
-                        text("$currentQuestion Tu respuesta es: $answer. ¿Cuál es la respuesta correcta y por qué? Explica por qué la respuesta correcta es la que es, en un párrafo separado. No uses markdown")
+                        text("$currentQuestion Your answer is: $answer. What is the correct answer and why? Explain why the correct answer is what it is, in a separate paragraph. Do not use markdown.")
                     })
                     evaluation.text?.let { result ->
-                        // Aquí se espera que el resultado contenga primero la respuesta del usuario
                         _uiState.value = UiState.Success(result)
                     }
                 } catch (e: Exception) {
@@ -60,4 +77,3 @@ class TriviaViewModel : ViewModel() {
         }
     }
 }
-

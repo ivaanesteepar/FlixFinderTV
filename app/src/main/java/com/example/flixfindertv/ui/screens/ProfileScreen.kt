@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Alignment
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -166,7 +167,11 @@ fun ProfileScreen(navController: NavHostController, uid: String) {
                 ) {
                     // Siguiendo
                     Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.clickable {
+                            // Acción cuando se hace clic en "Siguiendo"
+                            // Por ejemplo, navegar a una pantalla que muestra a los usuarios seguidos
+                        }
                     ) {
                         Text(text = "Siguiendo")
                         Spacer(modifier = Modifier.height(5.dp))
@@ -175,7 +180,11 @@ fun ProfileScreen(navController: NavHostController, uid: String) {
 
                     // Seguidores
                     Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.clickable {
+                            // Acción cuando se hace clic en "Seguidores"
+                            // Por ejemplo, navegar a una pantalla que muestra a los seguidores
+                        }
                     ) {
                         Text(text = "Seguidores")
                         Spacer(modifier = Modifier.height(5.dp))
@@ -184,13 +193,18 @@ fun ProfileScreen(navController: NavHostController, uid: String) {
 
                     // Comentarios
                     Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.clickable {
+                            // Acción cuando se hace clic en "Comentarios"
+                            // Por ejemplo, navegar a una pantalla que muestra los comentarios
+                        }
                     ) {
                         Text(text = "Comentarios")
                         Spacer(modifier = Modifier.height(5.dp))
                         Text(text = commentsCount.toString(), style = MaterialTheme.typography.bodySmall)
                     }
                 }
+
 
                 Spacer(modifier = Modifier.height(64.dp))  // Espacio entre las filas
 

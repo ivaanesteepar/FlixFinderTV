@@ -2,6 +2,7 @@ package com.example.flixfindertv.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -10,6 +11,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -35,6 +38,9 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
     var movieGenre by remember { mutableStateOf("Cargando...") }
     var releaseDate by remember { mutableStateOf("") }
     var voteAverage by remember { mutableStateOf("") }
+    val isDialogOpen = remember { mutableStateOf(false) }
+    val selectedStars = remember { mutableStateOf(0) }
+    val commentText = remember { mutableStateOf("") }
 
     // Base URL para TMDb
     val imageBaseUrl = "https://image.tmdb.org/t/p/w500"
@@ -137,7 +143,7 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                 modifier = Modifier
                     .padding(16.dp) // Ajusta el espacio alrededor del icono
                     .align(Alignment.TopStart) // Posiciona el botón en la parte superior izquierda
-                    .background(Color.Gray, CircleShape) // Fondo gris con forma circular
+                    .background(Color.Gray.copy(alpha = 0.5f), CircleShape) // Fondo gris con forma circular
                     .size(50.dp)
                     .padding(8.dp) // Espacio alrededor del icono dentro del círculo
             ) {
@@ -168,8 +174,101 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
             modifier = Modifier.padding(start = 16.dp, end = 16.dp),
             color = Color.Black
         )
+
+        // Botón para abrir el dialogo de comentar
+        Button(
+            onClick = { isDialogOpen.value = true },
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text("Comment")
+        }
+
+        // Mostrar el diálogo de comentario
+        if (isDialogOpen.value) {
+            AlertDialog(
+                onDismissRequest = {
+                    isDialogOpen.value = false
+                    commentText.value = ""
+                    selectedStars.value = 0
+                },
+                title = {
+                    Box(
+                        modifier = Modifier.fillMaxWidth(), // Hace que el Box ocupe todo el ancho disponible
+                        contentAlignment = Alignment.Center // Centra el contenido dentro del Box
+                    ) {
+                        Text("Leave your comment")
+                    }
+                },
+                text = {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth() // Hace que el diálogo ocupe todo el ancho
+                            .padding(16.dp) // Añade padding al contenido
+                    ) {
+                        // Estrellas
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(0.dp), // Espaciado cero
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            for (i in 1..5) {
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier
+                                        .weight(1f) // Hace que las estrellas se distribuyan equitativamente
+                                        .clickable {
+                                            // Si la estrella que se ha pulsado es la misma que la seleccionada,
+                                            // desmarcar todas las estrellas
+                                            selectedStars.value = if (selectedStars.value == i * 2) 0 else i * 2
+                                            println("selectedStar: ${selectedStars.value}")
+                                        }
+                                ) {
+                                    Icon(
+                                        imageVector = if (i * 2 <= selectedStars.value) Icons.Filled.Star else Icons.Filled.StarBorder,
+                                        contentDescription = "Estrella",
+                                        tint = if (i * 2 <= selectedStars.value) Color.Yellow else Color.Gray,
+                                        modifier = Modifier.size(50.dp) // Tamaño de las estrellas más grande
+                                    )
+                                }
+                            }
+                        }
+
+                        // Campo de texto para el comentario
+                        OutlinedTextField(
+                            value = commentText.value,
+                            onValueChange = { commentText.value = it },
+                            label = { Text("Write your comment") },
+                            modifier = Modifier
+                                .fillMaxWidth() // Ancho completo
+                                .height(250.dp) // Aumenta la altura del campo de texto
+                                .padding(top = 16.dp) // Padding superior
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        // Aquí puedes guardar el comentario y la calificación
+                        isDialogOpen.value = false
+                    }) {
+                        Text("Send")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = {
+                        isDialogOpen.value = false
+                        commentText.value = "" // Reseteamos el texto cuando se cancela
+                        selectedStars.value = 0
+                    }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+
+        }
+
+
     }
 }
+
 
 
 

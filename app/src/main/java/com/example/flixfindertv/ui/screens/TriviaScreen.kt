@@ -1,15 +1,25 @@
 package com.example.flixfindertv.ui.screens
 
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
+import android.content.Intent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.flixfindertv.interfaces.UiState
@@ -26,6 +36,7 @@ fun TriviaScreen(
     var result by rememberSaveable { mutableStateOf("") }
     val uiState by triviaViewModel.uiState.collectAsState()
     val uid = FirebaseAuth.getInstance().currentUser?.uid
+    val context = LocalContext.current
 
     // Estado para mostrar el botón de siguiente pregunta
     var showNextButton by rememberSaveable { mutableStateOf(false) }
@@ -35,6 +46,8 @@ fun TriviaScreen(
 
     // Estado para saber si se ha enviado una respuesta
     var hasAnswered by rememberSaveable { mutableStateOf(false) }
+
+    var isAnswered by rememberSaveable { mutableStateOf(false) }
 
     // Genera la pregunta automáticamente cuando se entra en la pantalla
     LaunchedEffect(Unit) {
@@ -48,7 +61,24 @@ fun TriviaScreen(
         }
     }
 
-    println("ExplanationShown: $explanationShown")
+    // Configuración del SpeechRecognizer
+    val speechRecognizer = remember { SpeechRecognizer.createSpeechRecognizer(context) }
+    val speechIntent = remember {
+        Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US")
+        }
+    }
+
+    val speechResultLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == android.app.Activity.RESULT_OK) {
+            result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.let {
+                answer = it[0]
+            }
+        }
+    }
 
     Scaffold(
         bottomBar = {
@@ -100,16 +130,33 @@ fun TriviaScreen(
                     .padding(16.dp)
                     .fillMaxWidth() // Asegúrate de que la columna ocupe el ancho completo
             ) {
-                // Campo de texto para la respuesta
-                TextField(
-                    value = answer,
-                    label = { Text("Write your response") },
-                    onValueChange = { answer = it },
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 8.dp)
-                        .heightIn(min = 56.dp) // Controlar la altura mínima del campo de texto
-                )
+                        .padding(bottom = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Fila con el campo de texto y el icono del micrófono dentro del TextField
+                    TextField(
+                        value = answer,
+                        label = { Text("Write your response") },
+                        onValueChange = { answer = it },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp)
+                            .heightIn(min = 56.dp) // Controlar la altura mínima del campo de texto
+                            .border(1.dp, Color.Gray), // Borde gris para el campo de texto
+                        trailingIcon = {
+                            IconButton(
+                                onClick = {
+                                    speechResultLauncher.launch(speechIntent)  // Inicia el reconocimiento de voz
+                                }
+                            ) {
+                                Icon(imageVector = Icons.Filled.Mic, contentDescription = "Voice Input")
+                            }
+                        }
+                    )
+                }
 
                 // Botón para enviar respuesta
                 Button(
@@ -120,11 +167,12 @@ fun TriviaScreen(
                             showNextButton = true  // Muestra el botón de siguiente pregunta después de responder
                             answer = "" // Limpia el campo de respuesta
                             hasAnswered = true // Marca que ya se ha respondido
+                            isAnswered = true
                         } else {
                             result = "Invalid answer. Please enter a, b, c, or d."
                         }
                     },
-                    enabled = answer.isNotEmpty(),
+                    enabled = !isAnswered && answer.isNotEmpty(),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 8.dp)
@@ -155,6 +203,7 @@ fun TriviaScreen(
                             result = ""  // Limpia el resultado anterior
                             explanationShown = false // Resetear el estado de explicación mostrada
                             hasAnswered = false  // Resetear el estado de respuesta
+                            isAnswered = false // Reiniciar el estado de respuesta enviada
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
