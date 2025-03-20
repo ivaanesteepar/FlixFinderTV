@@ -19,6 +19,21 @@
   <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV">
     <img src="https://sonarcloud.io/api/project_badges/measure?project=ivaanesteepar_FlixFinderTV&metric=sqale_rating" alt="Maintainability Rating"/>
   </a>
+  <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV">
+    <img src="https://sonarcloud.io/api/project_badges/measure?project=ivaanesteepar_FlixFinderTV&metric=reliability_rating" alt="Reliability Rating"/>
+  </a>
+  <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV">
+    <img src="https://sonarcloud.io/api/project_badges/measure?project=ivaanesteepar_FlixFinderTV&metric=vulnerabilities" alt="Vulnerabilities"/>
+  </a>
+  <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV">
+    <img src="https://sonarcloud.io/api/project_badges/measure?project=ivaanesteepar_FlixFinderTV&metric=duplicated_lines_density" alt="Duplicated Lines"/>
+  </a>
+  <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV">
+    <img src="https://sonarcloud.io/api/project_badges/measure?project=ivaanesteepar_FlixFinderTV&metric=sqale_index" alt="Technical Debt"/>
+  </a>
+  <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV">
+    <img src="https://sonarcloud.io/api/project_badges/measure?project=ivaanesteepar_FlixFinderTV&metric=ncloc" alt="Lines of Code"/>
+  </a>
 </p>
 
 
