@@ -7,10 +7,9 @@ from firebase_admin import credentials, firestore
 BASE_URL = 'https://api.themoviedb.org/3'
 
 # Inicializar Firebase
-cred = credentials.Certificate('C:\\Users\\Usuario\\Documents\\KeyFirebase\\flixfindertv-42323-firebase-adminsdk-fbsvc-927ed2eb0d.json')
+cred = credentials.Certificate('C:\\Users\\Usuario\\Documents\\KeyFirebase\\flixfindertv-1f381-firebase-adminsdk-fbsvc-b62fc4096c.json')
 firebase_admin.initialize_app(cred)
 db = firestore.client()
-
 # Accede al documento tmdbApiKey dentro de la colección apiKeys
 doc_ref = db.collection('apiKeys').document('tmdbApiKey')
 doc = doc_ref.get()
@@ -28,6 +27,7 @@ series_collection = db.collection('series')
 config_collection = db.collection('config')
 eliminadas_collection = db.collection('eliminadas')
 generos_collection = db.collection('generos')
+
 
 def obtener_generos(api_key):
     # Obtener géneros de películas
@@ -148,6 +148,32 @@ def obtener_datos():
     return todas_las_peliculas, todas_las_series
 
 
+def obtener_status_pelicula(movie_id):
+    # Obtener el estado de una película desde TMDb
+    url = f"{BASE_URL}/movie/{movie_id}?api_key={API_KEY}&language=en-US"
+    respuesta = requests.get(url)
+    
+    if respuesta.status_code == 200:
+        datos = respuesta.json()
+        return datos.get('status', 'Desconocido')  # Devuelve el status de la película
+    else:
+        print(f"Error al obtener el estado de la película con ID {movie_id}")
+        return 'Desconocido'
+
+
+def obtener_status_serie(tv_id):
+    # Obtener el estado de una serie desde TMDb
+    url = f"{BASE_URL}/tv/{tv_id}?api_key={API_KEY}&language=en-US"
+    respuesta = requests.get(url)
+    
+    if respuesta.status_code == 200:
+        datos = respuesta.json()
+        return datos.get('status', 'Desconocido')  # Devuelve el status de la serie
+    else:
+        print(f"Error al obtener el estado de la serie con ID {tv_id}")
+        return 'Desconocido'
+
+
 def guardar_en_db(datos, coleccion, peliculas_eliminadas):
     contador = 0  # Inicializamos el contador
 
@@ -157,43 +183,47 @@ def guardar_en_db(datos, coleccion, peliculas_eliminadas):
             print(f"La {coleccion.id[:-1]} con ID {item['id']} ya fue eliminada y no se guardará.")
             continue
 
+        # Obtener el estado (status) de la película o serie
+        if 'title' in item:  # Si es una película
+            status = obtener_status_pelicula(item['id'])
+        elif 'name' in item:  # Si es una serie
+            status = obtener_status_serie(item['id'])
+        else:
+            status = 'Desconocido'
+        
         # Verificar si la película o serie ya existe en Firestore
         doc_ref = coleccion.document(str(item['id']))
-        doc = doc_ref.get()
 
-        if doc.exists:
-            print(f"La {coleccion.id[:-1]} con ID {item['id']} ya existe en la base de datos. No se duplicará.")
-            continue
-        else:
-            # Crear un diccionario con la información de la película o serie
-            pelicula = {
-                "id": str(item['id']),  # Asegurar que el ID sea un string
-                "title": item.get('title', None),
-                "name": item.get('name', None),
-                "overview": item.get('overview', ''),
-                "release_date": item.get('release_date', None),
-                "release_date_series": item.get('first_air_date', None),
-                "poster_path": item.get('poster_path', ''),
-                "vote_average": str(item.get('vote_average', '0.0')),  # Convertir a string
-                "vote_count": str(item.get('vote_count', '0')),  # Convertir a string
-                "genre_ids": item.get('genre_ids', []),  # Guardar los IDs como enteros
-                "adult": item.get('adult', False),
-                "backdrop_path": item.get('backdrop_path', ''),
-                "popularity": item.get('popularity', 0.0),
-                "esSerie": 'name' in item,  # Si tiene "name", es serie
-                "comentarios": []  # Lista vacía de comentarios
-            }
-            # Guardar en la colección de Firestore
-            doc_ref.set(pelicula, merge=True)
-            print(f"Guardando {coleccion.id[:-1]} con ID {item['id']}...")
+        # Crear un diccionario con la información de la película o serie
+        pelicula = {
+            "id": str(item['id']),  # Asegurar que el ID sea un string
+            "title": item.get('title', None),
+            "name": item.get('name', None),
+            "overview": item.get('overview', ''),
+            "release_date": item.get('release_date', None),
+            "release_date_series": item.get('first_air_date', None),
+            "poster_path": item.get('poster_path', ''),
+            "vote_average": str(item.get('vote_average', '0.0')),  # Convertir a string
+            "vote_count": str(item.get('vote_count', '0')),  # Convertir a string
+            "genre_ids": item.get('genre_ids', []),  # Guardar los IDs como enteros
+            "adult": item.get('adult', False),
+            "original_language": item.get('original_language', 'en'),  # Se asume inglés como idioma por defecto
+            "backdrop_path": item.get('backdrop_path', ''),
+            "popularity": item.get('popularity', 0.0),
+            "status": status,  # Aquí agregamos el campo status
+            "esSerie": 'name' in item,  # Si tiene "name", es serie
+            "comentarios": []  # Lista vacía de comentarios
+        }
+
+        # Guardar en la colección de Firestore
+        doc_ref.set(pelicula, merge=True)
+        print(f"Guardando {coleccion.id[:-1]} con ID {item['id']}...")
             
-            # Aumentamos el contador cada vez que se guarda un nuevo elemento
-            contador += 1
+        # Aumentamos el contador cada vez que se guarda un nuevo elemento
+        contador += 1
     
     # Mostrar el número total de elementos guardados
     print(f"Se han guardado {contador} elementos.")
-
-
 
 
 # Función para obtener todas las películas y series de Firebase
@@ -210,6 +240,7 @@ def obtener_todas_las_peliculas_y_series_firebase():
     print(f"Se han obtenido {len(todas_las_peliculas)} películas y {len(todas_las_series)} series de Firebase.")
 
     return todas_las_peliculas, todas_las_series
+
 
 # Función para obtener las películas y series eliminadas previamente
 def obtener_eliminadas():
@@ -233,7 +264,6 @@ def obtener_eliminadas():
         print(f"ID: {serie}")
 
     return peliculas_eliminadas, series_eliminadas
-
 
 
 def eliminar_5_antiguas(coleccion, peliculas_o_series_ordenadas):
@@ -333,7 +363,6 @@ def obtener_y_guardar():
         obtener_y_guardar_generos(API_KEY)
     else:
         print("La colección de géneros ya tiene datos. No se guardarán los géneros.")
-
 
     # Obtener el número de documentos en la colección de películas y series
     peliculas_count = len(peliculas_collection.get())
