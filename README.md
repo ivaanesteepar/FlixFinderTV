@@ -1,5 +1,39 @@
 # Recomendador de Películas y Series con Jetpack Compose y Firebase
 
+<p align="center">
+  <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV">
+    <img src="https://sonarcloud.io/api/project_badges/measure?project=ivaanesteepar_FlixFinderTV&metric=alert_status" alt="Quality Gate Status"/>
+  </a>
+  <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV">
+    <img src="https://sonarcloud.io/api/project_badges/measure?project=ivaanesteepar_FlixFinderTV&metric=security_rating" alt="Security Rating"/>
+  </a>
+  <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV">
+    <img src="https://sonarcloud.io/api/project_badges/measure?project=ivaanesteepar_FlixFinderTV&metric=bugs" alt="Bugs"/>
+  </a>
+  <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV">
+    <img src="https://sonarcloud.io/api/project_badges/measure?project=ivaanesteepar_FlixFinderTV&metric=code_smells" alt="Code Smells"/>
+  </a>
+  <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV">
+    <img src="https://sonarcloud.io/api/project_badges/measure?project=ivaanesteepar_FlixFinderTV&metric=coverage" alt="Coverage"/>
+  </a>
+  <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV">
+    <img src="https://sonarcloud.io/api/project_badges/measure?project=ivaanesteepar_FlixFinderTV&metric=sqale_rating" alt="Maintainability Rating"/>
+  </a>
+  <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV">
+    <img src="https://sonarcloud.io/api/project_badges/measure?project=ivaanesteepar_FlixFinderTV&metric=reliability_rating" alt="Reliability Rating"/>
+  </a>
+  <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV">
+    <img src="https://sonarcloud.io/api/project_badges/measure?project=ivaanesteepar_FlixFinderTV&metric=vulnerabilities" alt="Vulnerabilities"/>
+  </a>
+  <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV">
+    <img src="https://sonarcloud.io/api/project_badges/measure?project=ivaanesteepar_FlixFinderTV&metric=duplicated_lines_density" alt="Duplicated Lines"/>
+  </a>
+  <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV">
+    <img src="https://sonarcloud.io/api/project_badges/measure?project=ivaanesteepar_FlixFinderTV&metric=ncloc" alt="Lines of Code"/>
+  </a>
+</p>
+
+
 **Trabajo de Fin de Grado**  
 Grado de Ingeniería Informática - Universidad de Burgos
 
