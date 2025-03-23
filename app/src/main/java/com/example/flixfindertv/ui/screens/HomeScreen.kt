@@ -54,8 +54,6 @@ fun HomeScreen(
         }
     }
 
-    println("genero1: $nombreGenero1 genero2: $nombreGenero2")
-
     LaunchedEffect(key1 = genresViewModel.nombreGenero1.value) {
         val nuevoGenero = genresViewModel.nombreGenero1.value
         if (nuevoGenero != prevGenero1.value) {
@@ -64,7 +62,6 @@ fun HomeScreen(
                 genresViewModel.limpiarPeliculasGenero1()
                 listStateGenero1.scrollToItem(0)
                 if (uid != null) {
-                    println("llegaa")
                     genresViewModel.obtenerPeliculasYSeriesGenero1(uid)
                 }
             }
@@ -89,12 +86,13 @@ fun HomeScreen(
     LaunchedEffect(listStateGenero1.firstVisibleItemIndex) {
         val threshold = 10  // Umbral de carga
 
-        if (listStateGenero1.firstVisibleItemIndex >= (peliculasGenero1.size - threshold) && !isLoadingGenero1 && peliculasGenero1.size < maxSeries && hayConexion) {
+        if (listStateGenero1.firstVisibleItemIndex >= (peliculasGenero1.size - threshold) && !isLoadingGenero1 && peliculasGenero1.size < maxMovies && hayConexion) {
             if (uid != null) {
                 genresViewModel.obtenerPeliculasYSeriesGenero1(uid)
             }
         }
     }
+
 
     LaunchedEffect(listStateGenero2.firstVisibleItemIndex) {
         val threshold = 10  // Umbral de carga

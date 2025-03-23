@@ -5,12 +5,14 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -27,6 +29,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.flixfindertv.R
+import com.example.flixfindertv.utils.ImgurUploader
 import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -45,10 +48,17 @@ fun EditProfileScreen(navController: NavHostController) {
     var showPasswordField by remember { mutableStateOf(false) }
     var profileImageUri by remember { mutableStateOf<String?>(null) }
 
+    // Estado para manejar si el usuario ha solicitado eliminar la foto
+    var deleteProfileImage by remember { mutableStateOf(false) }
+    var deleteImageInUI by remember { mutableStateOf(false) }
+
     // Launcher to pick an image from gallery
     val pickImageLauncher: ActivityResultLauncher<String> =
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-            profileImageUri = uri?.toString()
+            // Solo actualiza la URI de la imagen si se seleccionó una nueva
+            if (uri != null) {
+                profileImageUri = uri.toString()
+            }
         }
 
     // Función para abrir el DatePicker
@@ -113,42 +123,55 @@ fun EditProfileScreen(navController: NavHostController) {
                     .padding(8.dp),
                 contentAlignment = Alignment.Center
             ) {
-                // Mostrar imagen de perfil si está disponible
                 if (profileImageUri.isNullOrEmpty()) {
-                    // Si no hay imagen, mostrar la imagen predeterminada desde drawable
                     Image(
                         painter = rememberAsyncImagePainter(R.drawable.no_profile_icon),
                         contentDescription = "Foto de perfil",
                         modifier = Modifier
-                            .fillMaxSize() // Asegura que la imagen ocupe todo el espacio disponible
-                            .clip(CircleShape), // Mantiene la forma circular
-                        contentScale = ContentScale.Crop // Recorta la imagen para ajustarse al círculo sin deformarla
+                            .fillMaxSize()
+                            .clip(CircleShape)
+                            .clickable { pickImageLauncher.launch("image/*") },
+                        contentScale = ContentScale.Crop
                     )
                 } else {
-                    // Si hay una imagen, mostrar la imagen de la URI
                     Image(
                         painter = rememberAsyncImagePainter(profileImageUri),
                         contentDescription = "Imagen de perfil",
                         modifier = Modifier
-                            .fillMaxSize() // Asegura que la imagen ocupe todo el espacio disponible
-                            .clip(CircleShape), // Mantiene la forma circular
-                        contentScale = ContentScale.Crop // Recorta la imagen para ajustarse al círculo sin deformarla
+                            .fillMaxSize()
+                            .clip(CircleShape)
+                            .clickable { pickImageLauncher.launch("image/*") },
+                        contentScale = ContentScale.Crop
                     )
                 }
-
-                // Botón para seleccionar imagen
-                IconButton(
-                    onClick = { pickImageLauncher.launch("image/*") },
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .size(36.dp)
+            }
+            Spacer(modifier = Modifier.height(2.dp))
+            // Botón para eliminar la foto de perfil
+            if (!profileImageUri.isNullOrEmpty()) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = {
+                        // Marcar como que se desea eliminar la foto de perfil solo en la UI
+                        deleteImageInUI = true
+                        profileImageUri = null // Eliminar la imagen solo en la UI
+                    },
                 ) {
-                    Icon(Icons.Filled.Edit, contentDescription = "Editar foto de perfil")
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Eliminar Foto",
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Eliminar")
+                    }
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-
             // Campo Nombre
             OutlinedTextField(
                 value = userName,
@@ -206,27 +229,74 @@ fun EditProfileScreen(navController: NavHostController) {
             Button(
                 onClick = {
                     currentUser?.uid?.let { uid ->
-                        val userUpdates = mutableMapOf<String, Any>("nombre" to userName)
+                        // Actualizar los datos del usuario (nombre, fecha de nacimiento)
+                        val userUpdates = mutableMapOf<String, Any?>("nombre" to userName)
                         if (userBirthdate.isNotEmpty()) {
                             userUpdates["fechaNacimiento"] = userBirthdate
                         }
-                        if (profileImageUri != null) {
-                            userUpdates["fotoPerfil"] = profileImageUri!!
+
+                        // Verificar si se debe eliminar la foto de perfil
+                        if (deleteImageInUI) {
+                            // Si se marcó para eliminar la foto, actualizamos el campo fotoPerfil en Firestore como null
+                            userUpdates["fotoPerfil"] = null
+                        } else if (!profileImageUri.isNullOrEmpty()) {
+                            // Subir imagen si se ha seleccionado una nueva imagen
+                            val imageUri = profileImageUri
+                            val imageBytes = imageUri?.let { uri ->
+                                val inputStream = context.contentResolver.openInputStream(android.net.Uri.parse(uri))
+                                inputStream?.readBytes()
+                            }
+
+                            // Llamar a la función para subir la imagen a Imgur
+                            if (imageBytes != null) {
+                                ImgurUploader.uploadImage(imageBytes) { imageUrl ->
+                                    if (imageUrl != null) {
+                                        // Si la imagen se sube con éxito, actualizamos la URL en Firestore
+                                        userUpdates["fotoPerfil"] = imageUrl
+                                        firestore.collection("usuarios").document(uid).update(userUpdates)
+                                            .addOnSuccessListener {
+                                                // Mostrar el mensaje de éxito
+                                                Toast.makeText(context, "Perfil actualizado", Toast.LENGTH_SHORT).show()
+
+                                                // Realizar el popBackStack después de actualizar los datos
+                                                navController.popBackStack()
+                                            }
+                                            .addOnFailureListener {
+                                                // Mostrar el mensaje de error
+                                                Toast.makeText(context, "Error al actualizar", Toast.LENGTH_SHORT).show()
+                                            }
+                                    } else {
+                                        // Si la carga de la imagen falla
+                                        Toast.makeText(context, "Error al subir la imagen", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                                return@Button
+                            }
                         }
-                        firestore.collection("usuarios").document(uid).update(userUpdates)
-                            .addOnSuccessListener {
-                                Toast.makeText(context, "Perfil actualizado", Toast.LENGTH_SHORT).show()
-                            }
-                            .addOnFailureListener {
-                                Toast.makeText(context, "Error al actualizar", Toast.LENGTH_SHORT).show()
-                            }
-                        navController.popBackStack()
+
+                        // Si no se seleccionó una nueva imagen ni se marcó para eliminar la foto
+                        // Solo actualizamos los datos sin modificar la foto de perfil
+                        if (userUpdates.isNotEmpty()) {
+                            firestore.collection("usuarios").document(uid).update(userUpdates)
+                                .addOnSuccessListener {
+                                    // Mostrar el mensaje de éxito
+                                    Toast.makeText(context, "Perfil actualizado", Toast.LENGTH_SHORT).show()
+
+                                    // Realizar el popBackStack después de actualizar los datos
+                                    navController.popBackStack()
+                                }
+                                .addOnFailureListener {
+                                    // Mostrar el mensaje de error
+                                    Toast.makeText(context, "Error al actualizar", Toast.LENGTH_SHORT).show()
+                                }
+                        }
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Guardar Cambios")
             }
+
         }
     }
 }

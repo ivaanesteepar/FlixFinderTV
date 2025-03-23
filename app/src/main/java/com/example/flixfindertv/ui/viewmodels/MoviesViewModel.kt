@@ -6,8 +6,11 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.flixfindertv.models.Peliculas
+import com.example.flixfindertv.network.RetrofitClient
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
@@ -72,6 +75,10 @@ class MoviesViewModel : ViewModel() {
     var lastVisibleThriller: DocumentSnapshot? = null
     var lastVisibleHorror: DocumentSnapshot? = null
     var lastVisibleScienceFiction: DocumentSnapshot? = null
+
+    private val moviePages = mutableMapOf<Int, Int>() // Paginación por ID de película
+    private val tvPages = mutableMapOf<Int, Int>() // Paginación por ID de serie
+    private val RESULTS_PER_PAGE = 20 // Cantidad de resultados por página
 
 
     fun obtenerPeliculasPopulares() {
@@ -567,6 +574,44 @@ class MoviesViewModel : ViewModel() {
                 }
         } else {
             onResult(emptyList())
+        }
+    }
+
+    fun fetchNextSimilarMovies(apiKey: String, movieId: Int, callback: (List<Peliculas>) -> Unit) {
+        val currentPage = moviePages.getOrDefault(movieId, 1) // Obtener la página actual
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = RetrofitClient.api.getSimilarMovies(movieId, apiKey, page = currentPage)
+                val results = response.results.take(RESULTS_PER_PAGE) // Tomar solo 20 resultados
+
+                if (results.isNotEmpty()) {
+                    moviePages[movieId] = currentPage + 1 // Pasar a la siguiente página
+                }
+
+                callback(results) // Devolver los resultados
+            } catch (e: Exception) {
+                println("Error obteniendo películas similares: ${e.message}")
+            }
+        }
+    }
+
+    fun fetchNextSimilarSeries(apiKey: String, tvId: Int, callback: (List<Peliculas>) -> Unit) {
+        val currentPage = tvPages.getOrDefault(tvId, 1) // Obtener la página actual
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = RetrofitClient.api.getSimilarSeries(tvId, apiKey, page = currentPage)
+                val results = response.results.take(RESULTS_PER_PAGE) // Tomar solo 20 resultados
+
+                if (results.isNotEmpty()) {
+                    tvPages[tvId] = currentPage + 1 // Pasar a la siguiente página
+                }
+
+                callback(results) // Devolver los resultados
+            } catch (e: Exception) {
+                println("Error obteniendo series similares: ${e.message}")
+            }
         }
     }
 }

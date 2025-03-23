@@ -11,6 +11,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.flixfindertv.ui.screens.DetailsScreen
 import com.example.flixfindertv.ui.screens.EditProfileScreen
 import com.example.flixfindertv.ui.screens.ExploreScreen
+import com.example.flixfindertv.ui.screens.FavouriteMovies
 import com.example.flixfindertv.ui.screens.ForgotPasswordScreen
 import com.example.flixfindertv.ui.screens.HomeScreen
 import com.example.flixfindertv.ui.screens.LoginScreen
@@ -66,6 +67,10 @@ fun FlixFinderTVroutes(modifier: Modifier = Modifier) {
             composable("trivia"){
                 val triviaViewModel: TriviaViewModel = viewModel()
                 TriviaScreen(navController, triviaViewModel)
+            }
+            composable("favourite_movies/{esSerie}"){ backStackEntry ->
+                val esSerie = backStackEntry.arguments?.getString("esSerie")?.toBoolean() ?: false
+                FavouriteMovies(navController, esSerie)
             }
 
         }

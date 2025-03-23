@@ -75,6 +75,7 @@ dependencies {
     implementation(libs.generativeai)
     implementation(libs.androidx.benchmark.common)
     implementation (libs.com.amazonaws.aws.android.sdk.s3)
+    implementation(libs.firebase.database)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

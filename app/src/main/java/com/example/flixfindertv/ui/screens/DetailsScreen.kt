@@ -114,7 +114,7 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                     val isCurrentlyFavorite = usersViewModel.isFavorite.value
                     if (!isCurrentlyFavorite) {
                         // Si no está en favoritos, añadimos a favoritos
-                        usersViewModel.saveToFavorites(id, movieTitle, movieDescription, movieCoverUrl, esSerie)
+                        usersViewModel.saveToFavorites(id, movieTitle, movieCoverUrl, esSerie)
                     } else {
                         // Si ya está en favoritos, lo eliminamos de favoritos
                         usersViewModel.removeFromFavorites(id, esSerie)

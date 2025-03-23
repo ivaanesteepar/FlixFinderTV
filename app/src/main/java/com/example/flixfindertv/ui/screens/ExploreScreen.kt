@@ -567,7 +567,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                     Box(
                         modifier = Modifier.fillMaxSize() // ✅ Define el tamaño del contenedor padre
                     ) {
-                        var selectedText by rememberSaveable { mutableStateOf("Ordena por...") } // Valor inicial
+                        var selectedText by rememberSaveable { mutableStateOf("Sin orden") } // Valor inicial
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()

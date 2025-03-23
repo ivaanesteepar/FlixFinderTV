@@ -20,3 +20,7 @@ data class Peliculas(
     val titulo: String
         get() = title ?: name ?: "Título desconocido"
 }
+
+data class MovieResponse(
+    val results: List<Peliculas>
+)

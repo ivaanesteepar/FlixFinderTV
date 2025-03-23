@@ -44,6 +44,7 @@ fun MovieList(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(movies.filter { !contieneCaracteresNoLatinos(it.titulo) }) { movie ->
+            println("esSerie? ${movie.esSerie}")
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.width(120.dp)

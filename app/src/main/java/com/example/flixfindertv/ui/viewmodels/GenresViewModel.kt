@@ -35,6 +35,9 @@ class GenresViewModel : ViewModel() {
     var lastVisibleGenero1: DocumentSnapshot? = null
     var lastVisibleGenero2: DocumentSnapshot? = null
 
+    var prevGenero1 = mutableStateOf<String?>(null)
+    var prevGenero2 = mutableStateOf<String?>(null)
+
 
     fun limpiarPeliculasGenero1() {
         _peliculasGenero1.postValue(emptyList()) // Vacía la lista antes de actualizarla
@@ -139,7 +142,15 @@ class GenresViewModel : ViewModel() {
         _isLoadingGenero1.value = true
         obtenerGenerosFavoritos(userId) { generos ->
             if (generos.isNotEmpty()) {
-                obtenerIdGeneroPorNombre(generos[0]) { idGenero ->
+                val nuevoGenero = generos[0] // Tomamos el primer genero de la lista
+
+                // Restablecemos lastVisibleGenero1 a null cada vez que cambiamos de género
+                if (nuevoGenero != prevGenero1.value) {
+                    prevGenero1.value = nuevoGenero // Actualizamos el género anterior
+                    lastVisibleGenero1 = null // Restablecer lastVisible al cambiar de género
+                }
+
+                obtenerIdGeneroPorNombre(nuevoGenero) { idGenero ->
                     if (idGenero != null) {
                         viewModelScope.launch {
                             try {
@@ -169,6 +180,7 @@ class GenresViewModel : ViewModel() {
                                 val seriesSnapshot = querySeries.get().await()
                                 seriesSnapshot.documents.mapNotNullTo(peliculasList) { it.toObject(Peliculas::class.java) }
 
+                                // Si hay documentos, actualizamos lastVisible
                                 if (peliculasSnapshot.documents.isNotEmpty()) {
                                     lastVisibleGenero1 = peliculasSnapshot.documents.last()
                                 }
@@ -191,7 +203,20 @@ class GenresViewModel : ViewModel() {
                                     }
                                 }
 
-                                _peliculasGenero1.value = _peliculasGenero1.value.orEmpty() + mezclada
+                                // Guardamos el valor actual de las películas
+                                val peliculasActuales = _peliculasGenero1.value?.toList()
+                                println("Tamaño de peliculas genero1: ${_peliculasGenero1.value?.size}")
+
+                                // Actualizamos _peliculasGenero1 con los nuevos elementos
+                                if (peliculasActuales != null) {
+                                    _peliculasGenero1.value = peliculasActuales + mezclada
+                                }
+
+                                // Verificamos si hemos cargado 100 elementos
+                                if (_peliculasGenero1.value!!.size >= 100) {
+                                    // Restablecer lastVisibleGenero1 a null después de 100 elementos
+                                    lastVisibleGenero1 = null
+                                }
                             } catch (e: Exception) {
                                 e.printStackTrace()
                             } finally {
@@ -204,14 +229,21 @@ class GenresViewModel : ViewModel() {
         }
     }
 
-
     fun obtenerPeliculasYSeriesGenero2(userId: String) {
         if (_isLoadingGenero2.value == true) return
 
         _isLoadingGenero2.value = true
         obtenerGenerosFavoritos(userId) { generos ->
             if (generos.size >= 2) {
-                obtenerIdGeneroPorNombre(generos[1]) { idGenero ->
+                val nuevoGenero = generos[1] // Tomamos el segundo genero de la lista
+
+                // Restablecemos lastVisibleGenero2 a null cada vez que cambiamos de género
+                if (nuevoGenero != prevGenero2.value) {
+                    prevGenero2.value = nuevoGenero // Actualizamos el género anterior
+                    lastVisibleGenero2 = null // Restablecer lastVisible al cambiar de género
+                }
+
+                obtenerIdGeneroPorNombre(nuevoGenero) { idGenero ->
                     if (idGenero != null) {
                         viewModelScope.launch {
                             try {
@@ -241,6 +273,7 @@ class GenresViewModel : ViewModel() {
                                 val seriesSnapshot = querySeries.get().await()
                                 seriesSnapshot.documents.mapNotNullTo(peliculasList) { it.toObject(Peliculas::class.java) }
 
+                                // Si hay documentos, actualizamos lastVisible
                                 if (peliculasSnapshot.documents.isNotEmpty()) {
                                     lastVisibleGenero2 = peliculasSnapshot.documents.last()
                                 }
