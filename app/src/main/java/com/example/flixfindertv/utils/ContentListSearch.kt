@@ -19,7 +19,7 @@ import com.example.flixfindertv.R
 import com.example.flixfindertv.models.Peliculas
 
 @Composable
-fun MovieCard(movie: Peliculas, navController: NavHostController) {
+fun ContentListSearch (movie: Peliculas, navController: NavHostController) {
     val isSerie = movie.esSerie
     Card(
         modifier = Modifier

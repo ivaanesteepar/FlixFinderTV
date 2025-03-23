@@ -1,9 +1,13 @@
 package com.example.flixfindertv.ui.viewmodels
 
+import android.content.Context
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.flixfindertv.BuildConfig
 import com.example.flixfindertv.interfaces.UiState
+import com.example.flixfindertv.utils.LanguageLifecycleObserver
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
 import kotlinx.coroutines.Dispatchers
@@ -11,7 +15,22 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.*
 
-class TriviaViewModel() : ViewModel() {
+class TriviaViewModelFactory(
+    private val context: Context,
+    private val lifecycleOwner: LifecycleOwner // Agregado el LifecycleOwner
+) : ViewModelProvider.Factory {
+
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        // Verificar que la clase es TriviaViewModel
+        if (modelClass.isAssignableFrom(TriviaViewModel::class.java)) {
+            return TriviaViewModel(context, lifecycleOwner) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
+}
+
+
+class TriviaViewModel(private val context: Context, lifecycleOwner: LifecycleOwner) : ViewModel() {
     private val _uiState: MutableStateFlow<UiState> = MutableStateFlow(UiState.Initial)
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
@@ -26,17 +45,26 @@ class TriviaViewModel() : ViewModel() {
     )
 
     init {
-        // Escuchar cambios en el idioma
-        languageState.onEach {
-            println("cambio")
-            // Regenerar la pregunta cuando el idioma cambia
+        // Aseguramos que el context sea un LifecycleOwner
+        if (lifecycleOwner is LifecycleOwner) {
+            val lifecycleObserver = LanguageLifecycleObserver(_languageState)
+            lifecycleOwner.lifecycle.addObserver(lifecycleObserver)
+            println("LanguageLifecycleObserver registrado correctamente")
+        } else {
+            println("El contexto no es un LifecycleOwner, no se pudo registrar el observer")
+        }
+
+        // Regenerar la pregunta cuando el idioma cambia
+        languageState.onEach { language ->
+            println("Idioma actual en el ViewModel: $language")
             generateQuestion()
         }.launchIn(viewModelScope)
     }
 
-    // Método para actualizar el idioma
-    fun updateLanguage(language: String) {
-        _languageState.value = language
+    // Cuando la actividad/fragmento esté activo, re-registrar el observer
+    fun registerLanguageObserver(lifecycleOwner: LifecycleOwner) {
+        val lifecycleObserver = LanguageLifecycleObserver(_languageState)
+        lifecycleOwner.lifecycle.addObserver(lifecycleObserver)
     }
 
     private fun getPrompt(): String {
@@ -102,5 +130,9 @@ class TriviaViewModel() : ViewModel() {
                 }
             }
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
     }
 }

@@ -31,7 +31,7 @@ import com.example.flixfindertv.models.Peliculas
 import com.example.flixfindertv.ui.screens.contieneCaracteresNoLatinos
 
 @Composable
-fun MovieList(
+fun ContentListExplore(
     movies: List<Peliculas>,
     navController: NavController,
     listState: LazyListState, // Añadido para pasar el state correspondiente

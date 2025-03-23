@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -19,11 +20,10 @@ import com.example.flixfindertv.models.Peliculas
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 import androidx.compose.ui.Alignment
 import androidx.compose.material3.IconButton
-import androidx.compose.material.icons.filled.ArrowBack
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun FavouriteMovies(navController: NavController, esSerie: Boolean) {
+fun FavouriteContent(navController: NavController, esSerie: Boolean) {
     val userViewModel: UsersViewModel = viewModel()
     // Estados para las películas y series favoritas
     val favoriteMovies = remember { mutableStateOf<List<Peliculas>>(emptyList()) }
@@ -66,7 +66,7 @@ fun FavouriteMovies(navController: NavController, esSerie: Boolean) {
     // Mostrar la flecha atrás y el contenido
     Column(
         modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxSize()
             .padding(horizontal = 16.dp)
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -79,7 +79,7 @@ fun FavouriteMovies(navController: NavController, esSerie: Boolean) {
                 .align(Alignment.Start)
         ) {
             Icon(
-                imageVector = Icons.Filled.ArrowBack,
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Volver",
                 tint = Color.Black
             )
@@ -118,12 +118,6 @@ fun FavouriteMovies(navController: NavController, esSerie: Boolean) {
                         Spacer(modifier = Modifier.height(16.dp)) // Espacio entre las filas de las portadas
                     }
                 }
-            } else {
-                Text(
-                    text = "No tienes series favoritas.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray
-                )
             }
         } else {
             if (favoriteMovies.value.isNotEmpty()) {
@@ -155,13 +149,38 @@ fun FavouriteMovies(navController: NavController, esSerie: Boolean) {
                         Spacer(modifier = Modifier.height(16.dp)) // Espacio entre las filas de las portadas
                     }
                 }
-            } else {
-                Text(
-                    text = "No tienes películas favoritas.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray
-                )
             }
         }
     }
+    Column {
+        if (esSerie) {
+            if (favoriteSeries.value.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No tienes series favoritas.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray
+                    )
+                }
+            }
+        }
+        else {
+            if (favoriteMovies.value.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No tienes peliculas favoritas.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray
+                    )
+                }
+            }
+        }
+    }
+
 }

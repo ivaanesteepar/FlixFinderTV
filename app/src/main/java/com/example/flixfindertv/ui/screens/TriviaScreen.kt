@@ -3,7 +3,6 @@ package com.example.flixfindertv.ui.screens
 import android.Manifest
 import android.content.pm.PackageManager
 import android.speech.RecognizerIntent
-import android.speech.SpeechRecognizer
 import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -23,23 +22,30 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.flixfindertv.interfaces.UiState
 import com.example.flixfindertv.ui.viewmodels.TriviaViewModel
+import com.example.flixfindertv.ui.viewmodels.TriviaViewModelFactory
 import com.example.flixfindertv.utils.BottomNavigationBar
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun TriviaScreen(
-    navController: NavHostController,
-    triviaViewModel: TriviaViewModel = viewModel()
+    navController: NavHostController
 ) {
+    val context = LocalContext.current
+
+    // Use the factory here, after context is available
+    val triviaViewModel: TriviaViewModel = viewModel(
+        factory = TriviaViewModelFactory(context, context as LifecycleOwner)
+    )
+
     var answer by rememberSaveable { mutableStateOf("") }
     var result by rememberSaveable { mutableStateOf("") }
     val uiState by triviaViewModel.uiState.collectAsState()
     val uid = FirebaseAuth.getInstance().currentUser?.uid
-    val context = LocalContext.current
 
     // Estado para mostrar el botón de siguiente pregunta
     var showNextButton by rememberSaveable { mutableStateOf(false) }
@@ -54,11 +60,9 @@ fun TriviaScreen(
 
     val languageState by triviaViewModel.languageState.collectAsState()
 
-    println("languageState: $languageState")
 
-    // Genera la pregunta automáticamente cuando se entra en la pantalla
-    LaunchedEffect(languageState) {
-        triviaViewModel.generateQuestion() // Genera una nueva pregunta cada vez que el idioma cambie
+    LaunchedEffect(true) {
+        triviaViewModel.registerLanguageObserver(context as LifecycleOwner)
     }
 
     // Genera la pregunta automáticamente cuando se entra en la pantalla

@@ -5,19 +5,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CornerSize
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.Reorder
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -25,22 +20,13 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.zIndex
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
-import coil.compose.rememberAsyncImagePainter
 import com.example.flixfindertv.R
 import com.example.flixfindertv.models.Peliculas
 import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
@@ -48,10 +34,9 @@ import com.example.flixfindertv.ui.viewmodels.GenresViewModel
 import com.example.flixfindertv.ui.viewmodels.MoviesViewModel
 import com.example.flixfindertv.ui.viewmodels.SeriesViewModel
 import com.example.flixfindertv.utils.BottomNavigationBar
-import com.example.flixfindertv.utils.MovieCard
-import com.example.flixfindertv.utils.MovieList
+import com.example.flixfindertv.utils.ContentListSearch
+import com.example.flixfindertv.utils.ContentListExplore
 import com.example.flixfindertv.utils.ScreenRecharge
-import com.example.flixfindertv.utils.SharedPreferencesManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.delay
@@ -558,7 +543,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                         ) {
                             items(sortedSearchResults) { movie ->
                                 // Mostrar una tarjeta de película o serie basada en los resultados de búsqueda
-                                MovieCard(movie = movie, navController = navController)
+                                ContentListSearch(movie = movie, navController = navController)
                             }
                         }
                     }
@@ -651,7 +636,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                 state = listState
                             ) {
                                 items(sortedItems) { movie ->
-                                    MovieCard(movie = movie, navController = navController)
+                                    ContentListSearch(movie = movie, navController = navController)
                                 }
                             }
 
@@ -762,7 +747,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                                     color = Color.White
                                                 )
                                                 Spacer(modifier = Modifier.height(8.dp)) // Espacio entre el texto y la lista
-                                                MovieList(
+                                                ContentListExplore(
                                                     movies,
                                                     navController,
                                                     movieListState,
@@ -783,7 +768,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                     }
                                     item { Spacer(modifier = Modifier.height(8.dp)) }
                                     item {
-                                        MovieList(
+                                        ContentListExplore(
                                             actionMovies,
                                             navController,
                                             actionMovieListState,
@@ -801,7 +786,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                     }
                                     item { Spacer(modifier = Modifier.height(8.dp)) }
                                     item {
-                                        MovieList(
+                                        ContentListExplore(
                                             romanceMovies,
                                             navController,
                                             romanceMovieListState,
@@ -819,7 +804,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                     }
                                     item { Spacer(modifier = Modifier.height(8.dp)) }
                                     item {
-                                        MovieList(
+                                        ContentListExplore(
                                             familyMovies,
                                             navController,
                                             familyMovieListState,
@@ -837,7 +822,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                     }
                                     item { Spacer(modifier = Modifier.height(8.dp)) }
                                     item {
-                                        MovieList(
+                                        ContentListExplore(
                                             comedyMovies,
                                             navController,
                                             comedyMovieListState,
@@ -855,7 +840,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                     }
                                     item { Spacer(modifier = Modifier.height(8.dp)) }
                                     item {
-                                        MovieList(
+                                        ContentListExplore(
                                             thrillerMovies,
                                             navController,
                                             thrillerMovieListState,
@@ -873,7 +858,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                     }
                                     item { Spacer(modifier = Modifier.height(8.dp)) }
                                     item {
-                                        MovieList(
+                                        ContentListExplore(
                                             horrorMovies,
                                             navController,
                                             horrorMovieListState,
@@ -891,7 +876,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                     }
                                     item { Spacer(modifier = Modifier.height(8.dp)) }
                                     item {
-                                        MovieList(
+                                        ContentListExplore(
                                             scienceFictionMovies,
                                             navController,
                                             sciencieFictionMovieListState,
@@ -932,7 +917,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                                     color = Color.White
                                                 )
                                                 Spacer(modifier = Modifier.height(8.dp)) // Espacio entre el texto y la lista
-                                                MovieList(
+                                                ContentListExplore(
                                                     series,
                                                     navController,
                                                     seriesListState,
@@ -953,7 +938,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                     }
                                     item { Spacer(modifier = Modifier.height(8.dp)) }
                                     item {
-                                        MovieList(
+                                        ContentListExplore(
                                             actionAdventureSeries,
                                             navController,
                                             actionadventureSerieListState,
@@ -971,7 +956,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                     }
                                     item { Spacer(modifier = Modifier.height(8.dp)) }
                                     item {
-                                        MovieList(
+                                        ContentListExplore(
                                             animationSeries,
                                             navController,
                                             animationSerieListState,
@@ -989,7 +974,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                     }
                                     item { Spacer(modifier = Modifier.height(8.dp)) }
                                     item {
-                                        MovieList(
+                                        ContentListExplore(
                                             comedySeries,
                                             navController,
                                             comedySerieListState,
@@ -1007,7 +992,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                     }
                                     item { Spacer(modifier = Modifier.height(8.dp)) }
                                     item {
-                                        MovieList(
+                                        ContentListExplore(
                                             crimeSeries,
                                             navController,
                                             crimeListState,
@@ -1025,7 +1010,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                     }
                                     item { Spacer(modifier = Modifier.height(8.dp)) }
                                     item {
-                                        MovieList(
+                                        ContentListExplore(
                                             dramaSeries,
                                             navController,
                                             dramaListState,
@@ -1043,7 +1028,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                     }
                                     item { Spacer(modifier = Modifier.height(8.dp)) }
                                     item {
-                                        MovieList(
+                                        ContentListExplore(
                                             familySeries,
                                             navController,
                                             familySerieListState,
@@ -1061,7 +1046,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                     }
                                     item { Spacer(modifier = Modifier.height(8.dp)) }
                                     item {
-                                        MovieList(
+                                        ContentListExplore(
                                             kidsSeries,
                                             navController,
                                             kidsSerieListState,

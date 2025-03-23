@@ -10,7 +10,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.flixfindertv.ui.viewmodels.GenresViewModel
 import com.example.flixfindertv.ui.viewmodels.MoviesViewModel
-import com.example.flixfindertv.utils.MovieList
+import com.example.flixfindertv.utils.ContentListExplore
 import com.google.firebase.auth.FirebaseAuth
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.livedata.observeAsState
@@ -133,7 +133,7 @@ fun HomeScreen(
                 )
 
                 // Usamos LazyRow para mostrar las películas y series
-                MovieList(
+                ContentListExplore(
                     movies = peliculasGenero1,
                     navController = navController,
                     listState = listStateGenero1,
@@ -150,7 +150,7 @@ fun HomeScreen(
                 )
 
                 // Usamos LazyRow para mostrar las películas y series
-                MovieList(
+                ContentListExplore(
                     movies = peliculasGenero2,
                     navController = navController,
                     listState = listStateGenero2,

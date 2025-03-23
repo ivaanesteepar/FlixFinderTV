@@ -13,7 +13,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -48,8 +47,6 @@ fun EditProfileScreen(navController: NavHostController) {
     var showPasswordField by remember { mutableStateOf(false) }
     var profileImageUri by remember { mutableStateOf<String?>(null) }
 
-    // Estado para manejar si el usuario ha solicitado eliminar la foto
-    var deleteProfileImage by remember { mutableStateOf(false) }
     var deleteImageInUI by remember { mutableStateOf(false) }
 
     // Launcher to pick an image from gallery
@@ -251,22 +248,19 @@ fun EditProfileScreen(navController: NavHostController) {
                             if (imageBytes != null) {
                                 ImgurUploader.uploadImage(imageBytes) { imageUrl ->
                                     if (imageUrl != null) {
-                                        // Si la imagen se sube con éxito, actualizamos la URL en Firestore
+                                        println("Imagen subida exitosamente: $imageUrl")
                                         userUpdates["fotoPerfil"] = imageUrl
                                         firestore.collection("usuarios").document(uid).update(userUpdates)
                                             .addOnSuccessListener {
-                                                // Mostrar el mensaje de éxito
                                                 Toast.makeText(context, "Perfil actualizado", Toast.LENGTH_SHORT).show()
-
-                                                // Realizar el popBackStack después de actualizar los datos
                                                 navController.popBackStack()
                                             }
-                                            .addOnFailureListener {
-                                                // Mostrar el mensaje de error
+                                            .addOnFailureListener { exception ->
+                                                println("Error al actualizar los datos: ${exception.message}")
                                                 Toast.makeText(context, "Error al actualizar", Toast.LENGTH_SHORT).show()
                                             }
                                     } else {
-                                        // Si la carga de la imagen falla
+                                        println("Error al subir la imagen: La URL de la imagen es null")
                                         Toast.makeText(context, "Error al subir la imagen", Toast.LENGTH_SHORT).show()
                                     }
                                 }
