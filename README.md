@@ -14,9 +14,6 @@
     <img src="https://sonarcloud.io/api/project_badges/measure?project=ivaanesteepar_FlixFinderTV&metric=code_smells" alt="Code Smells"/>
   </a>
   <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV">
-    <img src="https://sonarcloud.io/api/project_badges/measure?project=ivaanesteepar_FlixFinderTV&metric=coverage" alt="Coverage"/>
-  </a>
-  <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV">
     <img src="https://sonarcloud.io/api/project_badges/measure?project=ivaanesteepar_FlixFinderTV&metric=sqale_rating" alt="Maintainability Rating"/>
   </a>
   <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV">
