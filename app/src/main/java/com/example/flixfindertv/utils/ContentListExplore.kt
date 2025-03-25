@@ -23,10 +23,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import com.example.flixfindertv.R
 import com.example.flixfindertv.models.Peliculas
 import com.example.flixfindertv.ui.screens.contieneCaracteresNoLatinos
 
@@ -34,13 +36,13 @@ import com.example.flixfindertv.ui.screens.contieneCaracteresNoLatinos
 fun ContentListExplore(
     movies: List<Peliculas>,
     navController: NavController,
-    listState: LazyListState, // Añadido para pasar el state correspondiente
+    listState: LazyListState,
 ) {
     LazyRow(
         modifier = Modifier
             .fillMaxWidth()
             .height(200.dp),
-        state = listState, // Usar el state correspondiente para el desplazamiento
+        state = listState,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(movies.filter { !contieneCaracteresNoLatinos(it.titulo) }) { movie ->
@@ -63,9 +65,16 @@ fun ContentListExplore(
                                 .fillMaxWidth()
                                 .height(160.dp)
                         ) {
-                            val imageUrl = "https://image.tmdb.org/t/p/w500${movie.poster_path}"
+                            val imageUrl = movie.poster_path?.let {
+                                if (it.isNotEmpty()) "https://image.tmdb.org/t/p/w500$it" else null
+                            }
+
                             Image(
-                                painter = rememberAsyncImagePainter(imageUrl),
+                                painter = if (imageUrl != null) {
+                                    rememberAsyncImagePainter(imageUrl)
+                                } else {
+                                    painterResource(id = R.drawable.no_poster_image) // Imagen predeterminada
+                                },
                                 contentDescription = "Imagen de la película",
                                 modifier = Modifier.fillMaxSize(),
                                 contentScale = ContentScale.Crop

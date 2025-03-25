@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -20,12 +21,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
+import com.example.flixfindertv.R
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 @Composable
 fun MovieDetailsContent(
@@ -35,7 +41,9 @@ fun MovieDetailsContent(
     movieGenre: String,
     moviePopularity: Double,
     releaseDate: String,
-    voteAverage: String
+    voteAverage: String,
+    originalLanguage: String,
+    status: String
 ) {
     val voteAvg = voteAverage.toDoubleOrNull() ?: 0.0
     val truncatedVoteAvg = (voteAvg * 10).toInt() / 10.0
@@ -52,14 +60,20 @@ fun MovieDetailsContent(
         Box(
             modifier = Modifier
                 .width(160.dp)
-                .height(240.dp)
+                .let { if (movieCoverUrl.isNotEmpty()) it.height(240.dp) else it.height(240.dp) } // Aumenta la altura solo para la imagen predeterminada
                 .padding(end = 8.dp)
         ) {
             Image(
-                painter = rememberAsyncImagePainter(movieCoverUrl),
+                painter = if (movieCoverUrl.isNotEmpty()) {
+                    rememberAsyncImagePainter(movieCoverUrl)
+                } else {
+                    painterResource(id = R.drawable.no_poster_image) // Imagen predeterminada
+                },
                 contentDescription = "Portada",
+                contentScale = if (movieCoverUrl.isNotEmpty()) ContentScale.Fit else ContentScale.FillBounds, // Hace que la imagen se estire
                 modifier = Modifier.fillMaxSize()
             )
+
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
@@ -79,9 +93,9 @@ fun MovieDetailsContent(
             }
         }
 
+
         Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f)) {
             Spacer(modifier = Modifier.height(16.dp))
-
             Text(
                 text = movieTitle,
                 style = MaterialTheme.typography.headlineMedium,
@@ -97,7 +111,8 @@ fun MovieDetailsContent(
                     append(movieGenre)
                 },
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.Black.copy(alpha = 0.7f)
+                color = Color.Black.copy(alpha = 0.7f),
+                modifier = Modifier.padding(start = 16.dp)
             )
 
 
@@ -109,7 +124,9 @@ fun MovieDetailsContent(
                     append(String.format("%.1f", moviePopularity))
                 },
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.Black.copy(alpha = 0.7f)
+                color = Color.Black.copy(alpha = 0.7f),
+                modifier = Modifier.padding(start = 16.dp)
+
             )
 
             Text(
@@ -117,18 +134,28 @@ fun MovieDetailsContent(
                     withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
                         append("Release Date: ")
                     }
-                    append(releaseDate)
+                    // Convert and format the releaseDate to "dd/MM/yyyy"
+                    try {
+                        val originalDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(releaseDate)
+                        val formattedDate =
+                            originalDate?.let {
+                                SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(
+                                    it
+                                )
+                            }
+                        append(formattedDate)
+                    } catch (e: Exception) {
+                        append(releaseDate)  // In case of an invalid date format, fallback to the original
+                    }
                 },
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.Black.copy(alpha = 0.7f)
+                color = Color.Black.copy(alpha = 0.7f),
+                modifier = Modifier.padding(start = 16.dp)
             )
-
         }
     }
-
     // Descripción de la película o serie
     Spacer(modifier = Modifier.height(16.dp))
-
     Text(
         text = "Description",
         style = MaterialTheme.typography.headlineSmall,
@@ -142,4 +169,42 @@ fun MovieDetailsContent(
         color = Color.Black,
         modifier = Modifier.padding(start = 16.dp, end = 16.dp)
     )
+    Spacer(modifier = Modifier.height(36.dp))
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 60.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        ) {
+            Text(
+                text = "Original Language:",
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                color = Color.Black.copy(alpha = 0.7f)
+            )
+            Text(
+                text = originalLanguage,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Black.copy(alpha = 0.7f)
+            )
+        }
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        ) {
+            Text(
+                text = "Status:",
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                color = Color.Black.copy(alpha = 0.7f)
+            )
+            Text(
+                text = status,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Black.copy(alpha = 0.7f)
+            )
+        }
+    }
 }

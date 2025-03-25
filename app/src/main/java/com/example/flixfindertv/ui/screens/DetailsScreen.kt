@@ -1,5 +1,9 @@
 package com.example.flixfindertv.ui.screens
 
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
+import com.example.flixfindertv.utils.ShowComments
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,18 +22,27 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
+import com.example.flixfindertv.R
+import com.example.flixfindertv.models.Comentarios
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.flixfindertv.models.Peliculas
+import com.example.flixfindertv.ui.viewmodels.CommentsViewModel
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 import com.example.flixfindertv.utils.MovieDetailsContent
+import com.google.firebase.auth.FirebaseAuth
+import java.util.UUID
 
 @Composable
 fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean) {
     val usersViewModel: UsersViewModel = viewModel()
+    val commentsViewModel: CommentsViewModel = viewModel()
+
     var movieTitle by remember { mutableStateOf("") }
     var movieDescription by remember { mutableStateOf("") }
     var movieBannerUrl by remember { mutableStateOf("") }
@@ -38,17 +51,34 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
     var movieGenre by remember { mutableStateOf("Cargando...") }
     var releaseDate by remember { mutableStateOf("") }
     var voteAverage by remember { mutableStateOf("") }
+    var trailerUrl by remember { mutableStateOf("") }
+    var original_language by remember { mutableStateOf("") }
+    var status by remember { mutableStateOf("") }
     val isDialogOpen = remember { mutableStateOf(false) }
     val selectedStars = remember { mutableStateOf(0) }
     val commentText = remember { mutableStateOf("") }
+    var usuarioNombre by remember { mutableStateOf("") }
 
-    // Base URL para TMDb
-    val imageBaseUrl = "https://image.tmdb.org/t/p/w500"
     val firestore = FirebaseFirestore.getInstance()
-
+    val auth = FirebaseAuth.getInstance()
     val collectionName = if (esSerie) "series" else "peliculas"
 
-    // Cargar los detalles de la película o serie
+    val errorMessage = remember { mutableStateOf("") }
+    var likedCommentId by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
+
+    // Obtener el userId desde FirebaseAuth
+    val userId = auth.currentUser?.uid
+    LaunchedEffect(userId) {
+        if (userId != null) {
+            firestore.collection("usuarios").document(userId)
+                .get()
+                .addOnSuccessListener { document ->
+                    usuarioNombre = document.getString("nombre") ?: "Usuario desconocido"
+                }
+        }
+    }
+
     LaunchedEffect(id) {
         firestore.collection(collectionName)
             .document(id)
@@ -57,13 +87,15 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                 val movie = document.toObject(Peliculas::class.java)
                 movieTitle = movie?.title.takeIf { it?.isNotBlank() == true } ?: movie?.name ?: "Título no encontrado"
                 movieDescription = movie?.overview?.takeIf { it.isNotBlank() } ?: "No hay descripción"
+                original_language = movie?.original_language?.takeIf { it.isNotBlank() } ?: "No hay idioma original"
+                status = movie?.status?.takeIf { it.isNotBlank() } ?: "Desconocido"
                 movieBannerUrl = if (movie?.backdrop_path?.isNotEmpty() == true) {
-                    "$imageBaseUrl${movie.backdrop_path}"
+                    "https://image.tmdb.org/t/p/w500${movie.backdrop_path}"
                 } else {
                     ""
                 }
                 movieCoverUrl = if (movie?.poster_path?.isNotEmpty() == true) {
-                    "$imageBaseUrl${movie.poster_path}"
+                    "https://image.tmdb.org/t/p/w500${movie.poster_path}"
                 } else {
                     ""
                 }
@@ -82,16 +114,13 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                     movie?.release_date ?: "Fecha no disponible"
                 }
                 voteAverage = movie?.vote_average ?: "N/A"
-
-                // Verificar si está en los favoritos
+                trailerUrl = movie?.trailer.toString()
                 usersViewModel.checkIfFavorite(id, esSerie)
             }
-            .addOnFailureListener { e ->
-                movieGenre = "Error al cargar géneros"
-                releaseDate = "Error al cargar fecha"
-                voteAverage = "Error al cargar calificación"
-            }
+        // Obtener comentarios en tiempo real
+        commentsViewModel.getComments(id)
     }
+    val commentsList by commentsViewModel.comments.collectAsState()
 
     // Pantalla con Scroll
     Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
@@ -103,7 +132,11 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
         ) {
             // Imagen del banner
             Image(
-                painter = rememberAsyncImagePainter(movieBannerUrl),
+                painter = if (movieBannerUrl.isNotEmpty()) {
+                    rememberAsyncImagePainter(movieBannerUrl)
+                } else {
+                    painterResource(id = R.drawable.banner_placeholder) // Imagen predeterminada
+                },
                 contentDescription = "Banner",
                 modifier = Modifier.fillMaxSize()
             )
@@ -155,7 +188,6 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
             }
         }
 
-        // Contenido principal (Portada, Título, Descripción, Fecha de lanzamiento, Promedio de votos)
         MovieDetailsContent(
             movieCoverUrl = movieCoverUrl,
             movieTitle = movieTitle,
@@ -163,10 +195,53 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
             movieGenre = movieGenre,
             moviePopularity = moviePopularity,
             releaseDate = releaseDate,
-            voteAverage = voteAverage
+            voteAverage = voteAverage,
+            originalLanguage = original_language,
+            status = status
         )
 
-        // Comentarios y demás contenido
+        // Mostrar el tráiler si existe
+        if (trailerUrl.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(16.dp))
+            // Obtener el videoId de la URL del tráiler
+            val videoId = trailerUrl.split("v=")[1].takeWhile { it != '&' }
+            val thumbnailUrl = "https://img.youtube.com/vi/$videoId/hqdefault.jpg"
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(200.dp)
+                    .background(Color.Transparent)
+            ) {
+                // Mostrar la miniatura del video
+                Image(
+                    painter = rememberAsyncImagePainter(thumbnailUrl),
+                    contentDescription = "Trailer Preview",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(16f / 9f) // Mantiene la proporción de un video (relación 16:9)
+                        .clickable {
+                            // Redirigir al enlace del tráiler en YouTube
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(trailerUrl))
+                            context.startActivity(intent)
+                        }
+                )
+
+                // Icono de YouTube centrado
+                Image(
+                    painter = painterResource(id = R.drawable.youtube_icon),
+                    contentDescription = "Trailer Preview",
+                    modifier = Modifier
+                        .size(50.dp) // Ajusta el tamaño del icono
+                        .align(Alignment.Center) // Centra el icono dentro de la Box
+                        .clickable {
+                            // Redirigir al enlace del tráiler en YouTube
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(trailerUrl))
+                            context.startActivity(intent)
+                        }
+                )
+            }
+        }
         Spacer(modifier = Modifier.height(36.dp))
         Text(
             text = "Comments",
@@ -175,7 +250,6 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
             color = Color.Black
         )
 
-        // Botón para abrir el dialogo de comentar
         Button(
             onClick = { isDialogOpen.value = true },
             modifier = Modifier.padding(16.dp)
@@ -183,71 +257,78 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
             Text("Comment")
         }
 
-        // Mostrar el diálogo de comentario
+        ShowComments(commentsList, commentsViewModel)
+
         if (isDialogOpen.value) {
             AlertDialog(
                 onDismissRequest = {
                     isDialogOpen.value = false
-                    commentText.value = ""
-                    selectedStars.value = 0
                 },
-                title = {
-                    Box(
-                        modifier = Modifier.fillMaxWidth(), // Hace que el Box ocupe todo el ancho disponible
-                        contentAlignment = Alignment.Center // Centra el contenido dentro del Box
-                    ) {
-                        Text("Leave your comment")
-                    }
-                },
+                title = { Text("Write your comment") },
                 text = {
                     Column(
                         modifier = Modifier
-                            .fillMaxWidth() // Hace que el diálogo ocupe todo el ancho
-                            .padding(16.dp) // Añade padding al contenido
+                            .fillMaxWidth()
+                            .padding(16.dp)
                     ) {
-                        // Estrellas
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(0.dp), // Espaciado cero
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(0.dp), verticalAlignment = Alignment.CenterVertically) {
                             for (i in 1..5) {
                                 Box(
                                     contentAlignment = Alignment.Center,
                                     modifier = Modifier
-                                        .weight(1f) // Hace que las estrellas se distribuyan equitativamente
+                                        .weight(1f)
                                         .clickable {
-                                            // Si la estrella que se ha pulsado es la misma que la seleccionada,
-                                            // desmarcar todas las estrellas
                                             selectedStars.value = if (selectedStars.value == i * 2) 0 else i * 2
-                                            println("selectedStar: ${selectedStars.value}")
                                         }
                                 ) {
                                     Icon(
                                         imageVector = if (i * 2 <= selectedStars.value) Icons.Filled.Star else Icons.Filled.StarBorder,
                                         contentDescription = "Estrella",
                                         tint = if (i * 2 <= selectedStars.value) Color.Yellow else Color.Gray,
-                                        modifier = Modifier.size(50.dp) // Tamaño de las estrellas más grande
+                                        modifier = Modifier.size(50.dp)
                                     )
                                 }
                             }
                         }
 
-                        // Campo de texto para el comentario
                         OutlinedTextField(
                             value = commentText.value,
                             onValueChange = { commentText.value = it },
                             label = { Text("Write your comment") },
                             modifier = Modifier
-                                .fillMaxWidth() // Ancho completo
-                                .height(250.dp) // Aumenta la altura del campo de texto
-                                .padding(top = 16.dp) // Padding superior
+                                .fillMaxWidth()
+                                .height(250.dp)
+                                .padding(top = 16.dp)
                         )
+
+                        // Mostrar el mensaje de error si no se seleccionaron estrellas
+                        if (errorMessage.value.isNotEmpty()) {
+                            Text(
+                                text = errorMessage.value,
+                                color = Color.Red,
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(top = 8.dp)
+                            )
+                        }
                     }
                 },
                 confirmButton = {
                     TextButton(onClick = {
-                        // Aquí puedes guardar el comentario y la calificación
-                        isDialogOpen.value = false
+                        if (selectedStars.value == 0) {
+                            // Si no se seleccionan estrellas, mostramos el mensaje de error
+                            errorMessage.value = "Por favor selecciona al menos una estrella."
+                        } else if (commentText.value.isBlank()) {
+                            // Si el comentario está vacío, mostramos el mensaje de error
+                            errorMessage.value = "Por favor escribe un comentario."
+                        } else if (userId != null) {
+                            // Llamamos al ViewModel para enviar el comentario
+                            commentsViewModel.sendComment(id, usuarioNombre, selectedStars.value, commentText.value)
+                            // Reseteamos las estrellas y el texto del comentario después de enviar el comentario
+                            selectedStars.value = 0
+                            commentText.value = ""
+                            errorMessage.value = "" // Limpiamos el mensaje de error
+                            isDialogOpen.value = false
+                        }
                     }) {
                         Text("Send")
                     }
@@ -255,23 +336,17 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                 dismissButton = {
                     TextButton(onClick = {
                         isDialogOpen.value = false
-                        commentText.value = "" // Reseteamos el texto cuando se cancela
+                        commentText.value = ""
                         selectedStars.value = 0
+                        errorMessage.value = "" // Limpiamos el mensaje de error
                     }) {
                         Text("Cancel")
                     }
                 }
             )
-
         }
-
-
     }
 }
-
-
-
-
 
 fun fetchGenreNames(genreIds: List<Int>, onResult: (List<String>) -> Unit) {
     val firestore = FirebaseFirestore.getInstance()

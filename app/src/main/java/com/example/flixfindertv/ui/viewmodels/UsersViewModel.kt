@@ -1,11 +1,18 @@
 package com.example.flixfindertv.ui.viewmodels
 
+import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.flixfindertv.models.Peliculas
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 
 class UsersViewModel : ViewModel() {
 
@@ -15,6 +22,11 @@ class UsersViewModel : ViewModel() {
     // Estado para almacenar si la película o serie está en favoritos
     private val _isFavorite = mutableStateOf(false)
     val isFavorite: State<Boolean> get() = _isFavorite
+
+
+
+
+
 
     // Función para verificar si una película o serie está en favoritos
     fun checkIfFavorite(id: String, isSerie: Boolean) {
@@ -44,7 +56,6 @@ class UsersViewModel : ViewModel() {
             _isFavorite.value = false
         }
     }
-
 
     fun saveToFavorites(id: String, title: String, posterUrl: String, isSerie: Boolean) {
         val currentUser = auth.currentUser
@@ -87,7 +98,6 @@ class UsersViewModel : ViewModel() {
             }
         }
     }
-
 
     // Función para eliminar una película o serie de los favoritos
     fun removeFromFavorites(id: String, isSerie: Boolean) {
@@ -133,7 +143,8 @@ class UsersViewModel : ViewModel() {
                             id = movieData["id"] as? String ?: "",
                             title = movieData["title"] as? String ?: "",
                             poster_path = movieData["posterUrl"] as? String ?: "",
-                            esSerie = movieData["esSerie"] as? Boolean ?: false
+                            esSerie = movieData["esSerie"] as? Boolean ?: false,
+
                         )
                     }
 

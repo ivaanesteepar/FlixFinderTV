@@ -126,9 +126,11 @@ fun LoginScreen(navController: NavHostController) {
                             }
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isLoading
+
             ) {
-                Text(text = "Log In")
+                Text(text = if (isLoading) "Logging in..." else "Log in")
             }
 
 

@@ -15,7 +15,10 @@ data class Peliculas(
     val backdrop_path: String = "",
     val popularity: Double = 0.0,
     val esSerie: Boolean = false,
-    val comentarios: List<String> = emptyList()
+    val comentarios: List<String> = emptyList(),
+    val original_language: String = "",
+    val status: String = "",
+    val trailer: String? = null
 ) {
     val titulo: String
         get() = title ?: name ?: "Título desconocido"

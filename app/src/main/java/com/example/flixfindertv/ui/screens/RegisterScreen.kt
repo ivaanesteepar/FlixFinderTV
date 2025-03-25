@@ -86,11 +86,6 @@ fun RegisterScreen(navController: NavHostController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            errorMessage?.let {
-                Text(text = it, color = Color.Red, fontSize = 14.sp)
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-
             OutlinedTextField(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it },
@@ -102,6 +97,11 @@ fun RegisterScreen(navController: NavHostController) {
             )
 
             Spacer(modifier = Modifier.height(16.dp))
+            
+            errorMessage?.let {
+                Text(text = it, color = Color.Red, fontSize = 14.sp)
+                Spacer(modifier = Modifier.height(8.dp))
+            }
 
             Button(
                 onClick = {
@@ -112,39 +112,57 @@ fun RegisterScreen(navController: NavHostController) {
                     } else {
                         errorMessage = null
                         isLoading = true
-                        auth.createUserWithEmailAndPassword(email.text, password.text)
-                            .addOnCompleteListener { task ->
-                                isLoading = false
-                                if (task.isSuccessful) {
-                                    val user = auth.currentUser
-                                    user?.let {
-                                        val newUser = Usuarios(
-                                            uid = user.uid,
-                                            nombre = username.text,
-                                            email = email.text,
-                                            fotoPerfil = "",
-                                            fechaNacimiento = "",
-                                            contenidoVisto = "",
-                                            peliculasFavoritas = emptyList(), // Cambiado a List
-                                            seriesFavoritas = emptyList(),    // Cambiado a List
-                                            seguidores = emptyList(),
-                                            siguiendo = emptyList(),
-                                            numComentarios = 0
-                                        )
 
-                                        firestore.collection("usuarios")
-                                            .document(user.uid)
-                                            .set(newUser)
-                                            .addOnSuccessListener {
-                                                navController.navigate("login")
+                        // Verificar si el nombre de usuario ya existe
+                        firestore.collection("usuarios")
+                            .whereEqualTo("nombre", username.text)
+                            .get()
+                            .addOnSuccessListener { result ->
+                                if (result.isEmpty) {
+                                    // El nombre de usuario no existe, continuar con el registro
+                                    auth.createUserWithEmailAndPassword(email.text, password.text)
+                                        .addOnCompleteListener { task ->
+                                            isLoading = false
+                                            if (task.isSuccessful) {
+                                                val user = auth.currentUser
+                                                user?.let {
+                                                    val newUser = Usuarios(
+                                                        uid = user.uid,
+                                                        nombre = username.text,
+                                                        email = email.text,
+                                                        fotoPerfil = "",
+                                                        fechaNacimiento = "",
+                                                        contenidoVisto = "",
+                                                        peliculasFavoritas = emptyList(),
+                                                        seriesFavoritas = emptyList(),
+                                                        seguidores = emptyList(),
+                                                        siguiendo = emptyList(),
+                                                        numComentarios = 0
+                                                    )
+
+                                                    firestore.collection("usuarios")
+                                                        .document(user.uid)
+                                                        .set(newUser)
+                                                        .addOnSuccessListener {
+                                                            navController.navigate("login")
+                                                        }
+                                                        .addOnFailureListener {
+                                                            errorMessage = "Error adding user to Firestore"
+                                                        }
+                                                }
+                                            } else {
+                                                errorMessage = "Error: ${task.exception?.message}"
                                             }
-                                            .addOnFailureListener {
-                                                errorMessage = "Error adding user to Firestore"
-                                            }
-                                    }
+                                        }
                                 } else {
-                                    errorMessage = "Error: ${task.exception?.message}"
+                                    // El nombre de usuario ya está en uso
+                                    errorMessage = "Username already taken"
+                                    isLoading = false
                                 }
+                            }
+                            .addOnFailureListener { exception ->
+                                errorMessage = "Error checking username availability: ${exception.message}"
+                                isLoading = false
                             }
                     }
                 },
