@@ -60,7 +60,7 @@ fun MovieDetailsContent(
         Box(
             modifier = Modifier
                 .width(160.dp)
-                .let { if (movieCoverUrl.isNotEmpty()) it.height(240.dp) else it.height(240.dp) } // Aumenta la altura solo para la imagen predeterminada
+                .height(240.dp)
                 .padding(end = 8.dp)
         ) {
             Image(
