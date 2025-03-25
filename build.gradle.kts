@@ -11,6 +11,7 @@ sonarqube {
         property("sonar.projectKey", "ivaanesteepar_FlixFinderTV")
         property("sonar.organization", "ivaanesteepar")
         property("sonar.host.url", "https://sonarcloud.io")
+        property("sonar.coverage.exclusions", "**/test/**")
     }
 }
 
