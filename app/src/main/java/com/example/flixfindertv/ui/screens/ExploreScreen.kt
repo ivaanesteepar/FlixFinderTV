@@ -56,6 +56,8 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
 
     var expanded by remember { mutableStateOf(false) }
     var selectedTab by remember { mutableStateOf("Peliculas") }
+    val tabs = listOf("Peliculas", "Series")
+    val selectedIndex = tabs.indexOf(selectedTab).coerceAtLeast(0)
     val movies by viewModel.listaPeliculas.observeAsState(emptyList())
     val series by seriesViewModel.listaSeries.observeAsState(emptyList())
     val isSeriesLoading by seriesViewModel.isLoadingSeries.observeAsState(false)
@@ -111,7 +113,6 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
 
     var selectedGenre by rememberSaveable { mutableStateOf<String?>(null) }
     var selectedGenreId by rememberSaveable { mutableStateOf<Int?>(null) }
-
     val options = listOf("Sin orden", "Ascendente", "Descendente")
 
     println("selected genre id: $selectedGenreId")
@@ -648,51 +649,20 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                     }
                 }
                 else {
-                    // Si no buscamos nada, mostrar generos, populares, etc.
-                    Row(
+                    TabRow(
+                        selectedTabIndex = selectedIndex,
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
+                        containerColor = Color.Transparent
                     ) {
-                        // Botón de Películas
-                        Box(
-                            modifier = Modifier
-                                .clickable { selectedTab = "Peliculas" }
-                                .padding(16.dp)
-                                .background(
-                                    color = if (selectedTab == "Peliculas") Color(0xFF42A5F5) else Color.Transparent,
-                                    shape = MaterialTheme.shapes.medium
-                                )
-                        ) {
-                            Text(
-                                text = "Peliculas",
-                                style = MaterialTheme.typography.bodyMedium.copy(
-                                    color = if (selectedTab == "Peliculas") Color.White else Color.Black
-                                ),
-                                modifier = Modifier.padding(16.dp)
-                            )
-                        }
-
-                        // Botón de Series
-                        Box(
-                            modifier = Modifier
-                                .clickable { selectedTab = "Series" }
-                                .padding(16.dp)
-                                .background(
-                                    color = if (selectedTab == "Series") Color(0xFF4DB6AC) else Color.Transparent,
-                                    shape = MaterialTheme.shapes.medium
-                                )
-                        ) {
-                            Text(
-                                text = "Series",
-                                style = MaterialTheme.typography.bodyMedium.copy(
-                                    color = if (selectedTab == "Series") Color.White else Color.Black
-                                ),
-                                modifier = Modifier.padding(16.dp)
+                        tabs.forEachIndexed { index, title ->
+                            Tab(
+                                selected = selectedIndex == index,
+                                onClick = { selectedTab = title },
+                                text = { Text(title) }
                             )
                         }
                     }
                     Spacer(modifier = Modifier.height(16.dp))
-
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxSize()
@@ -714,7 +684,10 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                 }
                             }
                         } else {
+                            println("a1")
+                            println("selectedTab: $selectedTab")
                             if (selectedTab == "Peliculas") {
+                                println("aaaaaaaaaa")
                                 if (movies.isNotEmpty()) {
                                     item {
                                         Box(

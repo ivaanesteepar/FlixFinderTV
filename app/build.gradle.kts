@@ -77,6 +77,7 @@ dependencies {
     implementation (libs.com.amazonaws.aws.android.sdk.s3)
     implementation(libs.firebase.database)
     implementation(libs.androidx.appcompat)
+    implementation("com.pierfrancescosoffritti.androidyoutubeplayer:core:11.1.0")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

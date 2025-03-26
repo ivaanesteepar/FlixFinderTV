@@ -1,8 +1,6 @@
 package com.example.flixfindertv.ui.screens
 
-import android.content.Intent
-import android.net.Uri
-import android.widget.Toast
+import com.example.flixfindertv.utils.YoutubePlayer
 import com.example.flixfindertv.utils.ShowComments
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -29,14 +27,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import com.example.flixfindertv.R
-import com.example.flixfindertv.models.Comentarios
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.flixfindertv.models.Peliculas
 import com.example.flixfindertv.ui.viewmodels.CommentsViewModel
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 import com.example.flixfindertv.utils.MovieDetailsContent
 import com.google.firebase.auth.FirebaseAuth
-import java.util.UUID
 
 @Composable
 fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean) {
@@ -64,8 +60,7 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
     val collectionName = if (esSerie) "series" else "peliculas"
 
     val errorMessage = remember { mutableStateOf("") }
-    var likedCommentId by remember { mutableStateOf<String?>(null) }
-    val context = LocalContext.current
+    var showTrailer by remember { mutableStateOf(false) }
 
     // Obtener el userId desde FirebaseAuth
     val userId = auth.currentUser?.uid
@@ -200,7 +195,6 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
             status = status
         )
 
-        // Mostrar el tráiler si existe
         if (trailerUrl.isNotEmpty()) {
             Spacer(modifier = Modifier.height(16.dp))
             // Obtener el videoId de la URL del tráiler
@@ -219,11 +213,10 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                     contentDescription = "Trailer Preview",
                     modifier = Modifier
                         .fillMaxWidth()
-                        .aspectRatio(16f / 9f) // Mantiene la proporción de un video (relación 16:9)
+                        .height(210.dp) // Mantiene la proporción de un video (relación 16:9)
                         .clickable {
-                            // Redirigir al enlace del tráiler en YouTube
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(trailerUrl))
-                            context.startActivity(intent)
+                            // Cuando se hace clic en la miniatura, actualizamos el estado
+                            showTrailer = true
                         }
                 )
 
@@ -235,13 +228,18 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                         .size(50.dp) // Ajusta el tamaño del icono
                         .align(Alignment.Center) // Centra el icono dentro de la Box
                         .clickable {
-                            // Redirigir al enlace del tráiler en YouTube
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(trailerUrl))
-                            context.startActivity(intent)
+                            // Cuando se hace clic en el ícono, actualizamos el estado
+                            showTrailer = true
                         }
                 )
+
+                // Mostrar el trailer si el estado lo indica
+                if (showTrailer) {
+                    ShowTrailer(videoId) // Mostrar el video
+                }
             }
         }
+
         Spacer(modifier = Modifier.height(36.dp))
         Text(
             text = "Comments",
@@ -346,6 +344,12 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
             )
         }
     }
+}
+
+@Composable
+fun ShowTrailer(videoId: String) {
+    // YouTube player
+    YoutubePlayer(videoId)
 }
 
 fun fetchGenreNames(genreIds: List<Int>, onResult: (List<String>) -> Unit) {

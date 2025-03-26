@@ -70,21 +70,36 @@ class TriviaViewModel(private val context: Context, lifecycleOwner: LifecycleOwn
     private fun getPrompt(): String {
         val language = _languageState.value
         return if (language == "es") {
-            // Prompt en español
+            // Prompt en español con 4 opciones
             """
-                Hazme una pregunta sobre películas o series de TV con 4 opciones de respuesta.
-                Asegúrate de que la pregunta sea única y no repetida.
-                No uses markdown. La pregunta debe ser atractiva y relevante.
-            """.trimIndent()
+            Hazme una pregunta sobre películas o series de TV con 4 opciones de respuesta.
+            Asegúrate de que la pregunta sea única y no repetida.
+            No uses markdown. La pregunta debe ser atractiva y relevante.
+
+            Ejemplo de pregunta con opciones:
+            ¿Cuál es la película más taquillera de todos los tiempos?
+            A) Titanic
+            B) Avatar
+            C) Avengers: Endgame
+            D) Star Wars: The Force Awakens
+        """.trimIndent()
         } else {
-            // Prompt en inglés
+            // Prompt en inglés con 4 opciones
             """
-                Ask me a question about movies or TV shows with 4 answer options.
-                Ensure the question is unique and not repeated.
-                Do not use markdown. The question should be engaging and relevant.
-            """.trimIndent()
+            Ask me a question about movies or TV shows with 4 answer options.
+            Ensure the question is unique and not repeated.
+            Do not use markdown. The question should be engaging and relevant.
+
+            Example question with options:
+            What is the highest-grossing movie of all time?
+            A) Titanic
+            B) Avatar
+            C) Avengers: Endgame
+            D) Star Wars: The Force Awakens
+        """.trimIndent()
         }
     }
+
 
     fun generateQuestion() {
         _uiState.value = UiState.Loading

@@ -55,6 +55,7 @@ fun EditProfileScreen(navController: NavHostController) {
             // Solo actualiza la URI de la imagen si se seleccionó una nueva
             if (uri != null) {
                 profileImageUri = uri.toString()
+                deleteImageInUI = false
             }
         }
 
@@ -226,41 +227,33 @@ fun EditProfileScreen(navController: NavHostController) {
             Button(
                 onClick = {
                     currentUser?.uid?.let { uid ->
-                        // Actualizar los datos del usuario (nombre, fecha de nacimiento)
                         val userUpdates = mutableMapOf<String, Any?>("nombre" to userName)
                         if (userBirthdate.isNotEmpty()) {
                             userUpdates["fechaNacimiento"] = userBirthdate
                         }
 
-                        // Verificar si se debe eliminar la foto de perfil
                         if (deleteImageInUI) {
-                            // Si se marcó para eliminar la foto, actualizamos el campo fotoPerfil en Firestore como null
                             userUpdates["fotoPerfil"] = null
                         } else if (!profileImageUri.isNullOrEmpty()) {
-                            // Subir imagen si se ha seleccionado una nueva imagen
                             val imageUri = profileImageUri
                             val imageBytes = imageUri?.let { uri ->
                                 val inputStream = context.contentResolver.openInputStream(android.net.Uri.parse(uri))
                                 inputStream?.readBytes()
                             }
 
-                            // Llamar a la función para subir la imagen a Imgur
                             if (imageBytes != null) {
                                 ImgurUploader.uploadImage(imageBytes) { imageUrl ->
                                     if (imageUrl != null) {
-                                        println("Imagen subida exitosamente: $imageUrl")
                                         userUpdates["fotoPerfil"] = imageUrl
                                         firestore.collection("usuarios").document(uid).update(userUpdates)
                                             .addOnSuccessListener {
                                                 Toast.makeText(context, "Perfil actualizado", Toast.LENGTH_SHORT).show()
                                                 navController.popBackStack()
                                             }
-                                            .addOnFailureListener { exception ->
-                                                println("Error al actualizar los datos: ${exception.message}")
+                                            .addOnFailureListener {
                                                 Toast.makeText(context, "Error al actualizar", Toast.LENGTH_SHORT).show()
                                             }
                                     } else {
-                                        println("Error al subir la imagen: La URL de la imagen es null")
                                         Toast.makeText(context, "Error al subir la imagen", Toast.LENGTH_SHORT).show()
                                     }
                                 }
@@ -268,19 +261,14 @@ fun EditProfileScreen(navController: NavHostController) {
                             }
                         }
 
-                        // Si no se seleccionó una nueva imagen ni se marcó para eliminar la foto
-                        // Solo actualizamos los datos sin modificar la foto de perfil
+                        // Si no hay nueva imagen y tampoco se marcó eliminar la foto, no modificar el campo fotoPerfil
                         if (userUpdates.isNotEmpty()) {
                             firestore.collection("usuarios").document(uid).update(userUpdates)
                                 .addOnSuccessListener {
-                                    // Mostrar el mensaje de éxito
                                     Toast.makeText(context, "Perfil actualizado", Toast.LENGTH_SHORT).show()
-
-                                    // Realizar el popBackStack después de actualizar los datos
                                     navController.popBackStack()
                                 }
                                 .addOnFailureListener {
-                                    // Mostrar el mensaje de error
                                     Toast.makeText(context, "Error al actualizar", Toast.LENGTH_SHORT).show()
                                 }
                         }
