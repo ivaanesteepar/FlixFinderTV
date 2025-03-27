@@ -137,7 +137,8 @@ fun RegisterScreen(navController: NavHostController) {
                                                         seriesFavoritas = emptyList(),
                                                         seguidores = emptyList(),
                                                         siguiendo = emptyList(),
-                                                        numComentarios = 0
+                                                        numComentarios = 0,
+                                                        admin = false
                                                     )
 
                                                     firestore.collection("usuarios")

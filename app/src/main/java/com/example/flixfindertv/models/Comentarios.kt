@@ -11,7 +11,8 @@ data class Comentarios(
     val idContenido: String = "",       // Agregar valores predeterminados para cada campo
     val fechaPublicacion: Timestamp = Timestamp.now(),
     val likes: Int = 0,
-    val nombreLikes: List<String> = emptyList()
+    val nombreLikes: List<String> = emptyList(),
+    val revision: Boolean = false
 )
 
 data class Respuestas(
@@ -22,5 +23,6 @@ data class Respuestas(
     val respuesta: String = "",
     val fechaPublicacion: Timestamp = Timestamp.now(),
     val likes: Int = 0,
-    val nombreLikes: List<String> = emptyList()
+    val nombreLikes: List<String> = emptyList(),
+    val revision: Boolean = false
 )

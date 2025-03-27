@@ -1,5 +1,6 @@
 package com.example.flixfindertv.ui.screens
 
+import android.widget.Toast
 import com.example.flixfindertv.utils.YoutubePlayer
 import com.example.flixfindertv.utils.ShowComments
 import androidx.compose.foundation.Image
@@ -32,13 +33,16 @@ import com.example.flixfindertv.models.Peliculas
 import com.example.flixfindertv.ui.viewmodels.CommentsViewModel
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 import com.example.flixfindertv.utils.MovieDetailsContent
+import com.example.flixfindertv.utils.validateComment
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.launch
 
 @Composable
 fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean) {
     val usersViewModel: UsersViewModel = viewModel()
     val commentsViewModel: CommentsViewModel = viewModel()
 
+    var movieId by remember { mutableStateOf("") }
     var movieTitle by remember { mutableStateOf("") }
     var movieDescription by remember { mutableStateOf("") }
     var movieBannerUrl by remember { mutableStateOf("") }
@@ -61,6 +65,7 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
 
     val errorMessage = remember { mutableStateOf("") }
     var showTrailer by remember { mutableStateOf(false) }
+    val context = LocalContext.current // Para mostrar el Toast
 
     // Obtener el userId desde FirebaseAuth
     val userId = auth.currentUser?.uid
@@ -80,6 +85,7 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
             .get()
             .addOnSuccessListener { document ->
                 val movie = document.toObject(Peliculas::class.java)
+                movieId = movie?.id?.takeIf { it.isNotBlank() } ?: ""
                 movieTitle = movie?.title.takeIf { it?.isNotBlank() == true } ?: movie?.name ?: "Título no encontrado"
                 movieDescription = movie?.overview?.takeIf { it.isNotBlank() } ?: "No hay descripción"
                 original_language = movie?.original_language?.takeIf { it.isNotBlank() } ?: "No hay idioma original"
@@ -311,25 +317,32 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                     }
                 },
                 confirmButton = {
+                    val coroutineScope = rememberCoroutineScope()
                     TextButton(onClick = {
                         if (selectedStars.value == 0) {
-                            // Si no se seleccionan estrellas, mostramos el mensaje de error
                             errorMessage.value = "Por favor selecciona al menos una estrella."
                         } else if (commentText.value.isBlank()) {
-                            // Si el comentario está vacío, mostramos el mensaje de error
                             errorMessage.value = "Por favor escribe un comentario."
                         } else if (userId != null) {
-                            // Llamamos al ViewModel para enviar el comentario
-                            commentsViewModel.sendComment(id, usuarioNombre, selectedStars.value, commentText.value)
-                            // Reseteamos las estrellas y el texto del comentario después de enviar el comentario
-                            selectedStars.value = 0
-                            commentText.value = ""
-                            errorMessage.value = "" // Limpiamos el mensaje de error
-                            isDialogOpen.value = false
+                            coroutineScope.launch {
+                                val isOffensive = validateComment(commentText.value)
+                                if (isOffensive) {
+                                    Toast.makeText(context, "Tu mensaje será revisado antes de publicarse.", Toast.LENGTH_SHORT).show()
+                                    commentsViewModel.sendComment(id, usuarioNombre, selectedStars.value, commentText.value, true)
+                                } else {
+                                    commentsViewModel.sendComment(id, usuarioNombre, selectedStars.value, commentText.value, false)
+                                }
+                                // Cerrar el diálogo en ambos casos
+                                isDialogOpen.value = false
+                                selectedStars.value = 0
+                                commentText.value = ""
+                                errorMessage.value = "" // Limpiamos el mensaje de error
+                            }
                         }
                     }) {
                         Text("Send")
                     }
+
                 },
                 dismissButton = {
                     TextButton(onClick = {

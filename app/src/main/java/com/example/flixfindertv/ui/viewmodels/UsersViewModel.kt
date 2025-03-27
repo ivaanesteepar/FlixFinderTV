@@ -24,7 +24,32 @@ class UsersViewModel : ViewModel() {
     val isFavorite: State<Boolean> get() = _isFavorite
 
 
+    suspend fun getUserAdminStatus(userId: String, callback: (Boolean) -> Unit) {
+        // Obtener una referencia a la colección de usuarios
+        val db = FirebaseFirestore.getInstance()
 
+        // Referencia al documento del usuario por ID
+        val userDocument = db.collection("usuarios").document(userId)
+
+        try {
+            // Obtener los datos del documento del usuario
+            val documentSnapshot = userDocument.get().await()
+
+            // Verificar si el documento existe y contiene el campo 'admin'
+            if (documentSnapshot.exists() && documentSnapshot.contains("admin")) {
+                // Obtener el valor del campo 'admin'
+                val isAdmin = documentSnapshot.getBoolean("admin") ?: false
+                // Pasar el valor de 'admin' al callback
+                callback(isAdmin)
+            } else {
+                // Si no existe el campo 'admin', asumir que el usuario no es admin
+                callback(false)
+            }
+        } catch (e: Exception) {
+            // Manejar errores, por ejemplo, si hay un problema con la conexión
+            callback(false)
+        }
+    }
 
 
 

@@ -18,6 +18,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.util.UUID
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 class CommentsViewModel : ViewModel() {
     private val firestore = FirebaseFirestore.getInstance()
@@ -291,30 +293,65 @@ class CommentsViewModel : ViewModel() {
             .addOnSuccessListener { querySnapshot ->
                 val comentariosList = querySnapshot.documents.mapNotNull { document ->
                     try {
+                        // Obtener los campos del comentario
                         val id = document.getString("id") ?: return@mapNotNull null
                         val usuario = document.getString("usuario") ?: return@mapNotNull null
                         val puntuacion = (document.getLong("puntuacion")?.toInt()) ?: return@mapNotNull null
                         val comentario = document.getString("comentario") ?: return@mapNotNull null
                         val idContenido = document.getString("idContenido") ?: return@mapNotNull null
-                        // Obtener las respuestas, que están en formato HashMap
+                        val revision = document.getBoolean("revision") ?: false // Campo 'revision' para el comentario
+                        val fechaPublicacion = document.getTimestamp("fechaPublicacion") ?: return@mapNotNull null
+                        val likes = (document.getLong("likes")?.toInt()) ?: return@mapNotNull null
+                        val nombreLikes = document.get("nombreLikes") as? List<String> ?: emptyList()
+
+                        // Obtener las respuestas, que están en formato List<HashMap<String, Any>>
                         val respuestasList = document["respuestas"] as? List<HashMap<String, Any>> ?: emptyList()
 
-                        // Convertir cada HashMap de respuesta en un objeto Respuestas
+                        // Mapear las respuestas
                         val respuestas = respuestasList.mapNotNull { respuestaMap ->
                             try {
+                                // Obtener los campos de cada respuesta
                                 val idRespuesta = respuestaMap["id"] as? String ?: return@mapNotNull null
                                 val usuarioRespuesta = respuestaMap["usuario"] as? String ?: return@mapNotNull null
                                 val respuestaTexto = respuestaMap["respuesta"] as? String ?: return@mapNotNull null
-                                val fechaPublicacion = respuestaMap["fechaPublicacion"] as? Timestamp ?: return@mapNotNull null
+                                val fechaPublicacionRespuesta = respuestaMap["fechaPublicacion"] as? Timestamp ?: return@mapNotNull null
+                                val revisionRespuesta = respuestaMap["revision"] as? Boolean ?: false // Campo 'revision' para la respuesta
+                                val likesRespuesta = (respuestaMap["likes"] as? Long)?.toInt() ?: 0 // Campo 'likes' para la respuesta
+                                val nombreLikesRespuesta = respuestaMap["nombreLikes"] as? List<String> ?: emptyList() // Campo 'nombreLikes' para la respuesta
 
-                                Respuestas(idRespuesta, id, idContenido, usuarioRespuesta, respuestaTexto, fechaPublicacion)
+                                // Crear el objeto Respuestas
+                                Respuestas(
+                                    id = idRespuesta,
+                                    idComentario = id,
+                                    idContenido = idContenido,
+                                    usuario = usuarioRespuesta,
+                                    respuesta = respuestaTexto,
+                                    fechaPublicacion = fechaPublicacionRespuesta,
+                                    likes = likesRespuesta,
+                                    nombreLikes = nombreLikesRespuesta,
+                                    revision = revisionRespuesta
+                                )
                             } catch (e: Exception) {
                                 // Si hay un error en la conversión, omitir esta respuesta
                                 null
                             }
                         }
-                        Comentarios(id, usuario, puntuacion, comentario, respuestas, idContenido)
+
+                        // Crear el objeto Comentarios
+                        Comentarios(
+                            id = id,
+                            usuario = usuario,
+                            puntuacion = puntuacion,
+                            comentario = comentario,
+                            respuestas = respuestas,
+                            idContenido = idContenido,
+                            fechaPublicacion = fechaPublicacion,
+                            likes = likes,
+                            nombreLikes = nombreLikes,
+                            revision = revision
+                        )
                     } catch (e: Exception) {
+                        // Si hay un error al procesar el comentario, omitir este comentario
                         null
                     }
                 }
@@ -327,14 +364,15 @@ class CommentsViewModel : ViewModel() {
 
 
     // Función para agregar un nuevo comentario a la subcolección 'subcoleccionComentarios' dentro de un documento 'idContenido'
-    fun sendComment(idContenido: String, usuarioNombre: String, puntuacion: Int, comentario: String) {
+    fun sendComment(idContenido: String, usuarioNombre: String, puntuacion: Int, comentario: String, reviewed: Boolean) {
         val newComment = Comentarios(
             id = UUID.randomUUID().toString(),
             usuario = usuarioNombre,
             puntuacion = puntuacion,
             comentario = comentario,
             respuestas = emptyList(),
-            idContenido = idContenido
+            idContenido = idContenido,
+            revision = if (reviewed) true else false  // Establece el campo 'revision' si 'reviewed' es true
         )
 
         // Obtener la referencia de la subcolección donde se almacenan los comentarios
@@ -351,6 +389,7 @@ class CommentsViewModel : ViewModel() {
                 // Manejar el error si ocurre
             }
     }
+
 
     // Función para obtener la URL de la foto de perfil de un usuario
     fun getUserProfilePhoto(usuarioNombre: String, onProfilePhotoFetched: (String?) -> Unit) {
@@ -376,7 +415,35 @@ class CommentsViewModel : ViewModel() {
         }
     }
 
-    fun sendResponse(idContenido: String, comentarioId: String, usuarioNombre: String, respuesta: String) {
+    // Función para obtener la URL de la foto de perfil de un usuario
+    suspend fun getReviewField(idContenido: String, comentarioId: String): Boolean? {
+        val firestore = FirebaseFirestore.getInstance()
+
+        // Usamos suspendCoroutine para convertir el callback en una función suspendida
+        return suspendCoroutine { continuation ->
+            firestore.collection("comentarios")
+                .document(idContenido)
+                .collection("comentarios")
+                .document(comentarioId)
+                .get()
+                .addOnSuccessListener { document ->
+                    if (document.exists()) {
+                        val revision = document.getBoolean("revision")  // Obtener el valor del campo 'revision'
+                        continuation.resume(revision)  // Pasamos el resultado al continuation
+                    } else {
+                        continuation.resume(null)  // Si el documento no existe, devolvemos null
+                    }
+                }
+                .addOnFailureListener { exception ->
+                    continuation.resume(null)  // En caso de error, devolvemos null
+                }
+        }
+    }
+
+
+
+    // Función para agregar una nueva respuesta a un comentario
+    fun sendResponse(idContenido: String, comentarioId: String, usuarioNombre: String, respuesta: String, reviewed: Boolean) {
         // Crear una nueva instancia de la respuesta
         val nuevaRespuesta = Respuestas(
             id = UUID.randomUUID().toString(), // Generar un ID único para la respuesta
@@ -384,7 +451,8 @@ class CommentsViewModel : ViewModel() {
             idContenido = idContenido,
             usuario = usuarioNombre,
             respuesta = respuesta,
-            fechaPublicacion = Timestamp.now() // Usar la fecha y hora del servidor
+            fechaPublicacion = Timestamp.now(), // Usar la fecha y hora del servidor
+            revision = if (reviewed) true else false // Establecer el campo 'revision' si 'reviewed' es true
         )
 
         // Actualizar el comentario con la nueva respuesta dentro de la subcolección de comentarios
