@@ -1,5 +1,7 @@
 package com.example.flixfindertv.ui.screens
 
+import android.app.Activity
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -14,6 +16,7 @@ import com.example.flixfindertv.utils.ContentListExplore
 import com.google.firebase.auth.FirebaseAuth
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.platform.LocalContext
 import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.utils.BottomNavigationBar
 
@@ -26,8 +29,9 @@ fun HomeScreen(
     val genresViewModel: GenresViewModel = viewModel()
     val uid = FirebaseAuth.getInstance().currentUser?.uid
     val hayConexion by conexionViewModel.conexionEstablecida.collectAsState()
+    val context = LocalContext.current
+    val activity = context as? Activity
 
-    val maxSeries = 100
     val maxMovies = 100
 
     val isLoadingGenero1 by genresViewModel.isLoadingGenero1.observeAsState(false)
@@ -52,6 +56,11 @@ fun HomeScreen(
         if (uid != null) {
             genresViewModel.obtenerGenerosFavoritos(uid)
         }
+    }
+
+    // BackHandler para manejar el retroceso
+    BackHandler {
+        activity?.finish()
     }
 
     LaunchedEffect(key1 = genresViewModel.nombreGenero1.value) {

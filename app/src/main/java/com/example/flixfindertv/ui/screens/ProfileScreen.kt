@@ -1,6 +1,8 @@
 package com.example.flixfindertv.ui.screens
 
+import android.app.Activity
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import com.google.firebase.auth.FirebaseAuth
@@ -69,7 +71,12 @@ fun ProfileScreen(navController: NavHostController, uid: String) {
     var favoriteSeries by remember { mutableStateOf<List<Peliculas>>(emptyList()) }
     val context = LocalContext.current
     val currentUser = auth.currentUser
+    val activity = context as? Activity
 
+    // BackHandler para manejar el retroceso
+    BackHandler {
+        activity?.finish()
+    }
 
     if (currentUser != null) {
         val currentUid = currentUser.uid

@@ -1,8 +1,8 @@
 package com.example.flixfindertv.ui.screens
 
+import android.app.Activity
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
@@ -53,6 +54,8 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
     val seriesViewModel: SeriesViewModel = viewModel()
     val conexionViewModel: ConexionViewModel = viewModel()
     val genresViewModel: GenresViewModel = viewModel()
+    val context = LocalContext.current
+    val activity = context as? Activity
 
     var expanded by remember { mutableStateOf(false) }
     var selectedTab by remember { mutableStateOf("Peliculas") }
@@ -125,6 +128,11 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
     )
 
     val genreColumns = genres.chunked(9) // Divide la lista en 3 columnas de 9 elementos
+
+    // BackHandler para manejar el retroceso
+    BackHandler {
+        activity?.finish()
+    }
 
     LaunchedEffect(searchQuery) {
         if (searchQuery.isNotEmpty()) {
@@ -418,7 +426,6 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                                                 }
                                                             }
                                                         )
-                                                        Spacer(modifier = Modifier.width(4.dp))
 
                                                         // Mostrar el nombre del género con salto de línea solo en la visualización
                                                         Text(
@@ -478,7 +485,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                 }
                 if (searchQuery.isNotEmpty()) {
                     Box(
-                        modifier = Modifier.fillMaxSize() // ✅ Define el tamaño del contenedor padre
+                        modifier = Modifier.fillMaxSize()
                     ) {
                         // Dropdown para seleccionar el tipo de orden
                         var expandedSearch by remember { mutableStateOf(false) }

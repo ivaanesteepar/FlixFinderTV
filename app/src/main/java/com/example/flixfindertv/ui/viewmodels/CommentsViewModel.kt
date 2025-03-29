@@ -28,6 +28,118 @@ class CommentsViewModel : ViewModel() {
     private val _comments = MutableStateFlow<List<Comentarios>>(emptyList())
     val comments: StateFlow<List<Comentarios>> get() = _comments
 
+    fun deleteComment(idContenido: String, comentarioId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+        FirebaseFirestore.getInstance().collection("comentarios")
+            .document(idContenido)
+            .collection("comentarios")
+            .document(comentarioId)
+            .delete()
+            .addOnSuccessListener {
+                onSuccess()
+            }
+            .addOnFailureListener { exception ->
+                onFailure(exception)
+            }
+    }
+
+    fun deleteAnswer(idContenido: String, comentarioId: String, respuestaId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+        val db = FirebaseFirestore.getInstance()
+        val comentarioRef = db.collection("comentarios")
+            .document(idContenido)
+            .collection("comentarios")
+            .document(comentarioId)
+
+        // Acceder al campo respuestas y eliminar la respuesta con el id proporcionado
+        comentarioRef.get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    // Obtener el array de respuestas del documento
+                    val respuestas = document.get("respuestas") as? List<Map<String, Any>> ?: emptyList()
+
+                    // Filtrar las respuestas para excluir la que coincide con el id de respuesta
+                    val respuestasActualizadas = respuestas.filter { it["id"] != respuestaId }
+
+                    // Guardar las respuestas actualizadas en Firestore
+                    comentarioRef.update("respuestas", respuestasActualizadas)
+                        .addOnSuccessListener {
+                            onSuccess()
+                        }
+                        .addOnFailureListener { exception ->
+                            println("Error al eliminar la respuesta")
+                            onFailure(exception)
+                        }
+                } else {
+                    println("Documento no encontrado")
+                    onFailure(Exception("Documento no encontrado"))
+                }
+            }
+            .addOnFailureListener { exception ->
+                println("Error al obtener el documento: ${exception.message}")
+                onFailure(exception)
+            }
+    }
+
+
+    fun updateCommentReviewStatus(idContenido: String, comentarioId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+        FirebaseFirestore.getInstance().collection("comentarios")
+            .document(idContenido)
+            .collection("comentarios")
+            .document(comentarioId)
+            .update("revision", false)
+            .addOnSuccessListener {
+                onSuccess()
+            }
+            .addOnFailureListener { exception ->
+                println("Error al actualizar el estado revision")
+                onFailure(exception)
+            }
+    }
+
+    fun updateAnswerReviewStatus(idContenido: String, comentarioId: String, respuestaId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+        val db = FirebaseFirestore.getInstance()
+        val comentarioRef = db.collection("comentarios")
+            .document(idContenido)
+            .collection("comentarios")
+            .document(comentarioId)
+
+        // Acceder al campo respuestas y modificar el campo revision en la respuesta actual
+        comentarioRef.get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    // Obtener el array de respuestas del documento
+                    val respuestas = document.get("respuestas") as? List<Map<String, Any>> ?: emptyList()
+
+                    // Encontrar la respuesta que coincide con el id de la respuesta
+                    val respuestaActualizada = respuestas.map {
+                        if (it["id"] == respuestaId) {
+                            // Actualizamos el campo revision a false
+                            it.toMutableMap().apply { this["revision"] = false }
+                        } else {
+                            it
+                        }
+                    }
+
+                    // Guardar las respuestas actualizadas en Firestore
+                    comentarioRef.update("respuestas", respuestaActualizada)
+                        .addOnSuccessListener {
+                            onSuccess()
+                        }
+                        .addOnFailureListener { exception ->
+                            println("Error al actualizar el estado revision")
+                            onFailure(exception)
+                        }
+                } else {
+                    println("Documento no encontrado")
+                    onFailure(Exception("Documento no encontrado"))
+                }
+            }
+            .addOnFailureListener { exception ->
+                println("Error al obtener el documento: ${exception.message}")
+                onFailure(exception)
+            }
+    }
+
+
     fun addLikeToResponse(idContenido: String, comentarioId: String, respuestaId: String) {
         val userId = FirebaseAuth.getInstance().currentUser?.uid
         if (userId != null) {

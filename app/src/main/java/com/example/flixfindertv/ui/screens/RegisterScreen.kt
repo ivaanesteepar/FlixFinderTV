@@ -172,9 +172,7 @@ fun RegisterScreen(navController: NavHostController) {
             ) {
                 Text(text = if (isLoading) "Registering..." else "Register")
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
+            Spacer(modifier = Modifier.height(8.dp))
             Button(
                 onClick = { navController.popBackStack() },
                 modifier = Modifier.fillMaxWidth()

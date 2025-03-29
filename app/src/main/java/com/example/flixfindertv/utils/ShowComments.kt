@@ -26,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -39,7 +40,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import coil.compose.rememberAsyncImagePainter
 import com.example.flixfindertv.R
 import java.text.SimpleDateFormat
@@ -48,6 +48,7 @@ import com.example.flixfindertv.models.Comentarios
 import com.example.flixfindertv.ui.viewmodels.CommentsViewModel
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.flixfindertv.models.Respuestas
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
@@ -66,6 +67,13 @@ fun ShowComments(commentsList: List<Comentarios>, viewModel: CommentsViewModel) 
     val likedCommentsStateResponse = remember { mutableStateOf<Map<String, Boolean>>(emptyMap()) }
     val context = LocalContext.current // Para mostrar el Toast
     var isUserAdmin by remember { mutableStateOf(false) }
+    val mutableCommentsList = remember { mutableStateOf<List<Comentarios>>(emptyList()) }
+    val respuestasParaMostrar = remember { mutableStateOf<MutableList<Respuestas>>(mutableListOf()) }
+
+    // Usamos LaunchedEffect para actualizar mutableCommentsList y respuestasParaMostrar cuando commentsList cambia
+    LaunchedEffect(commentsList) {
+        mutableCommentsList.value = commentsList
+    }
 
     // Llamamos a obtenerNombreUsuario y getUserAdminStatus cuando el userId cambia
     LaunchedEffect(userId) {
@@ -77,7 +85,7 @@ fun ShowComments(commentsList: List<Comentarios>, viewModel: CommentsViewModel) 
 
     Column(modifier = Modifier.fillMaxWidth()) {
         // Verificar si no hay comentarios
-        if (commentsList.isEmpty()) {
+        if (mutableCommentsList.value.isEmpty()) {
             Text(
                 text = "There are no comments yet. Be the first to comment!",
                 style = MaterialTheme.typography.bodyMedium,
@@ -85,9 +93,9 @@ fun ShowComments(commentsList: List<Comentarios>, viewModel: CommentsViewModel) 
                 modifier = Modifier.align(Alignment.CenterHorizontally).padding(16.dp)
             )
         } else {
-            commentsList.forEach { comentario ->
+            mutableCommentsList.value.forEach { comentario ->
                 // Usamos comentario.revision directamente
-                var shouldShowComment = !comentario.revision || isUserAdmin
+                val shouldShowComment = !comentario.revision || isUserAdmin
 
                 // Si el comentario no debe mostrarse, saltamos al siguiente
                 if (!shouldShowComment) {
@@ -97,6 +105,8 @@ fun ShowComments(commentsList: List<Comentarios>, viewModel: CommentsViewModel) 
                 val showDialog = showDialogState.value[comentario.id] ?: false
                 val showDeleteDialog = remember { mutableStateOf(false) }
                 val showPublishDialog = remember { mutableStateOf(false) }
+                val showDeleteDialogRes = remember { mutableStateOf(false) }
+                val showPublishDialogRes = remember { mutableStateOf(false) }
                 val showAllResponses = showAllResponsesState.value[comentario.id] ?: false
                 var isLiked = likedCommentsState.value[comentario.id] ?: false
                 val likes = commentsLikesState.value[comentario.id] ?: comentario.likes
@@ -131,9 +141,9 @@ fun ShowComments(commentsList: List<Comentarios>, viewModel: CommentsViewModel) 
                 }
 
                 // Cambiar el color del Card si el comentario tiene revision == true
-                Card(modifier = Modifier.zIndex(0f).background(Color.White)) {
-                    Column(modifier = Modifier.padding(8.dp).background(
-                        if (isUserAdmin && shouldShowComment && comentario.revision) Color(0xFFFFCDD2)
+                Card(modifier = Modifier.background(Color.White)) {
+                    Column(modifier = Modifier.padding(8.dp).background( // ESTE PADDING PONE EL BORDE GRIS DE LAS CARDS
+                        if (isUserAdmin && comentario.revision) Color(0xFFFFCDD2)
                         else Color.White
                     )){
                         var fotoPerfilUrl by remember { mutableStateOf("") }
@@ -160,9 +170,7 @@ fun ShowComments(commentsList: List<Comentarios>, viewModel: CommentsViewModel) 
                                     .background(Color.White),
                                 contentScale = ContentScale.Crop
                             )
-
                             Spacer(modifier = Modifier.width(8.dp))
-
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = comentario.usuario,
@@ -255,7 +263,6 @@ fun ShowComments(commentsList: List<Comentarios>, viewModel: CommentsViewModel) 
                                     color = Color.Black,
                                 )
                                 Spacer(modifier = Modifier.weight(1f))
-
                                 // Si el comentario tiene 'revision' igual a true, mostrar el ícono de publicación
                                 if (comentario.revision) {
                                     IconButton(
@@ -389,16 +396,22 @@ fun ShowComments(commentsList: List<Comentarios>, viewModel: CommentsViewModel) 
                                     Text("Confirmar eliminación")
                                 },
                                 text = {
-                                    Text("¿Estás seguro de que quieres eliminar este comentario?")
+                                    Text("¿Estás seguro de que quieres eliminar este mensaje?")
                                 },
                                 confirmButton = {
                                     Button(
                                         onClick = {
-                                            // Lógica para eliminar el comentario
-                                            // Aquí iría la lógica para eliminar el comentario de la base de datos
-
-                                            // Cerrar el cuadro de diálogo después de eliminar
-                                            showDeleteDialog.value = false
+                                            viewModel.deleteComment(
+                                                comentario.idContenido, comentario.id,
+                                                onSuccess = {
+                                                    val updatedList = mutableCommentsList.value.filterNot { it.id == comentario.id }
+                                                    mutableCommentsList.value = updatedList
+                                                    showDeleteDialog.value = false
+                                                },
+                                                onFailure = { exception ->
+                                                    println("Error eliminando comentario: ${exception.message}")
+                                                }
+                                            )
                                         }
                                     ) {
                                         Text("Sí")
@@ -426,16 +439,27 @@ fun ShowComments(commentsList: List<Comentarios>, viewModel: CommentsViewModel) 
                                     Text("Confirmar publicación")
                                 },
                                 text = {
-                                    Text("¿Estás seguro de que quieres publicar este comentario?")
+                                    Text("¿Estás seguro de que quieres publicar este mensaje?")
                                 },
                                 confirmButton = {
                                     Button(
                                         onClick = {
-                                            // Lógica para eliminar el comentario
-                                            // Aquí iría la lógica para eliminar el comentario de la base de datos
+                                            // Modificar el campo 'revision' directamente (en tu caso lo pones en false)
+                                            comentario.revision = false
 
-                                            // Cerrar el cuadro de diálogo después de eliminar
-                                            showPublishDialog.value = false
+                                            // Asegúrate de que la UI se actualice con el cambio
+                                            viewModel.updateCommentReviewStatus(
+                                                comentario.idContenido, comentario.id,
+                                                onSuccess = {
+                                                    // Actualizamos la UI y ocultamos el dialogo de publicación
+                                                    showPublishDialog.value = false
+                                                    // Imprimir el nuevo valor de 'revision' después de la actualización
+                                                    println("Revisión del comentario publicado (actualizado): ${comentario.revision}")
+                                                },
+                                                onFailure = { exception ->
+                                                    println("Error publicando el comentario: ${exception.message}")
+                                                }
+                                            )
                                         }
                                     ) {
                                         Text("Sí")
@@ -453,13 +477,12 @@ fun ShowComments(commentsList: List<Comentarios>, viewModel: CommentsViewModel) 
                                 }
                             )
                         }
-                        // Mostrar las respuestas
-                        val respuestasParaMostrar =
-                            if (comentario.respuestas.size > 2 && !showAllResponses) {
-                                comentario.respuestas.take(2)
-                            } else {
-                                comentario.respuestas
-                            }
+
+                        respuestasParaMostrar.value = if (comentario.respuestas.size > 2 && !showAllResponses) {
+                            comentario.respuestas.take(2).toMutableList() // Convertimos a MutableList aquí
+                        } else {
+                            comentario.respuestas.toMutableList() // Convertimos a MutableList aquí
+                        }
 
                         if (comentario.respuestas.isNotEmpty()) {
                             // Verifica si alguna respuesta no está en revisión o si el usuario es admin
@@ -472,24 +495,28 @@ fun ShowComments(commentsList: List<Comentarios>, viewModel: CommentsViewModel) 
                             }
                         }
 
-
                         Column(modifier = Modifier.padding(8.dp).background(Color.White)) {
-                            respuestasParaMostrar.forEachIndexed { index, res ->
-                                println("revisiones: ${res.revision}")
+                            respuestasParaMostrar.value.forEachIndexed { index, res ->
                                 if (res.revision && !isUserAdmin) {
                                     return@forEachIndexed
                                 }
 
-                                val isLikedResponse = likedCommentsStateResponse.value[res.id] ?: false
+                                val isLikedResponse =
+                                    likedCommentsStateResponse.value[res.id] ?: false
                                 val likesRespuesta = responsesLikesState.value[res.id] ?: res.likes
 
                                 DisposableEffect(res.id) {
                                     // Configuramos el listener
-                                    val listener = viewModel.listenToRespuestaLikes(res.idContenido, res.idComentario, res.id) { newLikes ->
+                                    val listener = viewModel.listenToRespuestaLikes(
+                                        res.idContenido,
+                                        res.idComentario,
+                                        res.id
+                                    ) { newLikes ->
                                         // Actualizamos el estado de likes cuando Firestore detecta un cambio
-                                        val updatedLikesMapResponses = responsesLikesState.value.toMutableMap().apply {
-                                            put(res.id, newLikes)
-                                        }
+                                        val updatedLikesMapResponses =
+                                            responsesLikesState.value.toMutableMap().apply {
+                                                put(res.id, newLikes)
+                                            }
                                         responsesLikesState.value = updatedLikesMapResponses
                                     }
 
@@ -501,13 +528,19 @@ fun ShowComments(commentsList: List<Comentarios>, viewModel: CommentsViewModel) 
 
                                 LaunchedEffect(res.id) {
                                     val nombreLikesResponse =
-                                        viewModel.obtenerNombreLikesDeRespuesta(res.idContenido, res.idComentario, res.id)
-                                    val isCurrentlyLiked = nombreLikesResponse.contains(nombreUsuario)
+                                        viewModel.obtenerNombreLikesDeRespuesta(
+                                            res.idContenido,
+                                            res.idComentario,
+                                            res.id
+                                        )
+                                    val isCurrentlyLiked =
+                                        nombreLikesResponse.contains(nombreUsuario)
 
                                     // Actualizamos el estado global de likes de respuestas
-                                    likedCommentsStateResponse.value = likedCommentsStateResponse.value.toMutableMap().apply {
-                                        put(res.id, isCurrentlyLiked)
-                                    }
+                                    likedCommentsStateResponse.value =
+                                        likedCommentsStateResponse.value.toMutableMap().apply {
+                                            put(res.id, isCurrentlyLiked)
+                                        }
                                 }
 
                                 Card(
@@ -515,9 +548,12 @@ fun ShowComments(commentsList: List<Comentarios>, viewModel: CommentsViewModel) 
                                         start = 24.dp,
                                         top = 8.dp,
                                         end = 16.dp
-                                    ).zIndex(1f)
+                                    )
                                 ) {
-                                    Column(modifier = Modifier.padding(8.dp).background(if (res.revision) Color(0xFFFFCDD2) else Color.Transparent)) {
+                                    Column(
+                                        modifier = Modifier.padding(8.dp)
+                                            .background(if (res.revision) Color(0xFFFFCDD2) else Color.Transparent)
+                                    ) {
                                         var respuestaFotoPerfilUrl by remember { mutableStateOf("") }
 
                                         LaunchedEffect(res.usuario) {
@@ -544,9 +580,7 @@ fun ShowComments(commentsList: List<Comentarios>, viewModel: CommentsViewModel) 
                                                     .background(Color.White),
                                                 contentScale = ContentScale.Crop
                                             )
-
                                             Spacer(modifier = Modifier.width(8.dp))
-
                                             Column(modifier = Modifier.weight(1f)) {
                                                 Text(
                                                     text = res.usuario,
@@ -559,7 +593,8 @@ fun ShowComments(commentsList: List<Comentarios>, viewModel: CommentsViewModel) 
                                                     "dd/MM/yyyy",
                                                     Locale.getDefault()
                                                 )
-                                                val formattedDate = dateFormat.format(res.fechaPublicacion.toDate())
+                                                val formattedDate =
+                                                    dateFormat.format(res.fechaPublicacion.toDate())
                                                 Text(
                                                     text = formattedDate,
                                                     style = MaterialTheme.typography.bodySmall,
@@ -567,84 +602,198 @@ fun ShowComments(commentsList: List<Comentarios>, viewModel: CommentsViewModel) 
                                                 )
                                             }
                                         }
-
                                         Spacer(modifier = Modifier.height(16.dp))
-
                                         Text(
                                             text = res.respuesta,
                                             style = MaterialTheme.typography.bodyMedium,
                                             color = Color.Black,
                                             modifier = Modifier.padding(horizontal = 16.dp)
                                         )
-
+                                        Spacer(modifier = Modifier.height(16.dp))
                                         Row(
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .padding(horizontal = 16.dp),
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.End
+                                            verticalAlignment = Alignment.CenterVertically
                                         ) {
-                                            // Icono de corazón para la respuesta
-                                            Icon(
-                                                imageVector = if (isLikedResponse) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                                                contentDescription = "Corazón",
-                                                tint = if (isLikedResponse) Color.Red else Color.Black,
-                                                modifier = Modifier
-                                                    .size(25.dp)
-                                                    .clickable {
-                                                        val newLikedState = !isLikedResponse
-
-                                                        likedCommentsStateResponse.value =
-                                                            likedCommentsStateResponse.value.toMutableMap().apply {
-                                                                put(res.id, newLikedState)
-                                                            }
-
-                                                        if (newLikedState) {
-                                                            viewModel.addLikeToResponse(res.idContenido, res.idComentario, res.id)
-                                                        } else {
-                                                            viewModel.removeLikeFromResponse(res.idContenido, res.idComentario, res.id)
-                                                        }
-                                                    }
-                                            )
-                                            // Mostrar el número de likes al lado del corazón
-                                            Text(
-                                                text = "$likesRespuesta", // Número de likes
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = Color.Black,
-                                                modifier = Modifier.padding(start = 8.dp)
-                                            )
-
-                                            // Agregar un Spacer para separar el ícono de eliminar
-                                            Spacer(modifier = Modifier.width(16.dp))
-
-                                            // Si el comentario tiene 'revision' igual a true, mostrar el ícono de publicación
-                                            if (res.revision) {
+                                            // Contenedor para los íconos de "Me gusta" y el número de likes alineado a la izquierda
+                                            Row(
+                                                horizontalArrangement = Arrangement.Start, // Alineación a la izquierda
+                                                verticalAlignment = Alignment.CenterVertically, // Aseguramos que los elementos estén centrados verticalmente
+                                                modifier = Modifier.weight(1f) // Esto asegura que se ocupe el espacio restante
+                                            ) {
+                                                // Icono de corazón para la respuesta
                                                 Icon(
-                                                    imageVector = Icons.Filled.Publish, // Usamos el ícono de publicar
-                                                    contentDescription = "Respuesta en revisión",
-                                                    tint = Color.Blue, // Puedes cambiar el color si lo deseas
-                                                    modifier = Modifier.size(30.dp)
+                                                    imageVector = if (isLikedResponse) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                                                    contentDescription = "Corazón",
+                                                    tint = if (isLikedResponse) Color.Red else Color.Black,
+                                                    modifier = Modifier
+                                                        .size(25.dp)
+                                                        .clickable {
+                                                            val newLikedState = !isLikedResponse
+
+                                                            likedCommentsStateResponse.value =
+                                                                likedCommentsStateResponse.value.toMutableMap().apply {
+                                                                    put(res.id, newLikedState)
+                                                                }
+
+                                                            if (newLikedState) {
+                                                                viewModel.addLikeToResponse(res.idContenido, res.idComentario, res.id)
+                                                            } else {
+                                                                viewModel.removeLikeFromResponse(res.idContenido, res.idComentario, res.id)
+                                                            }
+                                                        }
+                                                )
+                                                // Mostrar el número de likes al lado del corazón, alineado verticalmente
+                                                Text(
+                                                    text = "$likesRespuesta", // Número de likes
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = Color.Black,
+                                                    modifier = Modifier
+                                                        .padding(start = 8.dp)
+                                                        .align(Alignment.CenterVertically) // Aseguramos que el texto esté alineado verticalmente con el ícono
                                                 )
                                             }
 
-                                            // Icono de basura para el admin
-                                            if (isUserAdmin) {
-                                                IconButton(
-                                                    onClick = {
-                                                        showDeleteDialog.value = true
-                                                    },
-                                                    modifier = Modifier
-                                                        .size(30.dp) // Aseguramos que el tamaño del ícono de basura sea el mismo que los demás
-                                                        .padding(top = 0.dp) // Ajustamos el espaciado para que esté alineado
-                                                ) {
-                                                    // Icono de basura
-                                                    Icon(
-                                                        imageVector = Icons.Filled.Delete,
-                                                        contentDescription = "Eliminar respuesta",
-                                                        tint = Color.Red, // Puedes cambiar el color aquí
-                                                        modifier = Modifier.size(30.dp) // Tamaño del icono dentro del botón
+                                            Row(
+                                                horizontalArrangement = Arrangement.End,
+                                                modifier = Modifier.weight(1f)
+                                            ) {
+                                                // Mostrar el ícono de publicar si el usuario es admin y la revisión es verdadera
+                                                if (res.revision) {
+                                                    IconButton(
+                                                        onClick = {
+                                                            if (!showDeleteDialogRes.value) { // Asegurarse de que no se muestre el diálogo de eliminar al mismo tiempo
+                                                                showPublishDialogRes.value = true // Abre el diálogo de publicación
+                                                            }
+                                                        },
+                                                        modifier = Modifier.size(30.dp)
+                                                    ) {
+                                                        Icon(
+                                                            imageVector = Icons.Filled.Publish,
+                                                            contentDescription = "Publicar comentario",
+                                                            tint = Color.Blue,
+                                                            modifier = Modifier.size(30.dp)
+                                                        )
+                                                    }
+                                                }
+
+                                                // Mostrar el ícono de eliminar si el usuario es admin
+                                                if (isUserAdmin) {
+                                                    IconButton(
+                                                        onClick = {
+                                                            if (!showPublishDialogRes.value) { // Asegurarse de que no se muestre el diálogo de publicación al mismo tiempo
+                                                                showDeleteDialogRes.value = true // Abre el diálogo de eliminación
+                                                            }
+                                                        },
+                                                        modifier = Modifier.size(30.dp)
+                                                    ) {
+                                                        Icon(
+                                                            imageVector = Icons.Filled.Delete,
+                                                            contentDescription = "Eliminar comentario",
+                                                            tint = Color.Red,
+                                                            modifier = Modifier.size(30.dp)
+                                                        )
+                                                    }
+                                                }
+
+                                                // Mostrar el diálogo de publicación solo si 'showPublishDialogRes' es verdadero
+                                                if (showPublishDialogRes.value) {
+                                                    AlertDialog(
+                                                        onDismissRequest = {
+                                                            showPublishDialogRes.value = false // Cierra el diálogo si se hace clic fuera de él
+                                                        },
+                                                        title = {
+                                                            Text("Confirmar publicación")
+                                                        },
+                                                        text = {
+                                                            Text("¿Estás seguro de que quieres publicar esta respuesta?")
+                                                        },
+                                                        confirmButton = {
+                                                            Button(
+                                                                onClick = {
+                                                                    res.revision = false
+                                                                    viewModel.updateAnswerReviewStatus(
+                                                                        res.idContenido, res.idComentario, res.id,
+                                                                        onSuccess = {
+                                                                            showPublishDialogRes.value = false
+                                                                            println("Revisión de respuesta publicada (actualizada): ${res.revision}")
+                                                                        },
+                                                                        onFailure = { exception ->
+                                                                            println("Error publicando la respuesta: ${exception.message}")
+                                                                        }
+                                                                    )
+                                                                }
+                                                            ) {
+                                                                Text("Si")
+                                                            }
+                                                        },
+                                                        dismissButton = {
+                                                            Button(
+                                                                onClick = {
+                                                                    showPublishDialogRes.value = false // Cierra el diálogo
+                                                                }
+                                                            ) {
+                                                                Text("No")
+                                                            }
+                                                        }
                                                     )
                                                 }
+
+                                                // Mostrar el diálogo de eliminación solo si 'showDeleteDialogRes' es verdadero
+                                                if (showDeleteDialogRes.value) {
+                                                    AlertDialog(
+                                                        onDismissRequest = {
+                                                            showDeleteDialogRes.value = false // Cierra el diálogo si se hace clic fuera de él
+                                                        },
+                                                        title = {
+                                                            Text("Confirmar eliminación")
+                                                        },
+                                                        text = {
+                                                            Text("¿Estás seguro de que quieres eliminar esta respuesta?")
+                                                        },
+                                                        confirmButton = {
+                                                            Button(
+                                                                onClick = {
+                                                                    // Eliminar la respuesta de Firestore
+                                                                    viewModel.deleteAnswer(
+                                                                        res.idContenido, res.idComentario, res.id,
+                                                                        onSuccess = {
+                                                                            showDeleteDialogRes.value = false
+                                                                            println("Respuesta eliminada")
+
+                                                                            // Filtrar las respuestas eliminadas
+                                                                            val updatedRespuestas = comentario.respuestas.filterNot { it.id == res.id }
+                                                                            comentario.respuestas = updatedRespuestas
+
+                                                                            // Actualizar la lista de respuestas en la UI
+                                                                            respuestasParaMostrar.value = if (comentario.respuestas.size > 2 && !showAllResponses) {
+                                                                                comentario.respuestas.take(2).toMutableList() // Tomamos solo las primeras 2 respuestas si no se muestran todas
+                                                                            } else {
+                                                                                comentario.respuestas.toMutableList() // Mostrar todas las respuestas si corresponde
+                                                                            }
+                                                                        },
+                                                                        onFailure = { exception ->
+                                                                            println("Error eliminando la respuesta: ${exception.message}")
+                                                                        }
+                                                                    )
+                                                                }
+                                                            ) {
+                                                                Text("Si")
+                                                            }
+                                                        },
+                                                        dismissButton = {
+                                                            Button(
+                                                                onClick = {
+                                                                    showDeleteDialogRes.value = false // Cierra el diálogo
+                                                                }
+                                                            ) {
+                                                                Text("No")
+                                                            }
+                                                        }
+                                                    )
+                                                }
+
                                             }
                                         }
                                     }
@@ -652,32 +801,36 @@ fun ShowComments(commentsList: List<Comentarios>, viewModel: CommentsViewModel) 
                             }
                         }
 
-
                         // Mostrar el botón "Ver todas las respuestas"
                         if (comentario.respuestas.size > 2) {
-                            Row(
-                                modifier = Modifier.padding(start = 24.dp).fillMaxWidth(),
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-                                TextButton(onClick = {
-                                    showAllResponsesState.value =
-                                        showAllResponsesState.value.toMutableMap().apply {
-                                            put(comentario.id, !showAllResponses)
-                                        }
-                                }) {
-                                    val respuestasAcontar = comentario.respuestas.drop(2)
-                                    Text(
-                                        text = if (showAllResponses) {
-                                            "Ver menos"
-                                        } else {
-                                            // Mostrar cuántas respuestas adicionales hay
-                                            "Ver más respuestas (${respuestasAcontar.size})"
-                                        },
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
+                            val respuestasAcontar = comentario.respuestas.filter { !it.revision }.drop(2)
+
+                            // Solo mostrar el botón si hay respuestas adicionales para mostrar
+                            if (respuestasAcontar.isNotEmpty()) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    TextButton(onClick = {
+                                        showAllResponsesState.value =
+                                            showAllResponsesState.value.toMutableMap().apply {
+                                                put(comentario.id, !showAllResponses)
+                                            }
+                                    }) {
+                                        Text(
+                                            text = if (showAllResponses) {
+                                                "Ver menos"
+                                            } else {
+                                                // Mostrar cuántas respuestas adicionales hay (solo las que no están en revisión)
+                                                "Ver más respuestas (${respuestasAcontar.size})"
+                                            },
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
                                 }
                             }
                         }
+
                     }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
