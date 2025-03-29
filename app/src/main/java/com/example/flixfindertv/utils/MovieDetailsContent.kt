@@ -17,6 +17,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,32 +31,39 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.example.flixfindertv.R
+import com.example.flixfindertv.ui.viewmodels.MoviesViewModel
 import java.text.SimpleDateFormat
 import java.util.Locale
 
 @Composable
 fun MovieDetailsContent(
+    movieId: String,
     movieCoverUrl: String,
     movieTitle: String,
     movieDescription: String,
     movieGenre: String,
-    moviePopularity: Double,
     releaseDate: String,
-    voteAverage: String,
     originalLanguage: String,
     status: String
 ) {
-    val voteAvg = voteAverage.toDoubleOrNull() ?: 0.0
-    val truncatedVoteAvg = (voteAvg * 10).toInt() / 10.0
+    val viewModel: MoviesViewModel = viewModel()
+    val voteAverage by viewModel.voteAverage.collectAsState()
+    val popularity by viewModel.popularity.collectAsState()
+    val truncatedVoteAvg = (voteAverage * 10).toInt() / 10.0
     val voteAvgFormatted = String.format("%.1f", truncatedVoteAvg)
 
     val color = when {
-        voteAvg in 0.0..4.9 -> Color(0xFFFF6F61)
-        voteAvg in 5.0..7.5 -> Color(0xFF00B0FF)
-        voteAvg in 7.5..10.0 -> Color(0xFF2ECC71)
+        voteAverage in 0.0..4.9 -> Color(0xFFFF6F61)
+        voteAverage in 5.0..7.5 -> Color(0xFF00B0FF)
+        voteAverage in 7.5..10.0 -> Color(0xFF2ECC71)
         else -> Color.Gray
+    }
+
+    LaunchedEffect(movieId) {
+        viewModel.observeMovieDetails(movieId)
     }
 
     Row(modifier = Modifier.padding(horizontal = 16.dp)) {
@@ -121,7 +131,7 @@ fun MovieDetailsContent(
                     withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
                         append("Popularity: ")
                     }
-                    append(String.format("%.1f", moviePopularity))
+                    append(String.format("%.1f", popularity))
                 },
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.Black.copy(alpha = 0.7f),

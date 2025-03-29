@@ -159,7 +159,7 @@ class GenresViewModel : ViewModel() {
                                 // Obtener películas
                                 var query = db.collection("peliculas")
                                     .whereArrayContains("genre_ids", idGenero)
-                                    .limit(20)
+                                    .limit(10)
 
                                 lastVisibleGenero1?.let {
                                     query = query.startAfter(it)
@@ -171,7 +171,7 @@ class GenresViewModel : ViewModel() {
                                 // Obtener series
                                 var querySeries = db.collection("series")
                                     .whereArrayContains("genre_ids", idGenero)
-                                    .limit(20)
+                                    .limit(10)
 
                                 lastVisibleGenero1?.let {
                                     querySeries = querySeries.startAfter(it)

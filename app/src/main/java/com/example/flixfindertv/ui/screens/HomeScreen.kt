@@ -145,8 +145,7 @@ fun HomeScreen(
                 ContentListExplore(
                     movies = peliculasGenero1,
                     navController = navController,
-                    listState = listStateGenero1,
-                    //isSerie = true // Asegúrate de pasar el valor adecuado de isSerie aquí
+                    listState = listStateGenero1
                 )
             }
 
@@ -162,8 +161,7 @@ fun HomeScreen(
                 ContentListExplore(
                     movies = peliculasGenero2,
                     navController = navController,
-                    listState = listStateGenero2,
-                    //isSerie = true // Asegúrate de pasar el valor adecuado de isSerie aquí
+                    listState = listStateGenero2
                 )
             }
         }

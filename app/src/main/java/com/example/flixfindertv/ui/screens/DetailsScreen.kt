@@ -31,6 +31,7 @@ import com.example.flixfindertv.R
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.flixfindertv.models.Peliculas
 import com.example.flixfindertv.ui.viewmodels.CommentsViewModel
+import com.example.flixfindertv.ui.viewmodels.MoviesViewModel
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 import com.example.flixfindertv.utils.MovieDetailsContent
 import com.example.flixfindertv.utils.validateComment
@@ -41,6 +42,7 @@ import kotlinx.coroutines.launch
 fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean) {
     val usersViewModel: UsersViewModel = viewModel()
     val commentsViewModel: CommentsViewModel = viewModel()
+    val moviesViewModel: MoviesViewModel = viewModel()
 
     var movieId by remember { mutableStateOf("") }
     var movieTitle by remember { mutableStateOf("") }
@@ -66,6 +68,7 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
     val errorMessage = remember { mutableStateOf("") }
     var showTrailer by remember { mutableStateOf(false) }
     val context = LocalContext.current // Para mostrar el Toast
+    var isUpdating = false
 
     // Obtener el userId desde FirebaseAuth
     val userId = auth.currentUser?.uid
@@ -190,61 +193,80 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
         }
 
         MovieDetailsContent(
+            movieId = movieId,
             movieCoverUrl = movieCoverUrl,
             movieTitle = movieTitle,
             movieDescription = movieDescription,
             movieGenre = movieGenre,
-            moviePopularity = moviePopularity,
             releaseDate = releaseDate,
-            voteAverage = voteAverage,
             originalLanguage = original_language,
             status = status
         )
 
-        if (trailerUrl.isNotEmpty()) {
+        if (trailerUrl.isEmpty()) {
             Spacer(modifier = Modifier.height(16.dp))
-            // Obtener el videoId de la URL del tráiler
-            val videoId = trailerUrl.split("v=")[1].takeWhile { it != '&' }
-            val thumbnailUrl = "https://img.youtube.com/vi/$videoId/hqdefault.jpg"
+            Text(
+                text = "No trailer available.",
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.padding(16.dp),
+                color = Color.Gray
+            )
+        } else {
+            Spacer(modifier = Modifier.height(16.dp))
+            // Verificar si trailerUrl contiene un videoId válido
+            val videoId = trailerUrl.split("v=").getOrNull(1)?.takeWhile { it != '&' }
+            if (videoId != null) {
+                val thumbnailUrl = "https://img.youtube.com/vi/$videoId/hqdefault.jpg"
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(200.dp)
-                    .background(Color.Transparent)
-            ) {
-                // Mostrar la miniatura del video
-                Image(
-                    painter = rememberAsyncImagePainter(thumbnailUrl),
-                    contentDescription = "Trailer Preview",
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(210.dp) // Mantiene la proporción de un video (relación 16:9)
-                        .clickable {
-                            // Cuando se hace clic en la miniatura, actualizamos el estado
-                            showTrailer = true
-                        }
-                )
+                        .heightIn(200.dp)
+                        .background(Color.Transparent)
+                ) {
+                    // Mostrar la miniatura del video
+                    Image(
+                        painter = rememberAsyncImagePainter(thumbnailUrl),
+                        contentDescription = "Trailer Preview",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(210.dp) // Mantiene la proporción de un video (relación 16:9)
+                            .clickable {
+                                // Cuando se hace clic en la miniatura, actualizamos el estado
+                                showTrailer = true
+                            }
+                    )
 
-                // Icono de YouTube centrado
-                Image(
-                    painter = painterResource(id = R.drawable.youtube_icon),
-                    contentDescription = "Trailer Preview",
-                    modifier = Modifier
-                        .size(50.dp) // Ajusta el tamaño del icono
-                        .align(Alignment.Center) // Centra el icono dentro de la Box
-                        .clickable {
-                            // Cuando se hace clic en el ícono, actualizamos el estado
-                            showTrailer = true
-                        }
-                )
+                    // Icono de YouTube centrado
+                    Image(
+                        painter = painterResource(id = R.drawable.youtube_icon),
+                        contentDescription = "Trailer Preview",
+                        modifier = Modifier
+                            .size(50.dp) // Ajusta el tamaño del icono
+                            .align(Alignment.Center) // Centra el icono dentro de la Box
+                            .clickable {
+                                // Cuando se hace clic en el ícono, actualizamos el estado
+                                showTrailer = true
+                            }
+                    )
 
-                // Mostrar el trailer si el estado lo indica
-                if (showTrailer) {
-                    ShowTrailer(videoId) // Mostrar el video
+                    // Mostrar el trailer si el estado lo indica
+                    if (showTrailer) {
+                        ShowTrailer(videoId) // Mostrar el video
+                    }
                 }
+            } else {
+                // Si no se obtiene un videoId válido, muestra un mensaje adecuado
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "No trailer available.",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(16.dp),
+                    color = Color.Gray
+                )
             }
         }
+
 
         Spacer(modifier = Modifier.height(36.dp))
         Text(
@@ -332,6 +354,41 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                                 } else {
                                     commentsViewModel.sendComment(id, usuarioNombre, selectedStars.value, commentText.value, false)
                                 }
+
+                                moviesViewModel.calculateNewVoteAverage(movieId, selectedStars.value) { updatedVoteAverage ->
+                                    if (updatedVoteAverage != null) {
+                                        // Si se obtiene un nuevo promedio válido, actualizamos en Firebase
+                                        if (!isUpdating) {
+                                            isUpdating = true  // Evitamos que se actualicen los valores mientras estamos en el proceso de actualización
+
+                                            // Convertimos el String a Float para pasarlo a updateVoteAverageInFirebase
+                                            val updatedVoteAverageFloat = updatedVoteAverage.toFloatOrNull()
+
+                                            if (updatedVoteAverageFloat != null) {
+                                                // Actualizamos el promedio de votos en Firebase
+                                                moviesViewModel.updateVoteAverageInFirebase(movieId, updatedVoteAverageFloat)
+
+                                                // También actualizamos la popularidad, si es necesario
+                                                moviesViewModel.calculateNewPopularity(movieId) { newPopularity ->
+                                                    if (newPopularity != null) {
+                                                        // Actualizamos la popularidad en Firebase
+                                                        moviesViewModel.updatePopularityInFirebase(movieId, newPopularity)
+                                                    }
+                                                }
+                                            } else {
+                                                // Si no se puede convertir el String a Float, manejar el error
+                                                Toast.makeText(context, "Error al convertir el promedio a número", Toast.LENGTH_SHORT).show()
+                                            }
+                                        }
+                                    } else {
+                                        // Si no se pudo calcular el nuevo promedio, puedes manejar el error aquí
+                                        Toast.makeText(context, "Error al calcular el promedio de votos", Toast.LENGTH_SHORT).show()
+                                    }
+
+                                    // Restablecemos la bandera después de la actualización
+                                    isUpdating = false
+                                }
+
                                 // Cerrar el diálogo en ambos casos
                                 isDialogOpen.value = false
                                 selectedStars.value = 0
@@ -342,7 +399,6 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                     }) {
                         Text("Send")
                     }
-
                 },
                 dismissButton = {
                     TextButton(onClick = {

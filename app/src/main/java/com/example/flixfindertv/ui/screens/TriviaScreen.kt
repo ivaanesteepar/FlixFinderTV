@@ -182,7 +182,7 @@ fun TriviaScreen(
                         }
                     }
                     Text(
-                        text = "Boosted by Gemini AI",
+                        text = "Powered by Gemini AI",
                         style = MaterialTheme.typography.bodySmall.copy(
                             color = Color.Gray,
                             fontWeight = FontWeight.Bold

@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -45,8 +46,7 @@ fun ContentListExplore(
         state = listState,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(movies.filter { !contieneCaracteresNoLatinos(it.titulo) }) { movie ->
-            println("esSerie? ${movie.esSerie}")
+        itemsIndexed(movies.filter { !contieneCaracteresNoLatinos(it.titulo) }) { index, movie ->
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.width(120.dp)
@@ -55,6 +55,7 @@ fun ContentListExplore(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
+                            println("Se seleccionó la película en el índice: $index con id: ${movie.id} y es serie: ${movie.esSerie}")
                             navController.navigate("detalles/${movie.id}/${movie.esSerie}")
                         },
                     elevation = CardDefaults.cardElevation(4.dp)
