@@ -14,8 +14,6 @@ import com.example.flixfindertv.ui.screens.DetailsScreen
 import com.example.flixfindertv.ui.screens.EditProfileScreen
 import com.example.flixfindertv.ui.screens.ExploreScreen
 import com.example.flixfindertv.ui.screens.FavouriteContent
-import com.example.flixfindertv.ui.screens.FollowersScreen
-import com.example.flixfindertv.ui.screens.FollowingScreen
 import com.example.flixfindertv.ui.screens.ForgotPasswordScreen
 import com.example.flixfindertv.ui.screens.HomeScreen
 import com.example.flixfindertv.ui.screens.LoginScreen
@@ -23,6 +21,7 @@ import com.example.flixfindertv.ui.screens.NewQuestionsScreen
 import com.example.flixfindertv.ui.screens.ProfileScreen
 import com.example.flixfindertv.ui.screens.RegisterScreen
 import com.example.flixfindertv.ui.screens.TriviaScreen
+import com.example.flixfindertv.ui.screens.UserListScreen
 import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.ui.viewmodels.MoviesViewModel
 import com.example.flixfindertv.ui.viewmodels.TriviaViewModel
@@ -50,9 +49,14 @@ fun FlixFinderTVroutes(modifier: Modifier = Modifier) {
             composable("explore") {
                 ExploreScreen(navController, moviesViewModel)  // Pantalla de exploración
             }
-            composable("profile/{uid}") { backStackEntry ->
-                val uid = backStackEntry.arguments?.getString("uid") ?: ""
-                ProfileScreen(navController, uid)
+            composable("profile/{userId}/{isComment}") { backStackEntry ->
+                val userId = backStackEntry.arguments?.getString("userId")
+                val isComment = backStackEntry.arguments?.getString("isComment")?.toBoolean()
+                if (isComment != null) {
+                    if (userId != null) {
+                        ProfileScreen(navController, userId, isComment)
+                    }
+                }
             }
             composable("forgot_password") {
                 ForgotPasswordScreen(navController)  // Pantalla de recuperación de contraseña
@@ -76,13 +80,14 @@ fun FlixFinderTVroutes(modifier: Modifier = Modifier) {
                 val uid = backStackEntry.arguments?.getString("uid") ?: ""
                 FavouriteContent(navController, uid, esSerie)
             }
-            composable("following/{uid}"){ backStackEntry ->
+            composable("users_list/{uid}/{isFollowing}"){ backStackEntry ->
                 val uid = backStackEntry.arguments?.getString("uid") ?: ""
-                FollowingScreen(navController, uid)
-            }
-            composable("followers/{uid}"){ backStackEntry ->
-                val uid = backStackEntry.arguments?.getString("uid") ?: ""
-                FollowersScreen(navController, uid)
+                val isFollowing = backStackEntry.arguments?.getBoolean("isFollowing")
+                println("UID EN ISFOLLOWING: $uid")
+                println("ISFOLLOWING EN ISFOLLOWING: $isFollowing")
+                if (isFollowing != null) {
+                    UserListScreen(navController, uid, isFollowing)
+                }
             }
 
         }

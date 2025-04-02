@@ -62,8 +62,8 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
     val activity = context as? Activity
 
     var expanded by remember { mutableStateOf(false) }
-    var selectedTab by remember { mutableStateOf("Peliculas") }
-    val tabs = listOf("Peliculas", "Series")
+    var selectedTab by remember { mutableStateOf("Movies") }
+    val tabs = listOf("Movies", "TV Shows")
     val selectedIndex = tabs.indexOf(selectedTab).coerceAtLeast(0)
     val movies by viewModel.listaPeliculas.observeAsState(emptyList())
     val series by seriesViewModel.listaSeries.observeAsState(emptyList())
@@ -120,7 +120,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
 
     var selectedGenre by rememberSaveable { mutableStateOf<String?>(null) }
     var selectedGenreId by rememberSaveable { mutableStateOf<Int?>(null) }
-    val options = listOf("Sin orden", "Ascendente", "Descendente")
+    val options = listOf("Unordered", "Ascending", "Descending")
 
     println("selected genre id: $selectedGenreId")
 
@@ -411,7 +411,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                             )
                         }
 
-                        Box(modifier = Modifier.offset(x = (-16).dp, y = 70.dp)) {
+                        Box(modifier = Modifier.offset(x = (-16).dp, y = (46).dp)) {
                             DropdownMenu(
                                 expanded = filterExpanded,
                                 onDismissRequest = { filterExpanded = false },
@@ -430,7 +430,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                             .padding(8.dp)  // Añadir padding si es necesario
                                     ) {
                                         DropdownMenuItem(
-                                            text = { Text("Filtrar por género") },
+                                            text = { Text("Filter by genre") },
                                             onClick = {}
                                         )
                                         Row(
@@ -492,7 +492,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                         if (selectedGenreId != null) {
                                             HorizontalDivider()
                                             DropdownMenuItem(
-                                                text = { Text("Filtrar por tipo") },
+                                                text = { Text("Filter by type") },
                                                 onClick = {}
                                             )
 
@@ -507,7 +507,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                                         false // Si se selecciona película, desmarcar serie
                                                 })
                                                 Spacer(modifier = Modifier.width(4.dp))
-                                                Text("Películas")
+                                                Text("Movies")
                                             }
 
                                             // Filtro para "Series"
@@ -521,7 +521,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                                         false // Si se selecciona serie, desmarcar película
                                                 })
                                                 Spacer(modifier = Modifier.width(4.dp))
-                                                Text("Series")
+                                                Text("TV shows")
                                             }
 
                                         }
@@ -536,15 +536,15 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                         ) {
                             // Variables de estado para el menú desplegable
                             var expandedSearch by remember { mutableStateOf(false) }
-                            var selectedTextSearch by rememberSaveable { mutableStateOf("Sin orden") }
+                            var selectedTextSearch by rememberSaveable { mutableStateOf("Unordered") }
 
                             val filteredSearchResults = movieResults.filter {
                                 (filterMovie && !it.esSerie) || (filterSerie && it.esSerie) || (!filterMovie && !filterSerie)
                             }
 
                             val sortedSearchResults = when (selectedTextSearch) {
-                                "Ascendente" -> filteredSearchResults.sortedBy { it.popularity }
-                                "Descendente" -> filteredSearchResults.sortedByDescending { it.popularity }
+                                "Ascending" -> filteredSearchResults.sortedBy { it.popularity }
+                                "Descending" -> filteredSearchResults.sortedByDescending { it.popularity }
                                 else -> filteredSearchResults
                             }
 
@@ -564,7 +564,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                             onValueChange = {},
                                             readOnly = true,
                                             label = { Text(
-                                                "Ordenar por popularidad",
+                                                "Sort by popularity",
                                                 color = Color.White // Texto del label en blanco
                                             )},
                                             textStyle = LocalTextStyle.current.copy(color = Color.White),
@@ -613,9 +613,9 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                         }
                     } else if (selectedGenreId != null) {
                         Box(
-                            modifier = Modifier.fillMaxSize() // ✅ Define el tamaño del contenedor padre
+                            modifier = Modifier.fillMaxSize()
                         ) {
-                            var selectedText by rememberSaveable { mutableStateOf("Sin orden") } // Valor inicial
+                            var selectedText by rememberSaveable { mutableStateOf("Unordered") } // Valor inicial
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -632,17 +632,26 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                         value = selectedText,
                                         onValueChange = {},
                                         readOnly = true,
-                                        label = { Text("Ordenar por popularidad") },
-                                        shape = MaterialTheme.shapes.large, // Hace que la caja sea ovalada
+                                        label = { Text(
+                                            "Sort by popularity",
+                                            color = Color.White // Texto del label en blanco
+                                        )},
+                                        textStyle = LocalTextStyle.current.copy(color = Color.White),
+                                        shape = MaterialTheme.shapes.large,
+                                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                                            focusedBorderColor = Color.White,    // Borde blanco cuando está enfocado
+                                            unfocusedBorderColor = Color.White,  // Borde blanco cuando no está enfocado
+                                        ),
                                         trailingIcon = {
                                             Icon(
                                                 imageVector = Icons.Default.ArrowDropDown,
+                                                tint = Color.White,
                                                 contentDescription = "Expandir"
                                             )
                                         },
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .menuAnchor() // Necesario para que funcione con ExposedDropdownMenuBox
+                                            .menuAnchor()
                                     )
 
                                     ExposedDropdownMenu(
@@ -655,7 +664,6 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                                 onClick = {
                                                     selectedText = option
                                                     expanded = false
-                                                    // Aquí se puede cambiar la lógica de ordenación
                                                 }
                                             )
                                         }
@@ -670,26 +678,25 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
 
                             // Ordenamos los elementos según la opción seleccionada en el menú desplegable
                             val sortedItems = when (selectedText) {
-                                "Ascendente" -> filteredItems.sortedBy { it.popularity }
-                                "Descendente" -> filteredItems.sortedByDescending { it.popularity }
+                                "Ascending" -> filteredItems.sortedBy { it.popularity }
+                                "Descending" -> filteredItems.sortedByDescending { it.popularity }
                                 else -> filteredItems // Sin orden
                             }
 
                             if (sortedItems.isEmpty()) {
                                 val noResultsText = when {
-                                    filterMovie -> "No se encontraron películas de este género."
-                                    filterSerie -> "No se encontraron series de este género."
-                                    else -> "No se encontraron resultados."
+                                    filterMovie -> "No movies of this genre were found."
+                                    filterSerie -> "No TV shows of this genre were found."
+                                    else -> "No results were found."
                                 }
-
                                 Box(
-                                    modifier = Modifier.fillMaxSize() // Asegura que el Box ocupe todo el espacio disponible
+                                    modifier = Modifier.fillMaxSize()
                                 ) {
                                     Text(
                                         text = noResultsText,
                                         style = MaterialTheme.typography.bodyMedium,
                                         fontSize = 16.sp,
-                                        color = Color.Black,
+                                        color = Color.White,
                                         modifier = Modifier.align(Alignment.Center) // Alineamos el texto al centro dentro del Box
                                     )
                                 }
@@ -763,7 +770,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                 }
                             } else {
                                 println("selectedTab: $selectedTab")
-                                if (selectedTab == "Peliculas") {
+                                if (selectedTab == "Movies") {
                                     if (movies.isNotEmpty()) {
                                         item {
                                             Box(
@@ -944,7 +951,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                                 // Fondo de la caja con drawable
                                                 Box(
                                                     modifier = Modifier
-                                                        .fillMaxSize() // Asegura que la imagen ocupe todo el tamaño del Box
+                                                        .fillMaxSize()
                                                 ) {
                                                     Image(
                                                         painter = painterResource(id = R.drawable.fondo_estrellas), // Aplica el fondo drawable

@@ -73,6 +73,7 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
     var isUserAdmin by remember { mutableStateOf(false) }
     val mutableCommentsList = remember { mutableStateOf<List<Comentarios>>(emptyList()) }
     val respuestasParaMostrar = remember { mutableStateOf<MutableList<Respuestas>>(mutableListOf()) }
+    val comment = true
 
     // Usamos LaunchedEffect para actualizar mutableCommentsList y respuestasParaMostrar cuando commentsList cambia
     LaunchedEffect(commentsList) {
@@ -180,11 +181,8 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                                         usersViewModel.fetchUserId(comentario.usuario)
                                         usersViewModel.userIdComment.observeForever { userId ->
                                             if (userId != "ID_DESCONOCIDO") {
-                                                navController.navigate("profile/$userId?idContenido=${comentario.idContenido}&esSerie=$esSerie") {
-                                                    // 1. Mantén Pantalla A en la pila (NO la elimines)
-                                                    // 2. Elimina CUALQUIER instancia previa del perfil para evitar duplicados
+                                                navController.navigate("profile/$userId/$comment") {
                                                     popUpTo("profile") { inclusive = true }
-                                                    // 3. Configura la pila para que el Back desde Perfil regrese a Pantalla A
                                                     launchSingleTop = true
                                                 }
                                             }
@@ -609,7 +607,18 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                                                     .size(40.dp)
                                                     .clip(CircleShape)
                                                     .border(2.dp, Color.Black, CircleShape)
-                                                    .background(Color.White),
+                                                    .background(Color.White)
+                                                    .clickable {
+                                                        usersViewModel.fetchUserId(comentario.usuario)
+                                                        usersViewModel.userIdComment.observeForever { userId ->
+                                                            if (userId != "ID_DESCONOCIDO") {
+                                                                navController.navigate("profile/$userId/$comment") {
+                                                                    popUpTo("profile") { inclusive = true }
+                                                                    launchSingleTop = true
+                                                                }
+                                                            }
+                                                        }
+                                                    },
                                                 contentScale = ContentScale.Crop
                                             )
                                             Spacer(modifier = Modifier.width(8.dp))
