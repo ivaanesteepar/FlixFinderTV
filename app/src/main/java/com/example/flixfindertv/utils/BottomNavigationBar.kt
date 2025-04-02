@@ -51,7 +51,7 @@ fun BottomNavigationBar(navController: NavController, uid: String) {
                 },
                 selected = isSelected, // Marca como seleccionado
                 colors = NavigationBarItemDefaults.colors(
-                    indicatorColor = if (isSelected) Color.Transparent else Color.Transparent, // Color de fondo del ítem seleccionado = if (isSelected) LightYellow, // Color del icono cuando está seleccionado
+                    indicatorColor = Color.Transparent, // Color de fondo del ítem seleccionado = if (isSelected) LightYellow, // Color del icono cuando está seleccionado
                 ),
                 onClick = {
                     // Si es el perfil, pasamos el `uid` en la ruta
