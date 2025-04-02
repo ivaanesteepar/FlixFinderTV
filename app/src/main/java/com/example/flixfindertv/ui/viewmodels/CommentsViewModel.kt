@@ -79,7 +79,6 @@ class CommentsViewModel : ViewModel() {
             }
     }
 
-
     fun updateCommentReviewStatus(idContenido: String, comentarioId: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
         FirebaseFirestore.getInstance().collection("comentarios")
             .document(idContenido)
@@ -138,7 +137,6 @@ class CommentsViewModel : ViewModel() {
                 onFailure(exception)
             }
     }
-
 
     fun addLikeToResponse(idContenido: String, comentarioId: String, respuestaId: String) {
         val userId = FirebaseAuth.getInstance().currentUser?.uid

@@ -8,6 +8,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.flixfindertv.models.BottomItems
@@ -15,7 +16,7 @@ import com.example.flixfindertv.models.BottomItems
 @Composable
 fun BottomNavigationBar(navController: NavController, uid: String) {
     NavigationBar(
-        containerColor = androidx.compose.ui.graphics.Color.Gray, // Fondo grisáceo
+        containerColor = Color.Transparent, // Fondo transparente
         modifier = Modifier.height(80.dp) // Altura de la barra de navegación
     ) {
         val items = listOf(
@@ -28,26 +29,29 @@ fun BottomNavigationBar(navController: NavController, uid: String) {
         items.forEach { item ->
             // Obtén la ruta de la pantalla actual
             val currentRoute = navController.currentBackStackEntry?.destination?.route
+            val isSelected = currentRoute?.startsWith(item.ruta) == true
 
             NavigationBarItem(
                 icon = {
                     Icon(
                         imageVector = item.icono,
                         contentDescription = item.titulo,
-                        modifier = Modifier.padding(top = 20.dp), // Ajusta el espacio superior
-                        tint = if (currentRoute?.startsWith(item.ruta) == true) {
-                            androidx.compose.ui.graphics.Color.Blue // Si la ruta actual comienza con la ruta del ítem (para el perfil con el uid)
-                        } else {
-                            androidx.compose.ui.graphics.Color.Unspecified
-                        }
+                        modifier = Modifier.padding(top = 20.dp),
+                        tint = if (isSelected) Color.Blue else Color.White // Cambia el color según si está seleccionado
                     )
                 },
-                label = { Text(item.titulo) },
-                selected = false, // Desactiva el efecto de selección
+                label = if (isSelected) {
+                    // Muestra el texto solo si el ítem está seleccionado
+                    { Text(item.titulo, color = Color.Blue) }
+                } else {
+                    // No mostrar texto cuando no está seleccionado
+                    null
+                },
+                selected = isSelected, // Marca como seleccionado
                 onClick = {
                     // Si es el perfil, pasamos el `uid` en la ruta
                     val route = if (item == BottomItems.Profile) {
-                        "profile/$uid"  // Aquí pasamos el UID
+                        "profile/$uid"
                     } else {
                         item.ruta
                     }
@@ -61,3 +65,4 @@ fun BottomNavigationBar(navController: NavController, uid: String) {
         }
     }
 }
+

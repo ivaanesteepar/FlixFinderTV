@@ -23,7 +23,7 @@ import androidx.compose.material3.IconButton
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun FavouriteContent(navController: NavController, esSerie: Boolean) {
+fun FavouriteContent(navController: NavController, uid:String, esSerie: Boolean) {
     val userViewModel: UsersViewModel = viewModel()
     // Estados para las películas y series favoritas
     val favoriteMovies = remember { mutableStateOf<List<Peliculas>>(emptyList()) }
@@ -35,6 +35,7 @@ fun FavouriteContent(navController: NavController, esSerie: Boolean) {
     // Obtener las películas favoritas
     LaunchedEffect(Unit) {
         userViewModel.getFavoriteMovies(
+            uid,
             onSuccess = { movies ->
                 favoriteMovies.value = movies
             },
@@ -45,6 +46,7 @@ fun FavouriteContent(navController: NavController, esSerie: Boolean) {
 
         // Obtener las series favoritas
         userViewModel.getFavoriteSeries(
+            uid,
             onSuccess = { series ->
                 favoriteSeries.value = series
             },

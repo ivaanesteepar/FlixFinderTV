@@ -16,6 +16,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import androidx.compose.runtime.State
+import com.example.flixfindertv.models.MovieResponse
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
@@ -72,6 +75,9 @@ class MoviesViewModel : ViewModel() {
     private var _isLoadingScienceFiction = MutableLiveData<Boolean>(false)
     val isLoadingScienceFiction: LiveData<Boolean> = _isLoadingScienceFiction
 
+    private val _isLoadingSimilar = MutableLiveData(false)
+    val isLoadingSimilar: LiveData<Boolean> = _isLoadingSimilar
+
     var lastVisiblePeliculas: DocumentSnapshot? = null
     var lastVisibleAction: DocumentSnapshot? = null
     var lastVisibleRomance: DocumentSnapshot? = null
@@ -81,15 +87,181 @@ class MoviesViewModel : ViewModel() {
     var lastVisibleHorror: DocumentSnapshot? = null
     var lastVisibleScienceFiction: DocumentSnapshot? = null
 
-    private val moviePages = mutableMapOf<Int, Int>() // Paginación por ID de película
-    private val tvPages = mutableMapOf<Int, Int>() // Paginación por ID de serie
-    private val RESULTS_PER_PAGE = 20 // Cantidad de resultados por página
-
     private val _voteAverage = MutableStateFlow(0.0)
     val voteAverage = _voteAverage.asStateFlow()
 
     private val _popularity = MutableStateFlow(0.0)
     val popularity = _popularity.asStateFlow()
+
+    private val _voteCount = MutableStateFlow("")
+    val voteCount = _voteCount.asStateFlow()
+
+    private val _contenidoSimilar = MutableLiveData<List<Peliculas>>(emptyList())
+    val contenidoSimilar: LiveData<List<Peliculas>> = _contenidoSimilar
+
+    // Declarar currentPage como una propiedad mutable en el ViewModel
+    private var currentPage = 1  // Página inicial
+
+    suspend fun getTmdbApiKey(): String {
+        return try {
+            val db = FirebaseFirestore.getInstance()
+            val document = db.collection("apiKeys").document("tmdbApiKey").get().await()
+            document.getString("key") ?: "" // Si es null, devolvemos una cadena vacía
+        } catch (e: Exception) {
+            e.printStackTrace()
+            "" // En caso de error, devolvemos una cadena vacía en lugar de null
+        }
+    }
+
+    fun incrementUserCommentCount(userId: String) {
+        val userRef = FirebaseFirestore.getInstance().collection("usuarios").document(userId)
+
+        FirebaseFirestore.getInstance().runTransaction { transaction ->
+            val snapshot = transaction.get(userRef)
+            val currentCount = snapshot.getLong("numComentarios")?.toInt() ?: 0 // Convertir a Int
+            transaction.update(userRef, "numComentarios", currentCount + 1)
+        }.addOnFailureListener {
+            Log.e("Firestore", "Error incrementando numComentarios en usuarios", it)
+        }
+    }
+
+
+    fun limpiarContenidoVisto() {
+        _contenidoSimilar.postValue(emptyList()) // Vacía la lista antes de actualizarla
+    }
+
+    fun obtenerContenidoSimilar(uid: String, apiKey: String) {
+        // Evitar llamar nuevamente si ya se está cargando
+        if (_isLoadingSimilar.value == true) return
+
+        _isLoadingSimilar.value = true
+
+        viewModelScope.launch {
+            try {
+                println("currentPage: $currentPage")
+                val userDoc = db.collection("usuarios").document(uid).get().await()
+                val contenidoVisto = userDoc.getString("contenidoVisto")
+
+                if (contenidoVisto.isNullOrEmpty()) return@launch
+                val mediaId = contenidoVisto.toIntOrNull() ?: return@launch
+
+                val maxResults = 6
+                val maxTotalResults = 100
+
+                val isMovie = checkIfMovie(mediaId)
+                println("isMovie: $isMovie")
+
+                var contenidoCargado = false
+                var totalResults = 0
+
+                val contenidoIds = _contenidoSimilar.value?.map { it.id }?.toMutableList() ?: mutableListOf()
+
+                while (!contenidoCargado && totalResults < maxTotalResults) {
+                    val movieOrSeriesResponse: MovieResponse = if (isMovie) {
+                        println("Obteniendo películas similares")
+                        RetrofitClient.api.getSimilarMovies(mediaId, apiKey, page = currentPage)
+                    } else {
+                        println("Obteniendo series similares")
+                        RetrofitClient.api.getSimilarSeries(mediaId, apiKey, page = currentPage)
+                    }
+
+                    val peliculasOseries = movieOrSeriesResponse.results
+
+                    val firestoreChecks = peliculasOseries.map { item ->
+                        async {
+                            val documentRef = if (isMovie) {
+                                db.collection("peliculas").document(item.id.toString())
+                            } else {
+                                db.collection("series").document(item.id.toString())
+                            }
+                            println("Buscando documento en Firestore: ${documentRef.path}")
+                            val docSnapshot = documentRef.get().await()
+                            println("Resultado de la consulta: ${docSnapshot.exists()}")
+                            docSnapshot
+                        }
+                    }
+
+                    val documentSnapshots = firestoreChecks.awaitAll()
+
+                    var addedNewContent = false
+
+                    documentSnapshots.forEachIndexed { index, docSnapshot ->
+                        if (docSnapshot.exists()) {
+                            val contenido = docSnapshot.toObject(Peliculas::class.java)
+                            if (contenido != null && !contenidoIds.contains(contenido.id)) {
+                                _contenidoSimilar.value = _contenidoSimilar.value.orEmpty() + contenido
+                                contenidoIds.add(contenido.id)
+                                addedNewContent = true
+                                totalResults++
+                                println("totalResults: $totalResults")
+                            }
+                        }
+                    }
+
+                    println("El contenido de la lista es: ${_contenidoSimilar.value?.size}")
+
+                    // Seguir buscando hasta obtener al menos 6 elementos en total
+                    if (totalResults >= maxResults) {
+                        contenidoCargado = true
+                    }
+
+                    // Si no hemos encontrado contenido en esta iteración, seguimos buscando
+                    if (!addedNewContent && totalResults < maxResults) {
+                        println("No se encontró contenido suficiente, seguimos buscando...")
+                    }
+
+                    // Incrementar la página
+                    currentPage++
+                }
+
+            } catch (e: Exception) {
+                println("Error al obtener el contenido similar: ${e.message}")
+                e.printStackTrace()
+            } finally {
+                _isLoadingSimilar.value = false
+                println("isLoadingSimilar: ${_isLoadingSimilar.value}")
+            }
+        }
+    }
+
+
+
+
+
+
+    private suspend fun checkIfMovie(mediaId: Int): Boolean {
+        val mediaIdString = mediaId.toString()
+
+        // Consultamos Firestore en la colección de películas buscando el campo "id"
+        val peliculaDoc = db.collection("peliculas")
+            .whereEqualTo("id", mediaIdString)
+            .get()
+            .await()
+
+        // Si se encuentra en la colección de películas, retornamos true (es una película)
+        if (peliculaDoc.documents.isNotEmpty()) {
+            println("Encontrado en la colección de películas")
+            return true // Es una película
+        }
+
+        // Si no se encontró en películas, consultamos en la colección de series
+        val serieDoc = db.collection("series")
+            .whereEqualTo("id", mediaIdString)
+            .get()
+            .await()
+
+        // Si se encuentra en la colección de series, retornamos false (es una serie)
+        if (serieDoc.documents.isNotEmpty()) {
+            println("Encontrado en la colección de series")
+            return false // Es una serie
+        }
+
+        // Si no se encuentra en ninguna colección, asumimos que no es válido
+        println("No encontrado ni en películas ni en series")
+        return false
+    }
+
+
 
     fun observeMovieDetails(movieId: String) {
         if (movieId.isBlank()) return // Evita errores si el ID es vacío o nulo
@@ -109,6 +281,14 @@ class MoviesViewModel : ViewModel() {
                         // Manejo correcto de popularity (es Double en Firestore)
                         val popularity = it.getDouble("popularity") ?: 0.0
                         _popularity.value = popularity
+
+                        // Manejo correcto de vote_count (puede ser Long o String en Firestore)
+                        val voteCount = when (val votes = it.get("vote_count")) {
+                            is String -> votes.toLongOrNull() ?: 0L
+                            is Number -> votes.toLong()
+                            else -> 0L
+                        }
+                        _voteCount.value = voteCount.toString() // Convertimos a String para mostrar en la UI
                     }
                 }
             }
@@ -116,8 +296,7 @@ class MoviesViewModel : ViewModel() {
 
 
 
-
-    fun getVoteCountFromFirebase(movieId: String, callback: (String?) -> Unit) {
+    private fun getVoteCountFromFirebase(movieId: String, callback: (String?) -> Unit) {
         val db = FirebaseFirestore.getInstance()
 
         db.collection("peliculas")
@@ -134,7 +313,7 @@ class MoviesViewModel : ViewModel() {
     }
 
 
-    fun getVoteAverageFromFirebase(movieId: String, callback: (String?) -> Unit) {
+    private fun getVoteAverageFromFirebase(movieId: String, callback: (String?) -> Unit) {
         val db = FirebaseFirestore.getInstance()
 
         db.collection("peliculas")
@@ -154,7 +333,7 @@ class MoviesViewModel : ViewModel() {
             }
     }
 
-    fun getPopularityFromFirebase(movieId: String, callback: (Double?) -> Unit) {
+    private fun getPopularityFromFirebase(movieId: String, callback: (Double?) -> Unit) {
         val db = FirebaseFirestore.getInstance()
 
         db.collection("peliculas")
@@ -772,41 +951,4 @@ class MoviesViewModel : ViewModel() {
         }
     }
 
-    fun fetchNextSimilarMovies(apiKey: String, movieId: Int, callback: (List<Peliculas>) -> Unit) {
-        val currentPage = moviePages.getOrDefault(movieId, 1) // Obtener la página actual
-
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val response = RetrofitClient.api.getSimilarMovies(movieId, apiKey, page = currentPage)
-                val results = response.results.take(RESULTS_PER_PAGE) // Tomar solo 20 resultados
-
-                if (results.isNotEmpty()) {
-                    moviePages[movieId] = currentPage + 1 // Pasar a la siguiente página
-                }
-
-                callback(results) // Devolver los resultados
-            } catch (e: Exception) {
-                println("Error obteniendo películas similares: ${e.message}")
-            }
-        }
-    }
-
-    fun fetchNextSimilarSeries(apiKey: String, tvId: Int, callback: (List<Peliculas>) -> Unit) {
-        val currentPage = tvPages.getOrDefault(tvId, 1) // Obtener la página actual
-
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val response = RetrofitClient.api.getSimilarSeries(tvId, apiKey, page = currentPage)
-                val results = response.results.take(RESULTS_PER_PAGE) // Tomar solo 20 resultados
-
-                if (results.isNotEmpty()) {
-                    tvPages[tvId] = currentPage + 1 // Pasar a la siguiente página
-                }
-
-                callback(results) // Devolver los resultados
-            } catch (e: Exception) {
-                println("Error obteniendo series similares: ${e.message}")
-            }
-        }
-    }
 }

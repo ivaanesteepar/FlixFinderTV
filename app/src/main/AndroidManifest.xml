@@ -7,8 +7,6 @@
     <!-- Necesario para la funcionalidad de grabación de voz en el Trivia -->
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
 
-
-
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"

@@ -48,13 +48,17 @@ import com.example.flixfindertv.models.Comentarios
 import com.example.flixfindertv.ui.viewmodels.CommentsViewModel
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.Navigation
+import androidx.navigation.compose.rememberNavController
 import com.example.flixfindertv.models.Respuestas
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 
 
 @Composable
-fun ShowComments(commentsList: List<Comentarios>, viewModel: CommentsViewModel) {
+fun ShowComments(navController: NavController, commentsList: List<Comentarios>, viewModel: CommentsViewModel, esSerie: Boolean) {
     val usersViewModel: UsersViewModel = viewModel()
     var nombreUsuario: String? by remember { mutableStateOf(null) }
     val responseText = remember { mutableStateOf("") }
@@ -90,7 +94,9 @@ fun ShowComments(commentsList: List<Comentarios>, viewModel: CommentsViewModel) 
                 text = "There are no comments yet. Be the first to comment!",
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.Gray,
-                modifier = Modifier.align(Alignment.CenterHorizontally).padding(16.dp)
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(16.dp)
             )
         } else {
             mutableCommentsList.value.forEach { comentario ->
@@ -142,10 +148,12 @@ fun ShowComments(commentsList: List<Comentarios>, viewModel: CommentsViewModel) 
 
                 // Cambiar el color del Card si el comentario tiene revision == true
                 Card(modifier = Modifier.background(Color.White)) {
-                    Column(modifier = Modifier.padding(8.dp).background( // ESTE PADDING PONE EL BORDE GRIS DE LAS CARDS
-                        if (isUserAdmin && comentario.revision) Color(0xFFFFCDD2)
-                        else Color.White
-                    )){
+                    Column(modifier = Modifier
+                        .padding(8.dp)
+                        .background( // ESTE PADDING PONE EL BORDE GRIS DE LAS CARDS
+                            if (isUserAdmin && comentario.revision) Color(0xFFFFCDD2)
+                            else Color.White
+                        )){
                         var fotoPerfilUrl by remember { mutableStateOf("") }
 
                         LaunchedEffect(comentario.usuario) {
@@ -167,7 +175,21 @@ fun ShowComments(commentsList: List<Comentarios>, viewModel: CommentsViewModel) 
                                     .size(40.dp)
                                     .clip(CircleShape)
                                     .border(2.dp, Color.Black, CircleShape)
-                                    .background(Color.White),
+                                    .background(Color.White)
+                                    .clickable {
+                                        usersViewModel.fetchUserId(comentario.usuario)
+                                        usersViewModel.userIdComment.observeForever { userId ->
+                                            if (userId != "ID_DESCONOCIDO") {
+                                                navController.navigate("profile/$userId?idContenido=${comentario.idContenido}&esSerie=$esSerie") {
+                                                    // 1. Mantén Pantalla A en la pila (NO la elimines)
+                                                    // 2. Elimina CUALQUIER instancia previa del perfil para evitar duplicados
+                                                    popUpTo("profile") { inclusive = true }
+                                                    // 3. Configura la pila para que el Back desde Perfil regrese a Pantalla A
+                                                    launchSingleTop = true
+                                                }
+                                            }
+                                        }
+                                    },
                                 contentScale = ContentScale.Crop
                             )
                             Spacer(modifier = Modifier.width(8.dp))
@@ -239,18 +261,25 @@ fun ShowComments(commentsList: List<Comentarios>, viewModel: CommentsViewModel) 
                                         .size(30.dp)
                                         .clickable {
                                             // Cambiar el estado de like solo para este comentario
-                                            val updatedLikedComments = likedCommentsState.value.toMutableMap().apply {
-                                                put(comentario.id, !isLiked)
-                                            }
+                                            val updatedLikedComments =
+                                                likedCommentsState.value.toMutableMap().apply {
+                                                    put(comentario.id, !isLiked)
+                                                }
                                             likedCommentsState.value = updatedLikedComments
 
                                             // Ahora actualizamos la base de datos dependiendo del nuevo estado
                                             if (isLiked) {
                                                 // Si ya estaba likeado y el usuario quita el like, eliminamos el like
-                                                viewModel.removeLike(comentario.idContenido, comentario.id)
+                                                viewModel.removeLike(
+                                                    comentario.idContenido,
+                                                    comentario.id
+                                                )
                                             } else {
                                                 // Si no estaba likeado y el usuario da like, agregamos el like
-                                                viewModel.addLike(comentario.idContenido, comentario.id)
+                                                viewModel.addLike(
+                                                    comentario.idContenido,
+                                                    comentario.id
+                                                )
                                             }
                                         }
                                         .padding(start = 4.dp)
@@ -495,7 +524,9 @@ fun ShowComments(commentsList: List<Comentarios>, viewModel: CommentsViewModel) 
                             }
                         }
 
-                        Column(modifier = Modifier.padding(8.dp).background(Color.White)) {
+                        Column(modifier = Modifier
+                            .padding(8.dp)
+                            .background(Color.White)) {
                             respuestasParaMostrar.value.forEachIndexed { index, res ->
                                 if (res.revision && !isUserAdmin) {
                                     return@forEachIndexed
@@ -551,7 +582,8 @@ fun ShowComments(commentsList: List<Comentarios>, viewModel: CommentsViewModel) 
                                     )
                                 ) {
                                     Column(
-                                        modifier = Modifier.padding(8.dp)
+                                        modifier = Modifier
+                                            .padding(8.dp)
                                             .background(if (res.revision) Color(0xFFFFCDD2) else Color.Transparent)
                                     ) {
                                         var respuestaFotoPerfilUrl by remember { mutableStateOf("") }
@@ -633,14 +665,23 @@ fun ShowComments(commentsList: List<Comentarios>, viewModel: CommentsViewModel) 
                                                             val newLikedState = !isLikedResponse
 
                                                             likedCommentsStateResponse.value =
-                                                                likedCommentsStateResponse.value.toMutableMap().apply {
-                                                                    put(res.id, newLikedState)
-                                                                }
+                                                                likedCommentsStateResponse.value.toMutableMap()
+                                                                    .apply {
+                                                                        put(res.id, newLikedState)
+                                                                    }
 
                                                             if (newLikedState) {
-                                                                viewModel.addLikeToResponse(res.idContenido, res.idComentario, res.id)
+                                                                viewModel.addLikeToResponse(
+                                                                    res.idContenido,
+                                                                    res.idComentario,
+                                                                    res.id
+                                                                )
                                                             } else {
-                                                                viewModel.removeLikeFromResponse(res.idContenido, res.idComentario, res.id)
+                                                                viewModel.removeLikeFromResponse(
+                                                                    res.idContenido,
+                                                                    res.idComentario,
+                                                                    res.id
+                                                                )
                                                             }
                                                         }
                                                 )
@@ -837,4 +878,8 @@ fun ShowComments(commentsList: List<Comentarios>, viewModel: CommentsViewModel) 
             }
         }
     }
+
+
 }
+
+

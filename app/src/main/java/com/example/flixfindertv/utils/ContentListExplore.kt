@@ -3,17 +3,9 @@ package com.example.flixfindertv.utils
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -39,6 +31,7 @@ fun ContentListExplore(
     navController: NavController,
     listState: LazyListState,
 ) {
+    println("Contenido es: $movies")
     LazyRow(
         modifier = Modifier
             .fillMaxWidth()
@@ -46,7 +39,7 @@ fun ContentListExplore(
         state = listState,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        itemsIndexed(movies.filter { !contieneCaracteresNoLatinos(it.titulo) }) { index, movie ->
+        itemsIndexed(movies.filter { !contieneCaracteresNoLatinos(it.titulo ?: "") }) { index, movie ->
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.width(120.dp)
@@ -55,8 +48,8 @@ fun ContentListExplore(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            println("Se seleccionó la película en el índice: $index con id: ${movie.id} y es serie: ${movie.esSerie}")
-                            navController.navigate("detalles/${movie.id}/${movie.esSerie}")
+                            println("Se seleccionó la película en el índice: $index con id: ${movie.id ?: "Desconocido"} y es serie: ${movie.esSerie ?: false}")
+                            navController.navigate("detalles/${movie.id ?: "0"}/${movie.esSerie ?: false}")
                         },
                     elevation = CardDefaults.cardElevation(4.dp)
                 ) {
@@ -66,12 +59,12 @@ fun ContentListExplore(
                                 .fillMaxWidth()
                                 .height(160.dp)
                         ) {
-                            val imageUrl = movie.poster_path?.let {
-                                if (it.isNotEmpty()) "https://image.tmdb.org/t/p/w500$it" else null
-                            }
+                            val imageUrl = movie.poster_path?.takeIf { it.isNotEmpty() }?.let {
+                                "https://image.tmdb.org/t/p/w500$it"
+                            } ?: ""
 
                             Image(
-                                painter = if (imageUrl != null) {
+                                painter = if (imageUrl.isNotEmpty()) {
                                     rememberAsyncImagePainter(imageUrl)
                                 } else {
                                     painterResource(id = R.drawable.no_poster_image) // Imagen predeterminada
@@ -85,12 +78,12 @@ fun ContentListExplore(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .background(
-                                    if (movie.esSerie) Color(0xFF4DB6AC) else Color(0xFF42A5F5)
+                                    if (movie.esSerie == true) Color(0xFF4DB6AC) else Color(0xFF42A5F5)
                                 )
                                 .padding(4.dp)
                         ) {
                             Text(
-                                text = movie.titulo,
+                                text = movie.titulo ?: "Sin título",
                                 style = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,

@@ -5,13 +5,17 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.flixfindertv.ui.screens.DetailsScreen
 import com.example.flixfindertv.ui.screens.EditProfileScreen
 import com.example.flixfindertv.ui.screens.ExploreScreen
 import com.example.flixfindertv.ui.screens.FavouriteContent
+import com.example.flixfindertv.ui.screens.FollowersScreen
+import com.example.flixfindertv.ui.screens.FollowingScreen
 import com.example.flixfindertv.ui.screens.ForgotPasswordScreen
 import com.example.flixfindertv.ui.screens.HomeScreen
 import com.example.flixfindertv.ui.screens.LoginScreen
@@ -67,9 +71,18 @@ fun FlixFinderTVroutes(modifier: Modifier = Modifier) {
             composable("trivia"){
                 TriviaScreen(navController)
             }
-            composable("favourite_movies/{esSerie}"){ backStackEntry ->
+            composable("favourite_movies/{uid}/{esSerie}"){ backStackEntry ->
                 val esSerie = backStackEntry.arguments?.getString("esSerie")?.toBoolean() ?: false
-                FavouriteContent(navController, esSerie)
+                val uid = backStackEntry.arguments?.getString("uid") ?: ""
+                FavouriteContent(navController, uid, esSerie)
+            }
+            composable("following/{uid}"){ backStackEntry ->
+                val uid = backStackEntry.arguments?.getString("uid") ?: ""
+                FollowingScreen(navController, uid)
+            }
+            composable("followers/{uid}"){ backStackEntry ->
+                val uid = backStackEntry.arguments?.getString("uid") ?: ""
+                FollowersScreen(navController, uid)
             }
 
         }

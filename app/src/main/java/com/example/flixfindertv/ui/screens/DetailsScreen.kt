@@ -44,13 +44,15 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
     val commentsViewModel: CommentsViewModel = viewModel()
     val moviesViewModel: MoviesViewModel = viewModel()
 
+    var movie by remember { mutableStateOf<Peliculas?>(null) }
     var movieId by remember { mutableStateOf("") }
     var movieTitle by remember { mutableStateOf("") }
     var movieDescription by remember { mutableStateOf("") }
     var movieBannerUrl by remember { mutableStateOf("") }
     var movieCoverUrl by remember { mutableStateOf("") }
     var moviePopularity by remember { mutableStateOf(0.0) }
-    var movieGenre by remember { mutableStateOf("Cargando...") }
+    var voteCount by remember { mutableStateOf("") }
+    var movieGenre by remember { mutableStateOf("") }
     var releaseDate by remember { mutableStateOf("") }
     var voteAverage by remember { mutableStateOf("") }
     var trailerUrl by remember { mutableStateOf("") }
@@ -87,43 +89,45 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
             .document(id)
             .get()
             .addOnSuccessListener { document ->
-                val movie = document.toObject(Peliculas::class.java)
-                movieId = movie?.id?.takeIf { it.isNotBlank() } ?: ""
-                movieTitle = movie?.title.takeIf { it?.isNotBlank() == true } ?: movie?.name ?: "Título no encontrado"
-                movieDescription = movie?.overview?.takeIf { it.isNotBlank() } ?: "No hay descripción"
-                original_language = movie?.original_language?.takeIf { it.isNotBlank() } ?: "No hay idioma original"
-                status = movie?.status?.takeIf { it.isNotBlank() } ?: "Desconocido"
-                movieBannerUrl = if (movie?.backdrop_path?.isNotEmpty() == true) {
-                    "https://image.tmdb.org/t/p/w500${movie.backdrop_path}"
-                } else {
-                    ""
-                }
-                movieCoverUrl = if (movie?.poster_path?.isNotEmpty() == true) {
-                    "https://image.tmdb.org/t/p/w500${movie.poster_path}"
-                } else {
-                    ""
-                }
-                moviePopularity = movie?.popularity ?: 0.0
-                val genreIds = movie?.genre_ids ?: emptyList()
-                if (genreIds.isNotEmpty()) {
-                    fetchGenreNames(genreIds) { genres ->
-                        movieGenre = if (genres.isNotEmpty()) genres.joinToString(", ") else "Género no disponible"
+                movie = document.toObject(Peliculas::class.java)
+                movie?.let {
+                    movieId = it.id
+                    movieTitle = it.title ?: it.name ?: ""
+                    movieDescription = it.overview
+                    original_language = it.original_language
+                    status = it.status
+                    voteCount = it.vote_count
+
+                    movieBannerUrl = "https://image.tmdb.org/t/p/w500${it.backdrop_path}"
+                    movieCoverUrl = "https://image.tmdb.org/t/p/w500${it.poster_path}"
+
+                    moviePopularity = it.popularity ?: 0.0
+
+                    val genreIds = it.genre_ids ?: emptyList()
+                    if (genreIds.isNotEmpty()) {
+                        fetchGenreNames(genreIds) { genres ->
+                            movieGenre = genres.joinToString(", ")
+                        }
+                    } else {
+                        movieGenre = "Genre not available"
                     }
-                } else {
-                    movieGenre = "Género no disponible"
+
+                    releaseDate = if (esSerie) {
+                        it.release_date_series ?: "Date not available"
+                    } else {
+                        it.release_date ?: "Date not available"
+                    }
+
+                    voteAverage = it.vote_average?.toString() ?: "N/A"
+                    trailerUrl = it.trailer.toString()
+
+                    usersViewModel.checkIfFavorite(id, esSerie)
                 }
-                releaseDate = if (esSerie) {
-                    movie?.release_date_series ?: "Fecha no disponible"
-                } else {
-                    movie?.release_date ?: "Fecha no disponible"
-                }
-                voteAverage = movie?.vote_average ?: "N/A"
-                trailerUrl = movie?.trailer.toString()
-                usersViewModel.checkIfFavorite(id, esSerie)
             }
-        // Obtener comentarios en tiempo real
         commentsViewModel.getComments(id)
     }
+
+
     val commentsList by commentsViewModel.comments.collectAsState()
 
     // Pantalla con Scroll
@@ -259,15 +263,13 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                 // Si no se obtiene un videoId válido, muestra un mensaje adecuado
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "No trailer available.",
+                    text = "No trailer available",
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(16.dp),
                     color = Color.Gray
                 )
             }
         }
-
-
         Spacer(modifier = Modifier.height(36.dp))
         Text(
             text = "Comments",
@@ -283,7 +285,7 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
             Text("Comment")
         }
 
-        ShowComments(commentsList, commentsViewModel)
+        movie?.let { ShowComments(navController, commentsList, commentsViewModel, it.esSerie) }
 
         if (isDialogOpen.value) {
             AlertDialog(
@@ -354,6 +356,8 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                                 } else {
                                     commentsViewModel.sendComment(id, usuarioNombre, selectedStars.value, commentText.value, false)
                                 }
+                                // Aumentar el contador de comentarios en Firebase
+                                moviesViewModel.incrementUserCommentCount(userId)
 
                                 moviesViewModel.calculateNewVoteAverage(movieId, selectedStars.value) { updatedVoteAverage ->
                                     if (updatedVoteAverage != null) {

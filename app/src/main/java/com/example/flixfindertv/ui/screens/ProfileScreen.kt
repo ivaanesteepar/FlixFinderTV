@@ -32,10 +32,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.getValue
@@ -50,14 +54,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
+import androidx.navigation.NavController
 import com.example.flixfindertv.R
 import com.example.flixfindertv.models.Peliculas
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 import com.example.flixfindertv.utils.BottomNavigationBar
 
 @Composable
-fun ProfileScreen(navController: NavHostController, uid: String) {
+fun ProfileScreen(navController: NavController, uid: String) {
     val auth = FirebaseAuth.getInstance()
     val firestore = FirebaseFirestore.getInstance()
     val usersViewModel: UsersViewModel = viewModel()
@@ -72,6 +76,7 @@ fun ProfileScreen(navController: NavHostController, uid: String) {
     val context = LocalContext.current
     val currentUser = auth.currentUser
     val activity = context as? Activity
+    val isFollowing = remember { mutableStateOf(false) }
 
     // BackHandler para manejar el retroceso
     BackHandler {
@@ -112,9 +117,17 @@ fun ProfileScreen(navController: NavHostController, uid: String) {
                 }
         }
 
+        // Aquí puedes hacer una llamada inicial para verificar si el usuario ya sigue al otro
+        LaunchedEffect(uid) {
+            // Asegúrate de consultar si el usuario ya sigue al otro cuando se carga la pantalla
+            usersViewModel.checkIfFollowing(currentUid, uid) { following ->
+                isFollowing.value = following
+            }
+        }
+
         LaunchedEffect(key1 = uid) {
             // Para obtener las películas favoritas
-            usersViewModel.getFavoriteMovies(onSuccess = { peliculasFavoritas ->
+            usersViewModel.getFavoriteMovies(uid, onSuccess = { peliculasFavoritas ->
                 // Asignamos la lista de películas favoritas directamente
                 favoriteMovies = peliculasFavoritas
             }, onFailure = { exception ->
@@ -122,7 +135,7 @@ fun ProfileScreen(navController: NavHostController, uid: String) {
             })
 
             // Para obtener las series favoritas
-            usersViewModel.getFavoriteSeries(onSuccess = { seriesFavoritas ->
+            usersViewModel.getFavoriteSeries(uid, onSuccess = { seriesFavoritas ->
                 // Asignamos la lista de series favoritas directamente
                 favoriteSeries = seriesFavoritas
             }, onFailure = { exception ->
@@ -130,20 +143,43 @@ fun ProfileScreen(navController: NavHostController, uid: String) {
             })
         }
 
-
-
         // Scaffold para envolver el contenido y añadir el BottomNavigationBar
         Scaffold(
-            bottomBar = { BottomNavigationBar(navController, uid) }
+            bottomBar = {
+                if (uid == currentUid) {
+                    BottomNavigationBar(navController, uid)
+                }
+            }
         ) { paddingValues ->
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp)
+                    .padding(horizontal = 16.dp)
                     .padding(paddingValues)
                     .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                if (uid != currentUid) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Start // Alinea el contenido a la izquierda
+                    ) {
+                        IconButton(
+                            onClick = {
+                                navController.popBackStack()// Esto permite volver atrás en la navegación
+                            },
+                            modifier = Modifier
+                                .size(48.dp) // Tamaño total del botón (círculo)
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Volver atrás",
+                                tint = Color.Black // Color del ícono
+                            )
+                        }
+                    }
+                }
+
                 Box(
                     modifier = Modifier
                         .size(150.dp)  // Tamaño del contenedor circular
@@ -172,9 +208,7 @@ fun ProfileScreen(navController: NavHostController, uid: String) {
                         )
                     }
                 }
-
                 Spacer(modifier = Modifier.height(16.dp))
-
                 Text(
                     text = userName,
                     style = MaterialTheme.typography.bodyLarge.copy(
@@ -183,26 +217,24 @@ fun ProfileScreen(navController: NavHostController, uid: String) {
                     ),
                     color = Color.Black
                 )
-
-
                 Spacer(modifier = Modifier.height(24.dp))
-                Button(
-                    modifier = Modifier.fillMaxWidth(0.3f),
-                    onClick = {
-                        navController.navigate("edit_profile")
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFD3D3D3)
-                    )
-                ) {
-                    Text(
-                        text = "Edit",
-                        color = Color.Black
-                    )
+                if (uid == currentUid) {
+                    Button(
+                        modifier = Modifier.fillMaxWidth(0.3f),
+                        onClick = {
+                            navController.navigate("edit_profile")
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFD3D3D3)
+                        )
+                    ) {
+                        Text(
+                            text = "Edit",
+                            color = Color.Black
+                        )
+                    }
                 }
-
                 Spacer(modifier = Modifier.height(24.dp))
-
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -212,7 +244,7 @@ fun ProfileScreen(navController: NavHostController, uid: String) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.clickable {
-                            // Acción cuando se hace clic en "Siguiendo"
+                            navController.navigate("following/$uid")
                         }
                     ) {
                         Text(text = "Following")
@@ -223,7 +255,7 @@ fun ProfileScreen(navController: NavHostController, uid: String) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.clickable {
-                            // Acción cuando se hace clic en "Seguidores"
+                            navController.navigate("followers/$uid")
                         }
                     ) {
                         Text(text = "Followers")
@@ -232,27 +264,67 @@ fun ProfileScreen(navController: NavHostController, uid: String) {
                     }
 
                     Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.clickable {
-                            // Acción cuando se hace clic en "Comentarios"
-                        }
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(text = "Comments")
                         Spacer(modifier = Modifier.height(5.dp))
                         Text(text = commentsCount.toString(), style = MaterialTheme.typography.bodySmall)
                     }
                 }
-
-                Spacer(modifier = Modifier.height(64.dp))
-
+                Spacer(modifier = Modifier.height(25.dp))
+                if (uid != currentUid) {
+                    Button(
+                        onClick = {
+                            if (isFollowing.value) {
+                                // Si ya sigue al usuario, hacer "dejar de seguir"
+                                usersViewModel.unfollowUser(currentUid, uid,
+                                    onSuccess = {
+                                        // Acción cuando se deja de seguir exitosamente
+                                        Toast.makeText(context, "Has dejado de seguir a este usuario", Toast.LENGTH_SHORT).show()
+                                        isFollowing.value = false // Cambia el estado a "no siguiendo"
+                                    },
+                                    onFailure = { exception ->
+                                        // Acción cuando ocurre un error
+                                        Toast.makeText(context, "Error: ${exception.message}", Toast.LENGTH_SHORT).show()
+                                    }
+                                )
+                            } else {
+                                // Si no sigue al usuario, hacer "seguir"
+                                usersViewModel.followUser(currentUid, uid,
+                                    onSuccess = {
+                                        // Acción cuando se sigue exitosamente al usuario
+                                        Toast.makeText(context, "¡Ahora sigues a este usuario!", Toast.LENGTH_SHORT).show()
+                                        isFollowing.value = true // Cambia el estado a "siguiendo"
+                                    },
+                                    onFailure = { exception ->
+                                        // Acción cuando ocurre un error
+                                        Toast.makeText(context, "Error: ${exception.message}", Toast.LENGTH_SHORT).show()
+                                    }
+                                )
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (isFollowing.value) Color(0xFF87CEEB) else Color.Blue // Azul claro si ya sigues al usuario, azul actual si no
+                        )
+                    ) {
+                        Text(
+                            text = if (isFollowing.value) "Siguiendo" else "Seguir", // Cambia el texto según el estado
+                            color = Color.White // Cambia el color del texto
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(25.dp))
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            // Aquí puedes poner la acción que quieres realizar al hacer clic en el Box
-                            navController.navigate("favourite_movies/false")
+                            navController.navigate("favourite_movies/$uid/false") {
+                                popUpTo("favourite_movies") { inclusive = true } // Elimina la pantalla de la pila
+                                launchSingleTop = true // Evita duplicaciones
+                            }
                         }
-                ) {
+                )
+                {
                     Column(modifier = Modifier.fillMaxWidth()) {
                         Text(
                             text = "Favourite Movies",
@@ -260,7 +332,6 @@ fun ProfileScreen(navController: NavHostController, uid: String) {
                             color = Color.Black
                         )
                         Spacer(modifier = Modifier.height(15.dp))
-
                         Column(modifier = Modifier.fillMaxWidth()) {
                             if (favoriteMovies.isNotEmpty()) {
                                 Row(
@@ -314,7 +385,7 @@ fun ProfileScreen(navController: NavHostController, uid: String) {
                                 }
                             } else {
                                 Text(
-                                    text = "No tienes películas favoritas.",
+                                    text = if (uid == currentUid) "No tienes películas favoritas." else "No tiene peliculas favoritas.",
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = Color.Gray
                                 )
@@ -328,7 +399,10 @@ fun ProfileScreen(navController: NavHostController, uid: String) {
                         .fillMaxWidth()
                         .clickable {
                             // Aquí puedes poner la acción que quieres realizar al hacer clic en el Box
-                            navController.navigate("favourite_movies/true")
+                            navController.navigate("favourite_movies/true"){
+                                popUpTo("favourite_movies") { inclusive = true } // Elimina la pantalla de la pila
+                                launchSingleTop = true // Evita duplicaciones
+                            }
                         }
                 ) {
                     Column(modifier = Modifier.fillMaxWidth()) {
@@ -394,12 +468,11 @@ fun ProfileScreen(navController: NavHostController, uid: String) {
                             }
                         } else {
                             Text(
-                                text = "No tienes series favoritas.",
+                                text = if (uid == currentUid) "No tienes series favoritas." else "No tiene series favoritas.",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = Color.Gray
                             )
                         }
-
                     }
                 }
                 Spacer(modifier = Modifier.height(40.dp))

@@ -11,7 +11,7 @@ interface TMDBApiService {
         @Path("movie_id") movieId: Int,
         @Query("api_key") apiKey: String,
         @Query("language") language: String = "en-US",
-        @Query("page") page: Int = 1
+        @Query("page") page: Int
     ): MovieResponse
 
     @GET("tv/{tv_id}/similar")
@@ -19,6 +19,6 @@ interface TMDBApiService {
         @Path("tv_id") tvId: Int,
         @Query("api_key") apiKey: String,
         @Query("language") language: String = "en-US",
-        @Query("page") page: Int = 1
+        @Query("page") page: Int
     ): MovieResponse
 }

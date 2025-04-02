@@ -44,14 +44,15 @@ fun MovieDetailsContent(
     movieCoverUrl: String,
     movieTitle: String,
     movieDescription: String,
-    movieGenre: String,
-    releaseDate: String,
-    originalLanguage: String,
-    status: String
+    movieGenre: String?,
+    releaseDate: String?,
+    originalLanguage: String?,
+    status: String?,
 ) {
     val viewModel: MoviesViewModel = viewModel()
     val voteAverage by viewModel.voteAverage.collectAsState()
     val popularity by viewModel.popularity.collectAsState()
+    val voteCount by viewModel.voteCount.collectAsState()
     val truncatedVoteAvg = (voteAverage * 10).toInt() / 10.0
     val voteAvgFormatted = String.format("%.1f", truncatedVoteAvg)
 
@@ -103,7 +104,6 @@ fun MovieDetailsContent(
             }
         }
 
-
         Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f)) {
             Spacer(modifier = Modifier.height(16.dp))
             Text(
@@ -118,25 +118,23 @@ fun MovieDetailsContent(
                     withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
                         append("Genre: ")
                     }
-                    append(movieGenre)
+                    append(movieGenre ?: "N/A") // Si no hay género, muestra "N/A"
                 },
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.Black.copy(alpha = 0.7f),
                 modifier = Modifier.padding(start = 16.dp)
             )
 
-
             Text(
                 text = buildAnnotatedString {
                     withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
                         append("Popularity: ")
                     }
-                    append(String.format("%.1f", popularity))
+                    append(String.format("%.1f", popularity ?: 0.0)) // Si no hay popularidad, muestra "0.0"
                 },
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.Black.copy(alpha = 0.7f),
                 modifier = Modifier.padding(start = 16.dp)
-
             )
 
             Text(
@@ -144,18 +142,15 @@ fun MovieDetailsContent(
                     withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
                         append("Release Date: ")
                     }
-                    // Convert and format the releaseDate to "dd/MM/yyyy"
                     try {
-                        val originalDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(releaseDate)
+                        val originalDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(releaseDate ?: "")
                         val formattedDate =
                             originalDate?.let {
-                                SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(
-                                    it
-                                )
+                                SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(it)
                             }
-                        append(formattedDate)
+                        append(formattedDate ?: "N/A") // Si no hay fecha, muestra "N/A"
                     } catch (e: Exception) {
-                        append(releaseDate)  // In case of an invalid date format, fallback to the original
+                        append(releaseDate ?: "N/A")  // Si no hay fecha, muestra "N/A"
                     }
                 },
                 style = MaterialTheme.typography.bodyMedium,
@@ -164,6 +159,7 @@ fun MovieDetailsContent(
             )
         }
     }
+
     // Descripción de la película o serie
     Spacer(modifier = Modifier.height(16.dp))
     Text(
@@ -172,18 +168,23 @@ fun MovieDetailsContent(
         modifier = Modifier.padding(start = 16.dp, end = 16.dp),
         color = Color.Black
     )
+
     Spacer(modifier = Modifier.height(16.dp))
+
+    // Mostrar descripción o frase por defecto si está vacía
     Text(
-        text = movieDescription,
+        text = if (movieDescription.isEmpty()) "No description available" else movieDescription,
         style = MaterialTheme.typography.bodyMedium,
-        color = Color.Black,
+        color = if (movieDescription.isEmpty()) Color.Gray else Color.Black,
         modifier = Modifier.padding(start = 16.dp, end = 16.dp)
     )
+
     Spacer(modifier = Modifier.height(36.dp))
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 60.dp),
+            .padding(horizontal = 35.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Column(
@@ -196,7 +197,7 @@ fun MovieDetailsContent(
                 color = Color.Black.copy(alpha = 0.7f)
             )
             Text(
-                text = originalLanguage,
+                text = originalLanguage ?: "N/A", // Si no hay idioma original, muestra "N/A"
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.Black.copy(alpha = 0.7f)
             )
@@ -211,10 +212,26 @@ fun MovieDetailsContent(
                 color = Color.Black.copy(alpha = 0.7f)
             )
             Text(
-                text = status,
+                text = status ?: "N/A", // Si no hay estado, muestra "N/A"
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.Black.copy(alpha = 0.7f)
             )
         }
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        ) {
+            Text(
+                text = "Votes:",
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                color = Color.Black.copy(alpha = 0.7f)
+            )
+            Text(
+                text = voteCount,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Black.copy(alpha = 0.7f)
+            )
+        }
+
     }
 }

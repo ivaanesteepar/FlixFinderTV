@@ -1,17 +1,21 @@
 package com.example.flixfindertv.ui.viewmodels
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.flixfindertv.models.Peliculas
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 class UsersViewModel : ViewModel() {
@@ -22,6 +26,161 @@ class UsersViewModel : ViewModel() {
     // Estado para almacenar si la película o serie está en favoritos
     private val _isFavorite = mutableStateOf(false)
     val isFavorite: State<Boolean> get() = _isFavorite
+
+    // Estado para almacenar el UID del usuario encontrado
+    private val _userIdComment = MutableLiveData<String>()
+    val userIdComment: LiveData<String> get() = _userIdComment
+
+
+    suspend fun getFollowersUsers(uid: String): List<Pair<String, String>>? {
+        return try {
+            val document = FirebaseFirestore.getInstance()
+                .collection("usuarios")
+                .document(uid)
+                .get()
+                .await()
+
+            val followersIds = document.get("seguidores") as? List<String> ?: emptyList()
+
+            followersIds.mapNotNull { followerId ->
+                val userDoc = FirebaseFirestore.getInstance()
+                    .collection("usuarios")
+                    .document(followerId)
+                    .get()
+                    .await()
+
+                val name = userDoc.getString("nombre")
+                name?.let { followerId to it }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    suspend fun getFollowingUsers(uid: String): List<Pair<String, String>>? {
+        return try {
+            val document = FirebaseFirestore.getInstance()
+                .collection("usuarios")
+                .document(uid)
+                .get()
+                .await()
+
+            val followingIds = document.get("siguiendo") as? List<String> ?: emptyList()
+
+            followingIds.mapNotNull { followingId ->
+                val userDoc = FirebaseFirestore.getInstance()
+                    .collection("usuarios")
+                    .document(followingId)
+                    .get()
+                    .await()
+
+                val name = userDoc.getString("nombre")
+                name?.let { followingId to it }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    fun followUser(currentUid: String, targetUid: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+        if (currentUid != targetUid) {
+            viewModelScope.launch {
+                try {
+                    val userRef = firestore.collection("usuarios").document(targetUid)
+                    val currentUserRef = firestore.collection("usuarios").document(currentUid)
+
+                    val targetDoc = userRef.get().await()
+                    val currentUserDoc = currentUserRef.get().await()
+
+                    if (targetDoc.exists() && currentUserDoc.exists()) {
+                        val seguidores = targetDoc.get("seguidores") as? List<String> ?: emptyList()
+                        val siguiendo = currentUserDoc.get("siguiendo") as? List<String> ?: emptyList()
+
+                        // Agregar el targetUid al campo "siguiendo" del usuario actual
+                        if (!siguiendo.contains(targetUid)) {
+                            val updatedSiguiendo = siguiendo + targetUid
+                            currentUserRef.update("siguiendo", updatedSiguiendo).await()
+                        }
+
+                        // Agregar el currentUid al campo "seguidores" del usuario objetivo
+                        if (!seguidores.contains(currentUid)) {
+                            val updatedSeguidores = seguidores + currentUid
+                            userRef.update("seguidores", updatedSeguidores).await()
+                        }
+
+                        onSuccess() // Notifica éxito
+                    }
+                } catch (e: Exception) {
+                    onFailure(e) // Notifica error
+                }
+            }
+        }
+    }
+
+
+    fun unfollowUser(currentUid: String, targetUid: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
+        if (currentUid != targetUid) {
+            viewModelScope.launch {
+                try {
+                    val userRef = firestore.collection("usuarios").document(targetUid)
+                    val document = userRef.get().await()
+                    if (document.exists()) {
+                        val seguidores = document.get("seguidores") as? List<String> ?: emptyList()
+                        if (seguidores.contains(currentUid)) {
+                            val updatedSeguidores = seguidores - currentUid
+                            userRef.update("seguidores", updatedSeguidores).await()
+                            onSuccess() // Notifica éxito
+                        }
+                    }
+                } catch (e: Exception) {
+                    onFailure(e) // Notifica error
+                }
+            }
+        }
+    }
+
+    fun checkIfFollowing(currentUid: String, targetUid: String, callback: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val userRef = firestore.collection("usuarios").document(targetUid)
+                val document = userRef.get().await()
+                if (document.exists()) {
+                    val seguidores = document.get("seguidores") as? List<String> ?: emptyList()
+                    callback(seguidores.contains(currentUid)) // Devuelve si el usuario está siguiendo
+                } else {
+                    callback(false)
+                }
+            } catch (e: Exception) {
+                callback(false)
+            }
+        }
+    }
+
+
+    fun fetchUserId(nombreUsuario: String) {
+        val db = FirebaseFirestore.getInstance()
+        db.collection("usuarios")
+            .whereEqualTo("nombre", nombreUsuario)
+            .limit(1)  // Solo necesitamos un resultado
+            .get()
+            .addOnSuccessListener { documents ->
+                val userId = documents.documents.firstOrNull()?.getString("uid") ?: "ID_DESCONOCIDO"
+                println("prueba4")
+
+                if (!userId.isNullOrEmpty()) {  // Asegurar que no es nulo ni vacío
+                    _userIdComment.value = userId
+                    println("el id que se ha seleccionado es: ${_userIdComment.value}")
+                    println("entonces el id es: ${userIdComment.value}")
+                } else {
+                    println("El campo 'id' no está presente o es nulo.")
+                }
+            }
+            .addOnFailureListener {
+                println("Error al obtener el usuario")
+            }
+    }
 
 
     suspend fun getUserAdminStatus(userId: String, callback: (Boolean) -> Unit) {
@@ -151,75 +310,68 @@ class UsersViewModel : ViewModel() {
     }
 
     // Función para obtener las películas favoritas
-    fun getFavoriteMovies(onSuccess: (List<Peliculas>) -> Unit, onFailure: (Exception) -> Unit) {
-        val currentUser = auth.currentUser
-        if (currentUser != null) {
-            val userId = currentUser.uid
-            val favoritesCollection = firestore.collection("usuarios").document(userId)
+    fun getFavoriteMovies(
+        uid: String,
+        onSuccess: (List<Peliculas>) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        val favoritesCollection = firestore.collection("usuarios").document(uid)
 
-            // Obtener las películas favoritas del usuario
-            favoritesCollection.get().addOnSuccessListener { document ->
-                if (document.exists()) {
-                    val favoriteItems = document.get("peliculasFavoritas") as? List<Map<String, Any>> ?: emptyList()
+        // Obtener las películas favoritas del usuario
+        favoritesCollection.get().addOnSuccessListener { document ->
+            if (document.exists()) {
+                val favoriteItems = document.get("peliculasFavoritas") as? List<Map<String, Any>> ?: emptyList()
 
-                    // Mapear los favoritos a objetos de tipo Peliculas
-                    val peliculasFavoritas = favoriteItems.mapNotNull { movieData ->
-                        Peliculas(
-                            id = movieData["id"] as? String ?: "",
-                            title = movieData["title"] as? String ?: "",
-                            poster_path = movieData["posterUrl"] as? String ?: "",
-                            esSerie = movieData["esSerie"] as? Boolean ?: false,
-
-                        )
-                    }
-
-                    onSuccess(peliculasFavoritas)
-                } else {
-                    onSuccess(emptyList()) // Si no existen favoritos, devolvemos una lista vacía
+                // Mapear los favoritos a objetos de tipo Peliculas
+                val peliculasFavoritas = favoriteItems.mapNotNull { movieData ->
+                    Peliculas(
+                        id = movieData["id"] as? String ?: "",
+                        title = movieData["title"] as? String ?: "",
+                        poster_path = movieData["posterUrl"] as? String ?: "",
+                        esSerie = movieData["esSerie"] as? Boolean ?: false
+                    )
                 }
-            }.addOnFailureListener { exception ->
-                onFailure(exception)
+
+                onSuccess(peliculasFavoritas)
+            } else {
+                onSuccess(emptyList()) // Si no existen favoritos, devolvemos una lista vacía
             }
-        } else {
-            onFailure(Exception("Usuario no autenticado"))
+        }.addOnFailureListener { exception ->
+            onFailure(exception)
         }
     }
 
 
+
     // Función para obtener las series favoritas
-    fun getFavoriteSeries(onSuccess: (List<Peliculas>) -> Unit, onFailure: (Exception) -> Unit) {
-        val currentUser = auth.currentUser
-        if (currentUser != null) {
-            val userId = currentUser.uid
-            val favoritesCollection = firestore.collection("usuarios").document(userId)
+    fun getFavoriteSeries(
+        uid: String,
+        onSuccess: (List<Peliculas>) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        val favoritesCollection = firestore.collection("usuarios").document(uid)
 
-            // Obtener las series favoritas del usuario
-            favoritesCollection.get().addOnSuccessListener { document ->
-                if (document.exists()) {
-                    val favoriteItems = document.get("seriesFavoritas") as? List<Map<String, Any>> ?: emptyList()
+        // Obtener las series favoritas del usuario
+        favoritesCollection.get().addOnSuccessListener { document ->
+            if (document.exists()) {
+                val favoriteItems = document.get("seriesFavoritas") as? List<Map<String, Any>> ?: emptyList()
 
-                    // Mapear los favoritos a objetos de tipo Peliculas
-                    val seriesFavoritas = favoriteItems.mapNotNull { movieData ->
-                        movieData.let {
-                            Peliculas(
-                                id = movieData["id"] as? String ?: "",
-                                title = movieData["title"] as? String ?: "",
-                                poster_path = movieData["posterUrl"] as? String ?: "",
-                                esSerie = movieData["esSerie"] as? Boolean ?: true
-
-                            )
-                        }
-                    }
-
-                    onSuccess(seriesFavoritas)
-                } else {
-                    onSuccess(emptyList()) // Si no existen favoritos, devolvemos una lista vacía
+                // Mapear los favoritos a objetos de tipo Peliculas
+                val seriesFavoritas = favoriteItems.mapNotNull { movieData ->
+                    Peliculas(
+                        id = movieData["id"] as? String ?: "",
+                        title = movieData["title"] as? String ?: "",
+                        poster_path = movieData["posterUrl"] as? String ?: "",
+                        esSerie = movieData["esSerie"] as? Boolean ?: true
+                    )
                 }
-            }.addOnFailureListener { exception ->
-                onFailure(exception)
+
+                onSuccess(seriesFavoritas)
+            } else {
+                onSuccess(emptyList()) // Si no existen favoritos, devolvemos una lista vacía
             }
-        } else {
-            onFailure(Exception("Usuario no autenticado"))
+        }.addOnFailureListener { exception ->
+            onFailure(exception)
         }
     }
 

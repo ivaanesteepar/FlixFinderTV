@@ -3,6 +3,7 @@ package com.example.flixfindertv.ui.screens
 import android.app.Activity
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -15,6 +16,8 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
+import androidx.compose.material3.TabRowDefaults.SecondaryIndicator
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -22,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.buildAnnotatedString
@@ -339,169 +343,279 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
             }
         }
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
-                .padding(paddingValues)
                 .fillMaxSize()
-                .padding(16.dp)
         ) {
-            if (hayConexion) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    TextField(
-                        value = searchQuery,
-                        onValueChange = { searchQuery = it },
-                        label = { Text("Search for movies or series") },
-                        modifier = Modifier.weight(1f),
-                        trailingIcon = {
-                            if (isSearching) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(24.dp),
-                                    strokeWidth = 2.dp,
-                                    color = Color.Gray
+            Image(
+                painter = painterResource(id = R.drawable.fondo_app),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+            Column(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .fillMaxSize()
+                    .padding(16.dp)
+            ) {
+                if (hayConexion) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        OutlinedTextField(
+                            value = searchQuery,
+                            onValueChange = { searchQuery = it },
+                            label = {
+                                Text(
+                                    "Search for movies or series",
+                                    color = Color.White // Texto del label en blanco (opcional)
                                 )
-                            } else {
-                                Icon(
-                                    imageVector = Icons.Default.Search,
-                                    contentDescription = "Buscar"
-                                )
-                            }
-                        }
-                    )
-                    IconButton(onClick = { filterExpanded = true }) {
-                        Icon(imageVector = Icons.Default.FilterList, contentDescription = "Filtrar")
-                    }
-
-                    Box(modifier = Modifier.offset(x = (-16).dp, y = 70.dp)) {
-                        DropdownMenu(
-                            expanded = filterExpanded,
-                            onDismissRequest = { filterExpanded = false },
-                            modifier = Modifier.fillMaxWidth() // Asegúrate de que el menú ocupa todo el ancho
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(550.dp) // Mantener la caja gris con altura fija de 550.dp
-                            ) {
-                                // Column con scroll, ajustamos el padding inferior para evitar que se solape con el botón
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxHeight()
-                                        .verticalScroll(rememberScrollState())  // Permite el desplazamiento vertical
-                                        .padding(8.dp)  // Añadir padding si es necesario
-                                ) {
-                                    DropdownMenuItem(
-                                        text = { Text("Filtrar por género") },
-                                        onClick = {}
+                            },
+                            modifier = Modifier.weight(1f),
+                            textStyle = LocalTextStyle.current.copy(color = Color.White), // Texto en blanco
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Color.White,    // Borde blanco al estar seleccionado
+                                unfocusedBorderColor = Color.White, // Borde blanco en estado normal
+                                focusedTextColor = Color.White,      // Texto en blanco
+                                unfocusedTextColor = Color.White,
+                                cursorColor = Color.White,           // Cursor blanco
+                                focusedTrailingIconColor = Color.White, // Ícono de búsqueda blanco
+                                unfocusedTrailingIconColor = Color.White
+                            ),
+                            trailingIcon = {
+                                if (isSearching) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(24.dp),
+                                        strokeWidth = 2.dp,
+                                        color = Color.White // ProgressIndicator blanco
                                     )
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceEvenly
+                                } else {
+                                    Icon(
+                                        imageVector = Icons.Default.Search,
+                                        contentDescription = "Buscar"
+                                    )
+                                }
+                            }
+                        )
+                        IconButton(onClick = { filterExpanded = true }) {
+                            Icon(
+                                imageVector = Icons.Default.FilterList,
+                                contentDescription = "Filtrar",
+                                tint = Color.White,
+                                modifier = Modifier.size(30.dp)
+                            )
+                        }
+
+                        Box(modifier = Modifier.offset(x = (-16).dp, y = 70.dp)) {
+                            DropdownMenu(
+                                expanded = filterExpanded,
+                                onDismissRequest = { filterExpanded = false },
+                                modifier = Modifier.fillMaxWidth() // Asegúrate de que el menú ocupa todo el ancho
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(550.dp) // Mantener la caja gris con altura fija de 550.dp
+                                ) {
+                                    // Column con scroll, ajustamos el padding inferior para evitar que se solape con el botón
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxHeight()
+                                            .verticalScroll(rememberScrollState())  // Permite el desplazamiento vertical
+                                            .padding(8.dp)  // Añadir padding si es necesario
                                     ) {
-                                        genreColumns.forEach { columnGenres ->
-                                            Column {
-                                                columnGenres.forEach { genre ->
-                                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                                        Checkbox(
-                                                            checked = selectedGenre == genre,
-                                                            onCheckedChange = { isChecked ->
-                                                                if (isChecked) {
-                                                                    // Obtener el id del género
-                                                                    genresViewModel.obtenerIdGeneroPorNombre(genre) { genreId ->
-                                                                        selectedGenre = genre
-                                                                        selectedGenreId = genreId
-                                                                        println("Seleccionado: $genre, ID: $genreId")
+                                        DropdownMenuItem(
+                                            text = { Text("Filtrar por género") },
+                                            onClick = {}
+                                        )
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceEvenly
+                                        ) {
+                                            genreColumns.forEach { columnGenres ->
+                                                Column {
+                                                    columnGenres.forEach { genre ->
+                                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                                            Checkbox(
+                                                                checked = selectedGenre == genre,
+                                                                onCheckedChange = { isChecked ->
+                                                                    if (isChecked) {
+                                                                        // Obtener el id del género
+                                                                        genresViewModel.obtenerIdGeneroPorNombre(
+                                                                            genre
+                                                                        ) { genreId ->
+                                                                            selectedGenre = genre
+                                                                            selectedGenreId =
+                                                                                genreId
+                                                                            println("Seleccionado: $genre, ID: $genreId")
 
-                                                                        // Llamar a la función para obtener las películas y series para el género
-                                                                        genreId?.let {
-                                                                            genresViewModel.obtenerPeliculasSeriesPorGenero(genreId)
+                                                                            // Llamar a la función para obtener las películas y series para el género
+                                                                            genreId?.let {
+                                                                                genresViewModel.obtenerPeliculasSeriesPorGenero(
+                                                                                    genreId
+                                                                                )
+                                                                            }
                                                                         }
+                                                                    } else {
+                                                                        selectedGenre = null
+                                                                        selectedGenreId = null
                                                                     }
-                                                                } else {
-                                                                    selectedGenre = null
-                                                                    selectedGenreId = null
                                                                 }
-                                                            }
-                                                        )
+                                                            )
 
-                                                        // Mostrar el nombre del género con salto de línea solo en la visualización
-                                                        Text(
-                                                            text = buildAnnotatedString {
-                                                                genre.split("&").forEachIndexed { index, part ->
-                                                                    append(part)
-                                                                    if (index < genre.split("&").size - 1) {
-                                                                        append("\n&") // Agregar salto de línea antes del "&" si es necesario
-                                                                    }
+                                                            // Mostrar el nombre del género con salto de línea solo en la visualización
+                                                            Text(
+                                                                text = buildAnnotatedString {
+                                                                    genre.split("&")
+                                                                        .forEachIndexed { index, part ->
+                                                                            append(part)
+                                                                            if (index < genre.split(
+                                                                                    "&"
+                                                                                ).size - 1
+                                                                            ) {
+                                                                                append("\n&") // Agregar salto de línea antes del "&" si es necesario
+                                                                            }
+                                                                        }
                                                                 }
-                                                            }
-                                                        )
+                                                            )
+                                                        }
                                                     }
                                                 }
                                             }
                                         }
-                                    }
-                                    // Mostrar el filtro por tipo solo si hay un género seleccionado
-                                    if (selectedGenreId != null) {
-                                        HorizontalDivider()
-                                        DropdownMenuItem(
-                                            text = { Text("Filtrar por tipo") },
-                                            onClick = {}
-                                        )
+                                        // Mostrar el filtro por tipo solo si hay un género seleccionado
+                                        if (selectedGenreId != null) {
+                                            HorizontalDivider()
+                                            DropdownMenuItem(
+                                                text = { Text("Filtrar por tipo") },
+                                                onClick = {}
+                                            )
 
-                                        // Filtro para "Películas"
-                                        Row(
-                                            modifier = Modifier.padding(horizontal = 8.dp),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Checkbox(checked = filterMovie, onCheckedChange = {
-                                                filterMovie = it
-                                                if (it) filterSerie = false // Si se selecciona película, desmarcar serie
-                                            })
-                                            Spacer(modifier = Modifier.width(4.dp))
-                                            Text("Películas")
+                                            // Filtro para "Películas"
+                                            Row(
+                                                modifier = Modifier.padding(horizontal = 8.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Checkbox(checked = filterMovie, onCheckedChange = {
+                                                    filterMovie = it
+                                                    if (it) filterSerie =
+                                                        false // Si se selecciona película, desmarcar serie
+                                                })
+                                                Spacer(modifier = Modifier.width(4.dp))
+                                                Text("Películas")
+                                            }
+
+                                            // Filtro para "Series"
+                                            Row(
+                                                modifier = Modifier.padding(horizontal = 8.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Checkbox(checked = filterSerie, onCheckedChange = {
+                                                    filterSerie = it
+                                                    if (it) filterMovie =
+                                                        false // Si se selecciona serie, desmarcar película
+                                                })
+                                                Spacer(modifier = Modifier.width(4.dp))
+                                                Text("Series")
+                                            }
+
                                         }
-
-                                        // Filtro para "Series"
-                                        Row(
-                                            modifier = Modifier.padding(horizontal = 8.dp),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Checkbox(checked = filterSerie, onCheckedChange = {
-                                                filterSerie = it
-                                                if (it) filterMovie = false // Si se selecciona serie, desmarcar película
-                                            })
-                                            Spacer(modifier = Modifier.width(4.dp))
-                                            Text("Series")
-                                        }
-
                                     }
                                 }
                             }
                         }
                     }
-                }
-                if (searchQuery.isNotEmpty()) {
-                    Box(
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        // Variables de estado para el menú desplegable
-                        var expandedSearch by remember { mutableStateOf(false) }
-                        var selectedTextSearch by rememberSaveable { mutableStateOf("Sin orden") }
+                    if (searchQuery.isNotEmpty()) {
+                        Box(
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            // Variables de estado para el menú desplegable
+                            var expandedSearch by remember { mutableStateOf(false) }
+                            var selectedTextSearch by rememberSaveable { mutableStateOf("Sin orden") }
 
-                        val filteredSearchResults = movieResults.filter {
-                            (filterMovie && !it.esSerie) || (filterSerie && it.esSerie) || (!filterMovie && !filterSerie)
+                            val filteredSearchResults = movieResults.filter {
+                                (filterMovie && !it.esSerie) || (filterSerie && it.esSerie) || (!filterMovie && !filterSerie)
+                            }
+
+                            val sortedSearchResults = when (selectedTextSearch) {
+                                "Ascendente" -> filteredSearchResults.sortedBy { it.popularity }
+                                "Descendente" -> filteredSearchResults.sortedByDescending { it.popularity }
+                                else -> filteredSearchResults
+                            }
+
+                            if (sortedSearchResults.isNotEmpty()) { // ✅ Solo muestra el menú si hay películas
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp)
+                                        .align(Alignment.TopCenter)
+                                ) {
+                                    ExposedDropdownMenuBox(
+                                        expanded = expandedSearch,
+                                        onExpandedChange = { expandedSearch = !expandedSearch }
+                                    ) {
+                                        OutlinedTextField(
+                                            value = selectedTextSearch,
+                                            onValueChange = {},
+                                            readOnly = true,
+                                            label = { Text(
+                                                "Ordenar por popularidad",
+                                                color = Color.White // Texto del label en blanco
+                                            )},
+                                            textStyle = LocalTextStyle.current.copy(color = Color.White),
+                                            shape = MaterialTheme.shapes.large,
+                                            colors = TextFieldDefaults.outlinedTextFieldColors(
+                                                focusedBorderColor = Color.White,    // Borde blanco cuando está enfocado
+                                                unfocusedBorderColor = Color.White,  // Borde blanco cuando no está enfocado
+                                            ),
+                                            trailingIcon = {
+                                                Icon(
+                                                    imageVector = Icons.Default.ArrowDropDown,
+                                                    tint = Color.White,
+                                                    contentDescription = "Expandir"
+                                                )
+                                            },
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .menuAnchor()
+                                        )
+
+                                        ExposedDropdownMenu(
+                                            expanded = expandedSearch,
+                                            onDismissRequest = { expandedSearch = false }
+                                        ) {
+                                            options.forEach { option ->
+                                                DropdownMenuItem(
+                                                    text = { Text(option) },
+                                                    onClick = {
+                                                        selectedTextSearch = option
+                                                        expandedSearch = false
+                                                    }
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            LazyColumn(
+                                modifier = Modifier.padding(top = 120.dp),
+                            ) {
+                                items(sortedSearchResults) { movie ->
+                                    ContentListSearch(movie = movie, navController = navController)
+                                }
+                            }
                         }
-
-                        val sortedSearchResults = when (selectedTextSearch) {
-                            "Ascendente" -> filteredSearchResults.sortedBy { it.popularity }
-                            "Descendente" -> filteredSearchResults.sortedByDescending { it.popularity }
-                            else -> filteredSearchResults
-                        }
-
-                        if (sortedSearchResults.isNotEmpty()) { // ✅ Solo muestra el menú si hay películas
+                    } else if (selectedGenreId != null) {
+                        Box(
+                            modifier = Modifier.fillMaxSize() // ✅ Define el tamaño del contenedor padre
+                        ) {
+                            var selectedText by rememberSaveable { mutableStateOf("Sin orden") } // Valor inicial
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -509,542 +623,497 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                     .align(Alignment.TopCenter)
                             ) {
                                 ExposedDropdownMenuBox(
-                                    expanded = expandedSearch,
-                                    onExpandedChange = { expandedSearch = !expandedSearch }
+                                    expanded = expanded,
+                                    onExpandedChange = {
+                                        expanded = !expanded
+                                    } // Se encarga de abrir y cerrar el menú
                                 ) {
                                     OutlinedTextField(
-                                        value = selectedTextSearch,
+                                        value = selectedText,
                                         onValueChange = {},
                                         readOnly = true,
                                         label = { Text("Ordenar por popularidad") },
-                                        shape = MaterialTheme.shapes.large,
+                                        shape = MaterialTheme.shapes.large, // Hace que la caja sea ovalada
                                         trailingIcon = {
-                                            Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = "Expandir")
+                                            Icon(
+                                                imageVector = Icons.Default.ArrowDropDown,
+                                                contentDescription = "Expandir"
+                                            )
                                         },
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .menuAnchor()
+                                            .menuAnchor() // Necesario para que funcione con ExposedDropdownMenuBox
                                     )
 
                                     ExposedDropdownMenu(
-                                        expanded = expandedSearch,
-                                        onDismissRequest = { expandedSearch = false }
+                                        expanded = expanded,
+                                        onDismissRequest = { expanded = false }
                                     ) {
                                         options.forEach { option ->
                                             DropdownMenuItem(
                                                 text = { Text(option) },
                                                 onClick = {
-                                                    selectedTextSearch = option
-                                                    expandedSearch = false
+                                                    selectedText = option
+                                                    expanded = false
+                                                    // Aquí se puede cambiar la lógica de ordenación
                                                 }
                                             )
                                         }
                                     }
                                 }
                             }
-                        }
 
-                        LazyColumn(
-                            modifier = Modifier.padding(top = 120.dp),
-                        ) {
-                            items(sortedSearchResults) { movie ->
-                                ContentListSearch(movie = movie, navController = navController)
+                            // Filtramos los elementos según el género y tipo (película o serie)
+                            val filteredItems = contenidoPorGenero.value.filter {
+                                (filterMovie && !it.esSerie) || (filterSerie && it.esSerie) || (!filterMovie && !filterSerie)
+                            }
+
+                            // Ordenamos los elementos según la opción seleccionada en el menú desplegable
+                            val sortedItems = when (selectedText) {
+                                "Ascendente" -> filteredItems.sortedBy { it.popularity }
+                                "Descendente" -> filteredItems.sortedByDescending { it.popularity }
+                                else -> filteredItems // Sin orden
+                            }
+
+                            if (sortedItems.isEmpty()) {
+                                val noResultsText = when {
+                                    filterMovie -> "No se encontraron películas de este género."
+                                    filterSerie -> "No se encontraron series de este género."
+                                    else -> "No se encontraron resultados."
+                                }
+
+                                Box(
+                                    modifier = Modifier.fillMaxSize() // Asegura que el Box ocupe todo el espacio disponible
+                                ) {
+                                    Text(
+                                        text = noResultsText,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontSize = 16.sp,
+                                        color = Color.Black,
+                                        modifier = Modifier.align(Alignment.Center) // Alineamos el texto al centro dentro del Box
+                                    )
+                                }
+                            } else {
+                                LazyColumn(
+                                    modifier = Modifier.padding(top = 120.dp),
+                                    state = listState
+                                ) {
+                                    items(sortedItems) { movie ->
+                                        ContentListSearch(
+                                            movie = movie,
+                                            navController = navController
+                                        )
+                                    }
+                                }
+
+                                // Desplazar al principio cuando se seleccione un nuevo género
+                                LaunchedEffect(selectedGenreId) {
+                                    listState.scrollToItem(0)
+                                }
                             }
                         }
-                    }
-                }
-
-                else if (selectedGenreId != null) {
-                    Box(
-                        modifier = Modifier.fillMaxSize() // ✅ Define el tamaño del contenedor padre
-                    ) {
-                        var selectedText by rememberSaveable { mutableStateOf("Sin orden") } // Valor inicial
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp)
-                                .align(Alignment.TopCenter)
+                    } else {
+                        TabRow(
+                            selectedTabIndex = selectedIndex,
+                            modifier = Modifier.fillMaxWidth(),
+                            containerColor = Color.Transparent,
+                            contentColor = Color.White, // Color del texto y del indicador
+                            indicator = { tabPositions ->
+                                SecondaryIndicator(
+                                    modifier = Modifier.tabIndicatorOffset(tabPositions[selectedIndex]),
+                                    color = Color.White // Color del indicador (línea inferior)
+                                )
+                            }
                         ) {
-                            ExposedDropdownMenuBox(
-                                expanded = expanded,
-                                onExpandedChange = {
-                                    expanded = !expanded
-                                } // Se encarga de abrir y cerrar el menú
-                            ) {
-                                OutlinedTextField(
-                                    value = selectedText,
-                                    onValueChange = {},
-                                    readOnly = true,
-                                    label = { Text("Ordenar por popularidad") },
-                                    shape = MaterialTheme.shapes.large, // Hace que la caja sea ovalada
-                                    trailingIcon = {
-                                        Icon(
-                                            imageVector = Icons.Default.ArrowDropDown,
-                                            contentDescription = "Expandir"
+                            tabs.forEachIndexed { index, title ->
+                                Tab(
+                                    selected = selectedIndex == index,
+                                    onClick = { selectedTab = title },
+                                    text = {
+                                        Text(
+                                            title,
+                                            color = Color.White // Color del texto explícito
                                         )
                                     },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .menuAnchor() // Necesario para que funcione con ExposedDropdownMenuBox
-                                )
-
-                                ExposedDropdownMenu(
-                                    expanded = expanded,
-                                    onDismissRequest = { expanded = false }
-                                ) {
-                                    options.forEach { option ->
-                                        DropdownMenuItem(
-                                            text = { Text(option) },
-                                            onClick = {
-                                                selectedText = option
-                                                expanded = false
-                                                // Aquí se puede cambiar la lógica de ordenación
-                                            }
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-                        // Filtramos los elementos según el género y tipo (película o serie)
-                        val filteredItems = contenidoPorGenero.value.filter {
-                            (filterMovie && !it.esSerie) || (filterSerie && it.esSerie) || (!filterMovie && !filterSerie)
-                        }
-
-                        // Ordenamos los elementos según la opción seleccionada en el menú desplegable
-                        val sortedItems = when (selectedText) {
-                            "Ascendente" -> filteredItems.sortedBy { it.popularity }
-                            "Descendente" -> filteredItems.sortedByDescending { it.popularity }
-                            else -> filteredItems // Sin orden
-                        }
-
-                        if (sortedItems.isEmpty()) {
-                            val noResultsText = when {
-                                filterMovie -> "No se encontraron películas de este género."
-                                filterSerie -> "No se encontraron series de este género."
-                                else -> "No se encontraron resultados."
-                            }
-
-                            Box(
-                                modifier = Modifier.fillMaxSize() // Asegura que el Box ocupe todo el espacio disponible
-                            ) {
-                                Text(
-                                    text = noResultsText,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontSize = 16.sp,
-                                    color = Color.Black,
-                                    modifier = Modifier.align(Alignment.Center) // Alineamos el texto al centro dentro del Box
+                                    selectedContentColor = Color.White, // Color cuando está seleccionado
+                                    unselectedContentColor = Color.White.copy(alpha = 0.7f) // Color cuando no está seleccionado (ligeramente transparente)
                                 )
                             }
-                        } else {
-                            LazyColumn(
-                                modifier = Modifier.padding(top = 120.dp),
-                                state = listState
-                            ) {
-                                items(sortedItems) { movie ->
-                                    ContentListSearch(movie = movie, navController = navController)
-                                }
-                            }
-
-                            // Desplazar al principio cuando se seleccione un nuevo género
-                            LaunchedEffect(selectedGenreId) {
-                                listState.scrollToItem(0)
-                            }
                         }
-                    }
-                }
-                else {
-                    TabRow(
-                        selectedTabIndex = selectedIndex,
-                        modifier = Modifier.fillMaxWidth(),
-                        containerColor = Color.Transparent
-                    ) {
-                        tabs.forEachIndexed { index, title ->
-                            Tab(
-                                selected = selectedIndex == index,
-                                onClick = { selectedTab = title },
-                                text = { Text(title) }
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 16.dp)
-                    ) {
-                        val isLoadingExplore = movies.isEmpty()
+                        Spacer(modifier = Modifier.height(16.dp))
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 16.dp)
+                        ) {
+                            val isLoadingExplore = movies.isEmpty()
 
-                        // Mostrar indicador de carga si no hay películas ni series
-                        if (isLoadingExplore) {
-                            item {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(16.dp), // Añadir padding para que haya espacio alrededor
-                                    contentAlignment = Alignment.Center // Centrar el indicador
-                                ) {
-                                    Spacer(modifier = Modifier.height(250.dp))
-                                    CircularProgressIndicator() // Indicador de carga
-                                }
-                            }
-                        } else {
-                            println("a1")
-                            println("selectedTab: $selectedTab")
-                            if (selectedTab == "Peliculas") {
-                                println("aaaaaaaaaa")
-                                if (movies.isNotEmpty()) {
-                                    item {
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(300.dp) // Ajustamos el tamaño para que el fondo sea más grande
-                                                .padding(16.dp) // Añadimos padding para que haya espacio alrededor del contenido
-                                        ) {
-                                            // Fondo de la caja con drawable
-                                            Box(
-                                                modifier = Modifier
-                                                    .fillMaxSize() // Asegura que la imagen ocupe todo el tamaño del Box
-                                            ) {
-                                                Image(
-                                                    painter = painterResource(id = R.drawable.fondo_estrellas), // Aplica el fondo drawable
-                                                    contentDescription = null,
-                                                    modifier = Modifier
-                                                        .fillMaxSize() // La imagen se ajusta a toda la caja
-                                                        .graphicsLayer(
-                                                            scaleX = 1.2f, // Escalar un poco la imagen para que cubra más espacio
-                                                            scaleY = 1.4f  // Escalar un poco la imagen para que cubra más espacio
-                                                        )
-                                                )
-                                            }
-                                            // Contenido sobre el fondo
-                                            Column {
-                                                Text(
-                                                    "Popular movies",
-                                                    style = MaterialTheme.typography.headlineMedium,
-                                                    color = Color.White
-                                                )
-                                                Spacer(modifier = Modifier.height(8.dp)) // Espacio entre el texto y la lista
-                                                ContentListExplore(
-                                                    movies,
-                                                    navController,
-                                                    movieListState,
-                                                    //false
-                                                ) // Lista de películas
-                                            }
-                                        }
-                                    }
-                                    item { Spacer(modifier = Modifier.height(25.dp)) }
-                                }
-
-                                if (actionMovies.isNotEmpty()) {
-                                    item {
-                                        Text(
-                                            "Action movies",
-                                            style = MaterialTheme.typography.headlineMedium
-                                        )
-                                    }
-                                    item { Spacer(modifier = Modifier.height(8.dp)) }
-                                    item {
-                                        ContentListExplore(
-                                            actionMovies,
-                                            navController,
-                                            actionMovieListState,
-                                            //false
-                                        )
-                                    }
-                                }
-
-                                if (romanceMovies.isNotEmpty()) {
-                                    item {
-                                        Text(
-                                            "Romance movies",
-                                            style = MaterialTheme.typography.headlineMedium
-                                        )
-                                    }
-                                    item { Spacer(modifier = Modifier.height(8.dp)) }
-                                    item {
-                                        ContentListExplore(
-                                            romanceMovies,
-                                            navController,
-                                            romanceMovieListState,
-                                            //false
-                                        )
-                                    }
-                                }
-
-                                if (familyMovies.isNotEmpty()) {
-                                    item {
-                                        Text(
-                                            "Family movies",
-                                            style = MaterialTheme.typography.headlineMedium
-                                        )
-                                    }
-                                    item { Spacer(modifier = Modifier.height(8.dp)) }
-                                    item {
-                                        ContentListExplore(
-                                            familyMovies,
-                                            navController,
-                                            familyMovieListState,
-                                            //false
-                                        )
-                                    }
-                                }
-
-                                if (comedyMovies.isNotEmpty()) {
-                                    item {
-                                        Text(
-                                            "Comedy movies",
-                                            style = MaterialTheme.typography.headlineMedium
-                                        )
-                                    }
-                                    item { Spacer(modifier = Modifier.height(8.dp)) }
-                                    item {
-                                        ContentListExplore(
-                                            comedyMovies,
-                                            navController,
-                                            comedyMovieListState,
-                                            //false
-                                        )
-                                    }
-                                }
-
-                                if (thrillerMovies.isNotEmpty()) {
-                                    item {
-                                        Text(
-                                            "Thriller movies",
-                                            style = MaterialTheme.typography.headlineMedium
-                                        )
-                                    }
-                                    item { Spacer(modifier = Modifier.height(8.dp)) }
-                                    item {
-                                        ContentListExplore(
-                                            thrillerMovies,
-                                            navController,
-                                            thrillerMovieListState,
-                                            //false
-                                        )
-                                    }
-                                }
-
-                                if (horrorMovies.isNotEmpty()) {
-                                    item {
-                                        Text(
-                                            "Horror movies",
-                                            style = MaterialTheme.typography.headlineMedium
-                                        )
-                                    }
-                                    item { Spacer(modifier = Modifier.height(8.dp)) }
-                                    item {
-                                        ContentListExplore(
-                                            horrorMovies,
-                                            navController,
-                                            horrorMovieListState,
-                                            //false
-                                        )
-                                    }
-                                }
-
-                                if (scienceFictionMovies.isNotEmpty()) {
-                                    item {
-                                        Text(
-                                            "Science Fiction movies",
-                                            style = MaterialTheme.typography.headlineMedium
-                                        )
-                                    }
-                                    item { Spacer(modifier = Modifier.height(8.dp)) }
-                                    item {
-                                        ContentListExplore(
-                                            scienceFictionMovies,
-                                            navController,
-                                            sciencieFictionMovieListState,
-                                            //false
-                                        )
+                            // Mostrar indicador de carga si no hay películas ni series
+                            if (isLoadingExplore) {
+                                item {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .padding(16.dp), // Añadir padding para que haya espacio alrededor
+                                        contentAlignment = Alignment.Center // Centrar el indicador
+                                    ) {
+                                        Spacer(modifier = Modifier.height(250.dp))
+                                        CircularProgressIndicator() // Indicador de carga
                                     }
                                 }
                             } else {
-                                if (series.isNotEmpty()) {
-                                    item {
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(300.dp) // Ajustamos el tamaño para que el fondo sea más grande
-                                                .padding(16.dp) // Añadimos padding para que haya espacio alrededor del contenido
-                                        ) {
-                                            // Fondo de la caja con drawable
+                                println("selectedTab: $selectedTab")
+                                if (selectedTab == "Peliculas") {
+                                    if (movies.isNotEmpty()) {
+                                        item {
                                             Box(
                                                 modifier = Modifier
-                                                    .fillMaxSize() // Asegura que la imagen ocupe todo el tamaño del Box
+                                                    .fillMaxWidth()
+                                                    .height(300.dp) // Ajustamos el tamaño para que el fondo sea más grande
+                                                    .padding(16.dp) // Añadimos padding para que haya espacio alrededor del contenido
                                             ) {
-                                                Image(
-                                                    painter = painterResource(id = R.drawable.fondo_estrellas), // Aplica el fondo drawable
-                                                    contentDescription = null,
+                                                // Fondo de la caja con drawable
+                                                Box(
                                                     modifier = Modifier
-                                                        .fillMaxSize() // La imagen se ajusta a toda la caja
-                                                        .graphicsLayer(
-                                                            scaleX = 1.2f, // Escalar un poco la imagen para que cubra más espacio
-                                                            scaleY = 1.4f  // Escalar un poco la imagen para que cubra más espacio
-                                                        )
-                                                )
-                                            }
-                                            // Contenido sobre el fondo
-                                            Column {
-                                                Text(
-                                                    "Popular series",
-                                                    style = MaterialTheme.typography.headlineMedium,
-                                                    color = Color.White
-                                                )
-                                                Spacer(modifier = Modifier.height(8.dp)) // Espacio entre el texto y la lista
-                                                ContentListExplore(
-                                                    series,
-                                                    navController,
-                                                    seriesListState,
-                                                    //true
-                                                )
+                                                        .fillMaxSize() // Asegura que la imagen ocupe todo el tamaño del Box
+                                                ) {
+                                                    Image(
+                                                        painter = painterResource(id = R.drawable.fondo_estrellas), // Aplica el fondo drawable
+                                                        contentDescription = null,
+                                                        modifier = Modifier
+                                                            .fillMaxSize() // La imagen se ajusta a toda la caja
+                                                            .graphicsLayer(
+                                                                scaleX = 1.2f, // Escalar un poco la imagen para que cubra más espacio
+                                                                scaleY = 1.4f  // Escalar un poco la imagen para que cubra más espacio
+                                                            )
+                                                    )
+                                                }
+                                                // Contenido sobre el fondo
+                                                Column {
+                                                    Text(
+                                                        "Popular movies",
+                                                        style = MaterialTheme.typography.headlineMedium,
+                                                        color = Color.White
+                                                    )
+                                                    Spacer(modifier = Modifier.height(8.dp)) // Espacio entre el texto y la lista
+                                                    ContentListExplore(
+                                                        movies,
+                                                        navController,
+                                                        movieListState,
+                                                    )
+                                                }
                                             }
                                         }
+                                        item { Spacer(modifier = Modifier.height(25.dp)) }
                                     }
-                                    item { Spacer(modifier = Modifier.height(25.dp)) }
-                                }
 
-                                if (actionAdventureSeries.isNotEmpty()) {
-                                    item {
-                                        Text(
-                                            "Action & Adventure series",
-                                            style = MaterialTheme.typography.headlineMedium
-                                        )
+                                    if (actionMovies.isNotEmpty()) {
+                                        item {
+                                            Text(
+                                                "Action movies",
+                                                color = Color.White,
+                                                style = MaterialTheme.typography.headlineMedium
+                                            )
+                                        }
+                                        item { Spacer(modifier = Modifier.height(8.dp)) }
+                                        item {
+                                            ContentListExplore(
+                                                actionMovies,
+                                                navController,
+                                                actionMovieListState,
+                                            )
+                                        }
                                     }
-                                    item { Spacer(modifier = Modifier.height(8.dp)) }
-                                    item {
-                                        ContentListExplore(
-                                            actionAdventureSeries,
-                                            navController,
-                                            actionadventureSerieListState,
-                                            //true
-                                        )
-                                    }
-                                }
 
-                                if (animationSeries.isNotEmpty()) {
-                                    item {
-                                        Text(
-                                            "Animation series",
-                                            style = MaterialTheme.typography.headlineMedium
-                                        )
+                                    if (romanceMovies.isNotEmpty()) {
+                                        item {
+                                            Text(
+                                                "Romance movies",
+                                                color = Color.White,
+                                                style = MaterialTheme.typography.headlineMedium
+                                            )
+                                        }
+                                        item { Spacer(modifier = Modifier.height(8.dp)) }
+                                        item {
+                                            ContentListExplore(
+                                                romanceMovies,
+                                                navController,
+                                                romanceMovieListState,
+                                            )
+                                        }
                                     }
-                                    item { Spacer(modifier = Modifier.height(8.dp)) }
-                                    item {
-                                        ContentListExplore(
-                                            animationSeries,
-                                            navController,
-                                            animationSerieListState,
-                                            //true
-                                        )
-                                    }
-                                }
 
-                                if (comedySeries.isNotEmpty()) {
-                                    item {
-                                        Text(
-                                            "Comedy series",
-                                            style = MaterialTheme.typography.headlineMedium
-                                        )
+                                    if (familyMovies.isNotEmpty()) {
+                                        item {
+                                            Text(
+                                                "Family movies",
+                                                color = Color.White,
+                                                style = MaterialTheme.typography.headlineMedium
+                                            )
+                                        }
+                                        item { Spacer(modifier = Modifier.height(8.dp)) }
+                                        item {
+                                            ContentListExplore(
+                                                familyMovies,
+                                                navController,
+                                                familyMovieListState,
+                                            )
+                                        }
                                     }
-                                    item { Spacer(modifier = Modifier.height(8.dp)) }
-                                    item {
-                                        ContentListExplore(
-                                            comedySeries,
-                                            navController,
-                                            comedySerieListState,
-                                            //true
-                                        )
-                                    }
-                                }
 
-                                if (crimeSeries.isNotEmpty()) {
-                                    item {
-                                        Text(
-                                            "Crime series",
-                                            style = MaterialTheme.typography.headlineMedium
-                                        )
+                                    if (comedyMovies.isNotEmpty()) {
+                                        item {
+                                            Text(
+                                                "Comedy movies",
+                                                color = Color.White,
+                                                style = MaterialTheme.typography.headlineMedium
+                                            )
+                                        }
+                                        item { Spacer(modifier = Modifier.height(8.dp)) }
+                                        item {
+                                            ContentListExplore(
+                                                comedyMovies,
+                                                navController,
+                                                comedyMovieListState,
+                                            )
+                                        }
                                     }
-                                    item { Spacer(modifier = Modifier.height(8.dp)) }
-                                    item {
-                                        ContentListExplore(
-                                            crimeSeries,
-                                            navController,
-                                            crimeListState,
-                                            //true
-                                        )
-                                    }
-                                }
 
-                                if (dramaSeries.isNotEmpty()) {
-                                    item {
-                                        Text(
-                                            "Drama series",
-                                            style = MaterialTheme.typography.headlineMedium
-                                        )
+                                    if (thrillerMovies.isNotEmpty()) {
+                                        item {
+                                            Text(
+                                                "Thriller movies",
+                                                color = Color.White,
+                                                style = MaterialTheme.typography.headlineMedium
+                                            )
+                                        }
+                                        item { Spacer(modifier = Modifier.height(8.dp)) }
+                                        item {
+                                            ContentListExplore(
+                                                thrillerMovies,
+                                                navController,
+                                                thrillerMovieListState,
+                                            )
+                                        }
                                     }
-                                    item { Spacer(modifier = Modifier.height(8.dp)) }
-                                    item {
-                                        ContentListExplore(
-                                            dramaSeries,
-                                            navController,
-                                            dramaListState,
-                                            //true
-                                        )
-                                    }
-                                }
 
-                                if (familySeries.isNotEmpty()) {
-                                    item {
-                                        Text(
-                                            "Family series",
-                                            style = MaterialTheme.typography.headlineMedium
-                                        )
+                                    if (horrorMovies.isNotEmpty()) {
+                                        item {
+                                            Text(
+                                                "Horror movies",
+                                                color = Color.White,
+                                                style = MaterialTheme.typography.headlineMedium
+                                            )
+                                        }
+                                        item { Spacer(modifier = Modifier.height(8.dp)) }
+                                        item {
+                                            ContentListExplore(
+                                                horrorMovies,
+                                                navController,
+                                                horrorMovieListState,
+                                            )
+                                        }
                                     }
-                                    item { Spacer(modifier = Modifier.height(8.dp)) }
-                                    item {
-                                        ContentListExplore(
-                                            familySeries,
-                                            navController,
-                                            familySerieListState,
-                                            //true
-                                        )
-                                    }
-                                }
 
-                                if (kidsSeries.isNotEmpty()) {
-                                    item {
-                                        Text(
-                                            "Kids series",
-                                            style = MaterialTheme.typography.headlineMedium
-                                        )
+                                    if (scienceFictionMovies.isNotEmpty()) {
+                                        item {
+                                            Text(
+                                                "Science Fiction movies",
+                                                color = Color.White,
+                                                style = MaterialTheme.typography.headlineMedium
+                                            )
+                                        }
+                                        item { Spacer(modifier = Modifier.height(8.dp)) }
+                                        item {
+                                            ContentListExplore(
+                                                scienceFictionMovies,
+                                                navController,
+                                                sciencieFictionMovieListState,
+                                            )
+                                        }
                                     }
-                                    item { Spacer(modifier = Modifier.height(8.dp)) }
-                                    item {
-                                        ContentListExplore(
-                                            kidsSeries,
-                                            navController,
-                                            kidsSerieListState,
-                                            //true
-                                        )
+                                } else {
+                                    if (series.isNotEmpty()) {
+                                        item {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(300.dp) // Ajustamos el tamaño para que el fondo sea más grande
+                                                    .padding(16.dp) // Añadimos padding para que haya espacio alrededor del contenido
+                                            ) {
+                                                // Fondo de la caja con drawable
+                                                Box(
+                                                    modifier = Modifier
+                                                        .fillMaxSize() // Asegura que la imagen ocupe todo el tamaño del Box
+                                                ) {
+                                                    Image(
+                                                        painter = painterResource(id = R.drawable.fondo_estrellas), // Aplica el fondo drawable
+                                                        contentDescription = null,
+                                                        modifier = Modifier
+                                                            .fillMaxSize() // La imagen se ajusta a toda la caja
+                                                            .graphicsLayer(
+                                                                scaleX = 1.2f, // Escalar un poco la imagen para que cubra más espacio
+                                                                scaleY = 1.4f  // Escalar un poco la imagen para que cubra más espacio
+                                                            )
+                                                    )
+                                                }
+                                                // Contenido sobre el fondo
+                                                Column {
+                                                    Text(
+                                                        "Popular series",
+                                                        style = MaterialTheme.typography.headlineMedium,
+                                                        color = Color.White
+                                                    )
+                                                    Spacer(modifier = Modifier.height(8.dp)) // Espacio entre el texto y la lista
+                                                    ContentListExplore(
+                                                        series,
+                                                        navController,
+                                                        seriesListState,
+                                                    )
+                                                }
+                                            }
+                                        }
+                                        item { Spacer(modifier = Modifier.height(25.dp)) }
+                                    }
+
+                                    if (actionAdventureSeries.isNotEmpty()) {
+                                        item {
+                                            Text(
+                                                "Action & Adventure series",
+                                                color = Color.White,
+                                                style = MaterialTheme.typography.headlineMedium
+                                            )
+                                        }
+                                        item { Spacer(modifier = Modifier.height(8.dp)) }
+                                        item {
+                                            ContentListExplore(
+                                                actionAdventureSeries,
+                                                navController,
+                                                actionadventureSerieListState,
+                                            )
+                                        }
+                                    }
+
+                                    if (animationSeries.isNotEmpty()) {
+                                        item {
+                                            Text(
+                                                "Animation series",
+                                                color = Color.White,
+                                                style = MaterialTheme.typography.headlineMedium
+                                            )
+                                        }
+                                        item { Spacer(modifier = Modifier.height(8.dp)) }
+                                        item {
+                                            ContentListExplore(
+                                                animationSeries,
+                                                navController,
+                                                animationSerieListState,
+                                            )
+                                        }
+                                    }
+
+                                    if (comedySeries.isNotEmpty()) {
+                                        item {
+                                            Text(
+                                                "Comedy series",
+                                                color = Color.White,
+                                                style = MaterialTheme.typography.headlineMedium
+                                            )
+                                        }
+                                        item { Spacer(modifier = Modifier.height(8.dp)) }
+                                        item {
+                                            ContentListExplore(
+                                                comedySeries,
+                                                navController,
+                                                comedySerieListState,
+                                            )
+                                        }
+                                    }
+
+                                    if (crimeSeries.isNotEmpty()) {
+                                        item {
+                                            Text(
+                                                "Crime series",
+                                                color = Color.White,
+                                                style = MaterialTheme.typography.headlineMedium
+                                            )
+                                        }
+                                        item { Spacer(modifier = Modifier.height(8.dp)) }
+                                        item {
+                                            ContentListExplore(
+                                                crimeSeries,
+                                                navController,
+                                                crimeListState,
+                                            )
+                                        }
+                                    }
+
+                                    if (dramaSeries.isNotEmpty()) {
+                                        item {
+                                            Text(
+                                                "Drama series",
+                                                color = Color.White,
+                                                style = MaterialTheme.typography.headlineMedium
+                                            )
+                                        }
+                                        item { Spacer(modifier = Modifier.height(8.dp)) }
+                                        item {
+                                            ContentListExplore(
+                                                dramaSeries,
+                                                navController,
+                                                dramaListState,
+                                            )
+                                        }
+                                    }
+
+                                    if (familySeries.isNotEmpty()) {
+                                        item {
+                                            Text(
+                                                "Family series",
+                                                color = Color.White,
+                                                style = MaterialTheme.typography.headlineMedium
+                                            )
+                                        }
+                                        item { Spacer(modifier = Modifier.height(8.dp)) }
+                                        item {
+                                            ContentListExplore(
+                                                familySeries,
+                                                navController,
+                                                familySerieListState,
+                                            )
+                                        }
+                                    }
+
+                                    if (kidsSeries.isNotEmpty()) {
+                                        item {
+                                            Text(
+                                                "Kids series",
+                                                color = Color.White,
+                                                style = MaterialTheme.typography.headlineMedium
+                                            )
+                                        }
+                                        item { Spacer(modifier = Modifier.height(8.dp)) }
+                                        item {
+                                            ContentListExplore(
+                                                kidsSeries,
+                                                navController,
+                                                kidsSerieListState,
+                                            )
+                                        }
                                     }
                                 }
                             }
                         }
                     }
+                } else {
+                    ScreenRecharge(
+                        conexionViewModel,
+                        onRecargar = {
+                            // Aquí pones la lógica para recargar datos cuando la conexión se restablezca
+                            println("Datos recargados")
+                        }
+                    )
                 }
-            }
-            else {
-                ScreenRecharge(
-                    conexionViewModel,
-                    onRecargar = {
-                        // Aquí pones la lógica para recargar datos cuando la conexión se restablezca
-                        println("Datos recargados")
-                    }
-                )
             }
         }
     }
