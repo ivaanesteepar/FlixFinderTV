@@ -9,12 +9,8 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material3.*
@@ -183,14 +179,14 @@ fun TriviaScreen(
                             modifier = Modifier.fillMaxSize()
                         ) {
                             Text(
-                                text = "Bienvenido al Trivia de FlixFinderTV!",
+                                text = "Welcome to the FlixFinderTV Trivia!",
                                 style = MaterialTheme.typography.headlineSmall,
                                 color = Color.White,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.padding(16.dp)
                             )
                             Button(onClick = { showWelcomeScreen = false }) {
-                                Text(text = "Comenzar")
+                                Text(text = "Start")
                             }
                         }
                         Text(
@@ -200,10 +196,10 @@ fun TriviaScreen(
                                 fontWeight = FontWeight.Bold
                             ),
                             modifier = Modifier
-                                .align(Alignment.BottomCenter) // Alineación en la parte inferior central
+                                .align(Alignment.BottomCenter)
                                 .padding(16.dp)
+                                .offset(y = (-20).dp)
                         )
-                        Spacer(modifier = Modifier.height(16.dp))
                     }
                 } else {
                     Column(

@@ -37,6 +37,8 @@ fun UserListScreen(navController: NavController, uid: String, isFollowing: Boole
     var isLoading by remember { mutableStateOf(true) }
     val coroutineScope = rememberCoroutineScope()
 
+    println("isFollowing aqui es: $isFollowing")
+
     LaunchedEffect(uid, isFollowing) {
         coroutineScope.launch {
             userList = if (isFollowing) {

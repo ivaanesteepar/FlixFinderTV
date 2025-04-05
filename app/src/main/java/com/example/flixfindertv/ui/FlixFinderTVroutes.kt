@@ -80,14 +80,14 @@ fun FlixFinderTVroutes(modifier: Modifier = Modifier) {
                 val uid = backStackEntry.arguments?.getString("uid") ?: ""
                 FavouriteContent(navController, uid, esSerie)
             }
-            composable("users_list/{uid}/{isFollowing}"){ backStackEntry ->
+            composable("users_list/{uid}/{isFollowing}") { backStackEntry ->
                 val uid = backStackEntry.arguments?.getString("uid") ?: ""
-                val isFollowing = backStackEntry.arguments?.getBoolean("isFollowing")
-                println("UID EN ISFOLLOWING: $uid")
+                val isFollowingString = backStackEntry.arguments?.getString("isFollowing")
+                val isFollowing = isFollowingString?.toBoolean() ?: false  // Convierte la cadena a Boolean
+
                 println("ISFOLLOWING EN ISFOLLOWING: $isFollowing")
-                if (isFollowing != null) {
-                    UserListScreen(navController, uid, isFollowing)
-                }
+
+                UserListScreen(navController, uid, isFollowing)
             }
 
         }

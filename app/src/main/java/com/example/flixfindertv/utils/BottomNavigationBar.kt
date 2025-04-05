@@ -3,7 +3,6 @@ package com.example.flixfindertv.utils
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -51,7 +50,7 @@ fun BottomNavigationBar(navController: NavController, uid: String) {
                 },
                 selected = isSelected, // Marca como seleccionado
                 colors = NavigationBarItemDefaults.colors(
-                    indicatorColor = Color.Transparent, // Color de fondo del ítem seleccionado = if (isSelected) LightYellow, // Color del icono cuando está seleccionado
+                    indicatorColor = Color.Transparent,
                 ),
                 onClick = {
                     // Si es el perfil, pasamos el `uid` en la ruta

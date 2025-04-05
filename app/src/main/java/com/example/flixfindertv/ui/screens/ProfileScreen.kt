@@ -253,15 +253,16 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                             .padding(horizontal = 16.dp),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        val columnModifier = if (uid == currentUid || isFollowing.value) {
-                            Modifier.clickable {
-                                navController.navigate("users_list/$uid/false")
-                            }
-                        } else {
-                            Modifier
-                        }
+                        // Columna "Following"
                         Column(
-                            modifier = columnModifier,
+                            modifier = if (uid == currentUid || isFollowing.value) {
+                                Modifier.clickable {
+                                    // Al pulsar en "Following", se navega con "true"
+                                    navController.navigate("users_list/$uid/true")
+                                }
+                            } else {
+                                Modifier
+                            },
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
                             Text(text = "Following", color = Color.White)
@@ -272,9 +273,18 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                                 color = Color.White
                             )
                         }
+
+                        // Columna "Followers"
                         Column(
+                            modifier = if (uid == currentUid || isFollowing.value) {
+                                Modifier.clickable {
+                                    // Al pulsar en "Followers", se navega con "false"
+                                    navController.navigate("users_list/$uid/false")
+                                }
+                            } else {
+                                Modifier
+                            },
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = columnModifier
                         ) {
                             Text(text = "Followers", color = Color.White)
                             Spacer(modifier = Modifier.height(5.dp))
@@ -284,6 +294,8 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                                 color = Color.White
                             )
                         }
+
+                        // Columna "Comments"
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {

@@ -20,6 +20,8 @@ import com.example.flixfindertv.models.Peliculas
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 import androidx.compose.ui.Alignment
 import androidx.compose.material3.IconButton
+import androidx.compose.ui.res.painterResource
+import com.example.flixfindertv.R
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -65,121 +67,128 @@ fun FavouriteContent(navController: NavController, uid:String, esSerie: Boolean)
         )
     }
 
-    // Mostrar la flecha atrás y el contenido
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp)
-            .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Botón de flecha atrás
-        IconButton(
-            onClick = { navController.popBackStack() },
+    Box(modifier = Modifier.fillMaxSize()) {
+        Image(
+            painter = painterResource(id = R.drawable.fondo_app),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+        // Mostrar la flecha atrás y el contenido
+        Column(
             modifier = Modifier
-                .padding(top = 16.dp, start = 8.dp)
-                .align(Alignment.Start)
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Volver",
-                tint = Color.Black
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp)) // Espacio entre el botón y las portadas
-
-        // Mostrar las portadas de acuerdo al tipo (películas o series)
-        if (esSerie) {
-            if (favoriteSeries.value.isNotEmpty()) {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    favoriteSeries.value.chunked(3).forEach { chunk ->
-                        FlowRow(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            chunk.forEach { series ->
-                                Box(
-                                    modifier = Modifier
-                                        .width(120.dp)
-                                        .height(160.dp)
-                                        .clickable {
-                                            navController.navigate("detalles/${series.id}/${true}")
-                                        }
-                                ) {
-                                    val imageUrl = "https://image.tmdb.org/t/p/w500${series.poster_path}"
-                                    Image(
-                                        painter = rememberAsyncImagePainter(imageUrl),
-                                        contentDescription = "Imagen de la serie",
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentScale = ContentScale.Crop
-                                    )
+            // Botón de flecha atrás
+            IconButton(
+                onClick = { navController.popBackStack() },
+                modifier = Modifier
+                    .padding(top = 16.dp, start = 8.dp)
+                    .align(Alignment.Start)
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Volver",
+                    tint = Color.White
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp)) // Espacio entre el botón y las portadas
+            // Mostrar las portadas de acuerdo al tipo (películas o series)
+            if (esSerie) {
+                if (favoriteSeries.value.isNotEmpty()) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        favoriteSeries.value.chunked(3).forEach { chunk ->
+                            FlowRow(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                chunk.forEach { series ->
+                                    Box(
+                                        modifier = Modifier
+                                            .width(120.dp)
+                                            .height(160.dp)
+                                            .clickable {
+                                                navController.navigate("detalles/${series.id}/${true}")
+                                            }
+                                    ) {
+                                        val imageUrl =
+                                            "https://image.tmdb.org/t/p/w500${series.poster_path}"
+                                        Image(
+                                            painter = rememberAsyncImagePainter(imageUrl),
+                                            contentDescription = "Imagen de la serie",
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    }
                                 }
                             }
+                            Spacer(modifier = Modifier.height(16.dp)) // Espacio entre las filas de las portadas
                         }
-                        Spacer(modifier = Modifier.height(16.dp)) // Espacio entre las filas de las portadas
+                    }
+                }
+            } else {
+                if (favoriteMovies.value.isNotEmpty()) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        favoriteMovies.value.chunked(3).forEach { chunk ->
+                            FlowRow(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                chunk.forEach { movie ->
+                                    Box(
+                                        modifier = Modifier
+                                            .width(120.dp)
+                                            .height(160.dp)
+                                            .clickable {
+                                                navController.navigate("detalles/${movie.id}/${false}")
+                                            }
+                                    ) {
+                                        val imageUrl =
+                                            "https://image.tmdb.org/t/p/w500${movie.poster_path}"
+                                        Image(
+                                            painter = rememberAsyncImagePainter(imageUrl),
+                                            contentDescription = "Imagen de la película",
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    }
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(16.dp)) // Espacio entre las filas de las portadas
+                        }
                     }
                 }
             }
-        } else {
-            if (favoriteMovies.value.isNotEmpty()) {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    favoriteMovies.value.chunked(3).forEach { chunk ->
-                        FlowRow(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            chunk.forEach { movie ->
-                                Box(
-                                    modifier = Modifier
-                                        .width(120.dp)
-                                        .height(160.dp)
-                                        .clickable {
-                                            navController.navigate("detalles/${movie.id}/${false}")
-                                        }
-                                ) {
-                                    val imageUrl = "https://image.tmdb.org/t/p/w500${movie.poster_path}"
-                                    Image(
-                                        painter = rememberAsyncImagePainter(imageUrl),
-                                        contentDescription = "Imagen de la película",
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentScale = ContentScale.Crop
-                                    )
-                                }
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(16.dp)) // Espacio entre las filas de las portadas
+        }
+        Column {
+            if (esSerie) {
+                if (favoriteSeries.value.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No tienes series favoritas.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Gray
+                        )
                     }
                 }
-            }
-        }
-    }
-    Column {
-        if (esSerie) {
-            if (favoriteSeries.value.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "No tienes series favoritas.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray
-                    )
-                }
-            }
-        }
-        else {
-            if (favoriteMovies.value.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "No tienes peliculas favoritas.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray
-                    )
+            } else {
+                if (favoriteMovies.value.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No tienes peliculas favoritas.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Gray
+                        )
+                    }
                 }
             }
         }
