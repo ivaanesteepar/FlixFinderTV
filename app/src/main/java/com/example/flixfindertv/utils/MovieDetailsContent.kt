@@ -184,7 +184,7 @@ fun MovieDetailsContent(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 35.dp),
+            .padding(horizontal = 25.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Column(

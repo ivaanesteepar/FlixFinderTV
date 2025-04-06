@@ -5,11 +5,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import com.example.flixfindertv.ui.screens.DetailsScreen
 import com.example.flixfindertv.ui.screens.EditProfileScreen
 import com.example.flixfindertv.ui.screens.ExploreScreen
@@ -84,9 +82,6 @@ fun FlixFinderTVroutes(modifier: Modifier = Modifier) {
                 val uid = backStackEntry.arguments?.getString("uid") ?: ""
                 val isFollowingString = backStackEntry.arguments?.getString("isFollowing")
                 val isFollowing = isFollowingString?.toBoolean() ?: false  // Convierte la cadena a Boolean
-
-                println("ISFOLLOWING EN ISFOLLOWING: $isFollowing")
-
                 UserListScreen(navController, uid, isFollowing)
             }
 

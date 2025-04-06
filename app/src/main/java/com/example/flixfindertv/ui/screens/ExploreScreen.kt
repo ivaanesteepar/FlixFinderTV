@@ -583,7 +583,6 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                                 .fillMaxWidth()
                                                 .menuAnchor()
                                         )
-
                                         ExposedDropdownMenu(
                                             expanded = expandedSearch,
                                             onDismissRequest = { expandedSearch = false }
@@ -601,7 +600,6 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                     }
                                 }
                             }
-
                             LazyColumn(
                                 modifier = Modifier.padding(top = 120.dp),
                             ) {

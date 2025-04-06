@@ -32,6 +32,57 @@ class UsersViewModel : ViewModel() {
     val userIdComment: LiveData<String> get() = _userIdComment
 
 
+    fun updateSimilarContent(nuevoContenidoId: String) {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val userDocRef = FirebaseFirestore.getInstance().collection("usuarios").document(userId)
+
+        userDocRef.update("contenidoVisto", nuevoContenidoId)
+            .addOnSuccessListener {
+                Log.d("ContenidoVisto", "Contenido actualizado a $nuevoContenidoId")
+            }
+            .addOnFailureListener { e ->
+                Log.e("ContenidoVisto", "Error al actualizar contenido visto", e)
+            }
+    }
+
+
+
+    fun updateFavoriteGenre(movieGenre: String) {
+        val firstGenre = movieGenre.split(",").first().trim()
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val userDocRef = FirebaseFirestore.getInstance().collection("usuarios").document(userId)
+        val maxGeneros = 2
+
+        userDocRef.get().addOnSuccessListener { document ->
+            if (document.exists()) {
+                val generosFavoritos = document.get("generosFavoritos") as? Map<String, Number> ?: emptyMap()
+                val nuevosGeneros = generosFavoritos.toMutableMap()
+
+                if (nuevosGeneros.containsKey(firstGenre)) {
+                    // El género ya existe, actualizamos el timestamp
+                    nuevosGeneros[firstGenre] = System.currentTimeMillis()
+                } else {
+                    if (nuevosGeneros.size < maxGeneros) {
+                        // Hay espacio, lo agregamos
+                        nuevosGeneros[firstGenre] = System.currentTimeMillis()
+                    } else {
+                        // Reemplazamos el más antiguo
+                        val generoMasAntiguo = nuevosGeneros.minByOrNull { it.value.toLong() }?.key
+                        if (generoMasAntiguo != null) {
+                            nuevosGeneros.remove(generoMasAntiguo)
+                            nuevosGeneros[firstGenre] = System.currentTimeMillis()
+                        }
+                    }
+                }
+
+                userDocRef.update("generosFavoritos", nuevosGeneros)
+            }
+        }.addOnFailureListener { e ->
+            Log.e("UpdateFavoriteGenre", "Error al obtener el documento del usuario", e)
+        }
+    }
+
+
 
     suspend fun getFollowersUsers(uid: String): List<Pair<String, String>>? {
         return try {

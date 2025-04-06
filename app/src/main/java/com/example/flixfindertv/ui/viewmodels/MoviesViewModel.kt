@@ -261,11 +261,10 @@ class MoviesViewModel : ViewModel() {
         return false
     }
 
-
-
     fun observeMovieDetails(movieId: String) {
         if (movieId.isBlank()) return // Evita errores si el ID es vacío o nulo
 
+        // Primero intenta buscar en la colección "peliculas"
         db.collection("peliculas").document(movieId)
             .addSnapshotListener { snapshot, _ ->
                 snapshot?.let {
@@ -282,76 +281,168 @@ class MoviesViewModel : ViewModel() {
                         val popularity = it.getDouble("popularity") ?: 0.0
                         _popularity.value = popularity
 
-                        // Manejo correcto de vote_count (puede ser Long o String en Firestore)
-                        val voteCount = when (val votes = it.get("vote_count")) {
-                            is String -> votes.toLongOrNull() ?: 0L
-                            is Number -> votes.toLong()
-                            else -> 0L
-                        }
+                        // Manejo correcto de vote_count (es String en Firestore)
+                        val voteCountStr = it.getString("vote_count") ?: "0"
+                        val voteCount = voteCountStr.toLongOrNull() ?: 0L  // Convertimos el String a Long, si no puede se usa 0L
+
                         _voteCount.value = voteCount.toString() // Convertimos a String para mostrar en la UI
+                    } else {
+                        // Si no se encuentra en "peliculas", busca en "series"
+                        db.collection("series").document(movieId)
+                            .addSnapshotListener { seriesSnapshot, _ ->
+                                seriesSnapshot?.let {
+                                    if (it.exists()) { // Verifica que el documento exista en "series"
+                                        // Manejo correcto del vote_average (puede ser String en Firestore)
+                                        val voteAverage = when (val vote = it.get("vote_average")) {
+                                            is String -> vote.toDoubleOrNull() ?: 0.0
+                                            is Number -> vote.toDouble()
+                                            else -> 0.0
+                                        }
+                                        _voteAverage.value = voteAverage
+
+                                        // Manejo correcto de popularity (es Double en Firestore)
+                                        val popularity = it.getDouble("popularity") ?: 0.0
+                                        _popularity.value = popularity
+
+                                        // Manejo correcto de vote_count (es String en Firestore)
+                                        val voteCountStr = it.getString("vote_count") ?: "0"
+                                        val voteCount = voteCountStr.toLongOrNull() ?: 0L  // Convertimos el String a Long, si no puede se usa 0L
+
+                                        _voteCount.value = voteCount.toString() // Convertimos a String para mostrar en la UI
+                                    } else {
+                                        // Si tampoco se encuentra en "series", aseguramos que los valores sean 0
+                                        _voteAverage.value = 0.0
+                                        _popularity.value = 0.0
+                                        _voteCount.value = "0"
+                                    }
+                                }
+                            }
                     }
                 }
             }
     }
 
 
-
     private fun getVoteCountFromFirebase(movieId: String, callback: (String?) -> Unit) {
         val db = FirebaseFirestore.getInstance()
 
+        // Primero intenta buscar en la colección "peliculas"
         db.collection("peliculas")
             .document(movieId)
             .get()
             .addOnSuccessListener { documentSnapshot ->
-                val voteCountString = documentSnapshot?.getString("vote_count")
-                callback(voteCountString)  // Pasamos el valor al callback como String
+                if (documentSnapshot.exists()) {
+                    // Si encuentra el documento en "peliculas", obtiene el valor de "vote_count"
+                    val voteCountString = documentSnapshot.getString("vote_count")
+                    callback(voteCountString)  // Pasamos el valor al callback como String
+                } else {
+                    // Si no lo encuentra en "peliculas", busca en "series"
+                    db.collection("series")
+                        .document(movieId)
+                        .get()
+                        .addOnSuccessListener { seriesDocument ->
+                            if (seriesDocument.exists()) {
+                                // Si encuentra el documento en "series", obtiene el valor de "vote_count"
+                                val voteCountString = seriesDocument.getString("vote_count")
+                                callback(voteCountString)  // Pasamos el valor al callback como String
+                            } else {
+                                // Si no se encuentra en ninguna de las dos colecciones, pasa null
+                                callback(null)
+                            }
+                        }
+                        .addOnFailureListener { exception ->
+                            Log.e("Firebase", "Error al obtener el contador de votos en series: ${exception.message}")
+                            callback(null)  // Pasamos null en caso de error en "series"
+                        }
+                }
             }
             .addOnFailureListener { exception ->
-                Log.e("Firebase", "Error al obtener el contador de votos: ${exception.message}")
-                callback(null)  // Pasamos null en caso de error
+                Log.e("Firebase", "Error al obtener el contador de votos en peliculas: ${exception.message}")
+                callback(null)  // Pasamos null en caso de error en "peliculas"
             }
     }
-
 
     private fun getVoteAverageFromFirebase(movieId: String, callback: (String?) -> Unit) {
         val db = FirebaseFirestore.getInstance()
 
+        // Primero intenta buscar en la colección "peliculas"
         db.collection("peliculas")
             .document(movieId)
             .get()
             .addOnSuccessListener { documentSnapshot ->
-                if (documentSnapshot != null) {
+                if (documentSnapshot.exists()) {
+                    // Si encuentra el documento en "peliculas", obtiene el valor de "vote_average"
                     val voteAverageValue = documentSnapshot.get("vote_average")?.toString()
                     callback(voteAverageValue)  // Pasamos el valor al callback como String
                 } else {
-                    callback(null)
+                    // Si no lo encuentra en "peliculas", busca en "series"
+                    db.collection("series")
+                        .document(movieId)
+                        .get()
+                        .addOnSuccessListener { seriesDocument ->
+                            if (seriesDocument.exists()) {
+                                // Si encuentra el documento en "series", obtiene el valor de "vote_average"
+                                val voteAverageValue = seriesDocument.get("vote_average")?.toString()
+                                callback(voteAverageValue)  // Pasamos el valor al callback como String
+                            } else {
+                                // Si no se encuentra en ninguna de las dos colecciones, pasa null
+                                callback(null)
+                            }
+                        }
+                        .addOnFailureListener { exception ->
+                            Log.e("Firebase", "Error al obtener el promedio de votos en series: ${exception.message}")
+                            callback(null)  // Pasamos null en caso de error en "series"
+                        }
                 }
             }
             .addOnFailureListener { exception ->
-                Log.e("Firebase", "Error al obtener el promedio de votos: ${exception.message}")
-                callback(null)  // Pasamos null en caso de error
+                Log.e("Firebase", "Error al obtener el promedio de votos en peliculas: ${exception.message}")
+                callback(null)  // Pasamos null en caso de error en "peliculas"
             }
     }
+
 
     private fun getPopularityFromFirebase(movieId: String, callback: (Double?) -> Unit) {
         val db = FirebaseFirestore.getInstance()
 
+        // Primero intenta buscar en la colección "peliculas"
         db.collection("peliculas")
             .document(movieId)
             .get()
             .addOnSuccessListener { documentSnapshot ->
-                if (documentSnapshot != null) {
+                if (documentSnapshot.exists()) {
+                    println("el documento existe pero es una serie con id $movieId")
+                    // Si se encuentra en "peliculas", obtiene la popularidad
                     val popularityValue = documentSnapshot.get("popularity") as? Double
-                    callback(popularityValue)  // Pasamos el valor al callback
+                    callback(popularityValue)  // Llama al callback con el valor de popularidad
                 } else {
-                    callback(null)
+                    println("si no esta en peliculas, buscamos en series")
+                    // Si no se encuentra en "peliculas", busca en "series"
+                    db.collection("series")
+                        .document(movieId)
+                        .get()
+                        .addOnSuccessListener { seriesDocument ->
+                            if (seriesDocument.exists()) {
+                                // Si se encuentra en "series", obtiene la popularidad
+                                val popularityValue = seriesDocument.get("popularity") as? Double
+                                callback(popularityValue)  // Llama al callback con el valor de popularidad
+                            } else {
+                                // Si no se encuentra ni en "peliculas" ni en "series", pasa null
+                                callback(null)
+                            }
+                        }
+                        .addOnFailureListener { exception ->
+                            Log.e("Firebase", "Error al obtener la popularidad de series: ${exception.message}")
+                            callback(null)  // Pasamos null en caso de error en series
+                        }
                 }
             }
             .addOnFailureListener { exception ->
-                Log.e("Firebase", "Error al obtener la popularidad: ${exception.message}")
-                callback(null)  // Pasamos null en caso de error
+                Log.e("Firebase", "Error al obtener la popularidad de peliculas: ${exception.message}")
+                callback(null)  // Pasamos null en caso de error en peliculas
             }
     }
+
 
     fun calculateNewVoteAverage(peliculaId: String, newRating: Int, callback: (String?) -> Unit) {
         // Primero obtenemos el contador de votos
@@ -381,7 +472,6 @@ class MoviesViewModel : ViewModel() {
         }
     }
 
-
     fun calculateNewPopularity(movieId: String, callback: (Double?) -> Unit) {
         getPopularityFromFirebase(movieId) { currentPopularity ->
             if (currentPopularity != null) {
@@ -401,38 +491,80 @@ class MoviesViewModel : ViewModel() {
             if (currentVoteCountString != null) {
                 val currentVoteCount = currentVoteCountString.toIntOrNull() ?: 0
 
-                // Accedemos al documento de la película para obtener el voto promedio
+                // Intentamos obtener el documento desde "peliculas"
                 db.collection("peliculas")
                     .document(movieId)
                     .get()
                     .addOnSuccessListener { documentSnapshot ->
-                        val currentVoteAverage = documentSnapshot?.getString("vote_average")?.toFloatOrNull()
+                        if (documentSnapshot.exists()) {
+                            // Si encontramos el documento en "peliculas", obtenemos el promedio de votos
+                            val currentVoteAverage = documentSnapshot.getString("vote_average")?.toFloatOrNull()
 
-                        // Si el promedio de votos ha cambiado, lo actualizamos
-                        if (currentVoteAverage != newVoteAverage) {
-                            val newVoteAverageString = newVoteAverage.toString()
+                            // Si el promedio de votos ha cambiado, lo actualizamos
+                            if (currentVoteAverage != newVoteAverage) {
+                                val newVoteAverageString = newVoteAverage.toString()
 
-                            // Incrementamos el contador de votos
-                            val newVoteCount = currentVoteCount + 1
-                            val newVoteCountString = newVoteCount.toString() // Convertimos el nuevo conteo a String
+                                // Incrementamos el contador de votos
+                                val newVoteCount = currentVoteCount + 1
+                                val newVoteCountString = newVoteCount.toString() // Convertimos el nuevo conteo a String
 
-                            // Realizamos la actualización en Firebase
-                            db.collection("peliculas")
+                                // Realizamos la actualización en Firebase
+                                db.collection("peliculas")
+                                    .document(movieId)
+                                    .update(
+                                        "vote_average", newVoteAverageString,
+                                        "vote_count", newVoteCountString
+                                    )
+                                    .addOnSuccessListener {
+                                        Log.d("Firebase", "El voto promedio y el contador de votos se actualizaron correctamente en peliculas.")
+                                    }
+                                    .addOnFailureListener { exception ->
+                                        Log.e("Firebase", "Error al actualizar el voto promedio y el contador de votos en peliculas: ${exception.message}")
+                                    }
+                            }
+                        } else {
+                            // Si no se encuentra en "peliculas", busca en "series"
+                            db.collection("series")
                                 .document(movieId)
-                                .update(
-                                    "vote_average", newVoteAverageString,
-                                    "vote_count", newVoteCountString
-                                )
-                                .addOnSuccessListener {
-                                    Log.d("Firebase", "El voto promedio y el contador de votos se actualizaron correctamente.")
+                                .get()
+                                .addOnSuccessListener { seriesDocumentSnapshot ->
+                                    if (seriesDocumentSnapshot.exists()) {
+                                        // Si encontramos el documento en "series", obtenemos el promedio de votos
+                                        val currentVoteAverage = seriesDocumentSnapshot.getString("vote_average")?.toFloatOrNull()
+
+                                        // Si el promedio de votos ha cambiado, lo actualizamos
+                                        if (currentVoteAverage != newVoteAverage) {
+                                            val newVoteAverageString = newVoteAverage.toString()
+
+                                            // Incrementamos el contador de votos
+                                            val newVoteCount = currentVoteCount + 1
+                                            val newVoteCountString = newVoteCount.toString() // Convertimos el nuevo conteo a String
+
+                                            // Realizamos la actualización en Firebase
+                                            db.collection("series")
+                                                .document(movieId)
+                                                .update(
+                                                    "vote_average", newVoteAverageString,
+                                                    "vote_count", newVoteCountString
+                                                )
+                                                .addOnSuccessListener {
+                                                    Log.d("Firebase", "El voto promedio y el contador de votos se actualizaron correctamente en series.")
+                                                }
+                                                .addOnFailureListener { exception ->
+                                                    Log.e("Firebase", "Error al actualizar el voto promedio y el contador de votos en series: ${exception.message}")
+                                                }
+                                        }
+                                    } else {
+                                        Log.e("Firebase", "No se encontró ni en peliculas ni en series.")
+                                    }
                                 }
                                 .addOnFailureListener { exception ->
-                                    Log.e("Firebase", "Error al actualizar el voto promedio y el contador de votos: ${exception.message}")
+                                    Log.e("Firebase", "Error al obtener el voto promedio actual de series: ${exception.message}")
                                 }
                         }
                     }
                     .addOnFailureListener { exception ->
-                        Log.e("Firebase", "Error al obtener el voto promedio actual: ${exception.message}")
+                        Log.e("Firebase", "Error al obtener el voto promedio actual de peliculas: ${exception.message}")
                     }
             } else {
                 Log.e("Firebase", "Error al obtener el contador de votos.")
@@ -440,17 +572,54 @@ class MoviesViewModel : ViewModel() {
         }
     }
 
+
     fun updatePopularityInFirebase(movieId: String, newPopularity: Double) {
         val db = FirebaseFirestore.getInstance()
 
+        // Primero intentamos actualizar en la colección "peliculas"
         db.collection("peliculas")
             .document(movieId)
-            .update("popularity", newPopularity)
-            .addOnSuccessListener {
-                Log.d("Firebase", "La popularidad se actualizó correctamente.")
+            .get()
+            .addOnSuccessListener { documentSnapshot ->
+                if (documentSnapshot.exists()) {
+                    // Si se encuentra el documento en "peliculas", lo actualizamos
+                    db.collection("peliculas")
+                        .document(movieId)
+                        .update("popularity", newPopularity)
+                        .addOnSuccessListener {
+                            Log.d("Firebase", "La popularidad se actualizó correctamente en peliculas.")
+                        }
+                        .addOnFailureListener { exception ->
+                            Log.e("Firebase", "Error al actualizar la popularidad en peliculas: ${exception.message}")
+                        }
+                } else {
+                    // Si no se encuentra en "peliculas", intentamos en "series"
+                    db.collection("series")
+                        .document(movieId)
+                        .get()
+                        .addOnSuccessListener { seriesDocumentSnapshot ->
+                            if (seriesDocumentSnapshot.exists()) {
+                                // Si se encuentra el documento en "series", lo actualizamos
+                                db.collection("series")
+                                    .document(movieId)
+                                    .update("popularity", newPopularity)
+                                    .addOnSuccessListener {
+                                        Log.d("Firebase", "La popularidad se actualizó correctamente en series.")
+                                    }
+                                    .addOnFailureListener { exception ->
+                                        Log.e("Firebase", "Error al actualizar la popularidad en series: ${exception.message}")
+                                    }
+                            } else {
+                                Log.e("Firebase", "No se encontró ni en peliculas ni en series.")
+                            }
+                        }
+                        .addOnFailureListener { exception ->
+                            Log.e("Firebase", "Error al obtener el documento de series: ${exception.message}")
+                        }
+                }
             }
             .addOnFailureListener { exception ->
-                Log.e("Firebase", "Error al actualizar la popularidad: ${exception.message}")
+                Log.e("Firebase", "Error al obtener el documento de peliculas: ${exception.message}")
             }
     }
 

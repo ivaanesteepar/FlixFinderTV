@@ -465,7 +465,7 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                             .fillMaxWidth()
                             .clickable {
                                 // Aquí puedes poner la acción que quieres realizar al hacer clic en el Box
-                                navController.navigate("favourite_movies/true") {
+                                navController.navigate("favourite_movies/$uid/true") {
                                     popUpTo("favourite_movies") {
                                         inclusive = true
                                     } // Elimina la pantalla de la pila

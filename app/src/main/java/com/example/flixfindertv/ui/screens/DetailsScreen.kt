@@ -31,6 +31,7 @@ import com.example.flixfindertv.R
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.flixfindertv.models.Peliculas
 import com.example.flixfindertv.ui.viewmodels.CommentsViewModel
+import com.example.flixfindertv.ui.viewmodels.GenresViewModel
 import com.example.flixfindertv.ui.viewmodels.MoviesViewModel
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 import com.example.flixfindertv.utils.MovieDetailsContent
@@ -43,6 +44,7 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
     val usersViewModel: UsersViewModel = viewModel()
     val commentsViewModel: CommentsViewModel = viewModel()
     val moviesViewModel: MoviesViewModel = viewModel()
+    val genresViewModel: GenresViewModel = viewModel()
 
     var movie by remember { mutableStateOf<Peliculas?>(null) }
     var movieId by remember { mutableStateOf("") }
@@ -105,7 +107,7 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
 
                     val genreIds = it.genre_ids ?: emptyList()
                     if (genreIds.isNotEmpty()) {
-                        fetchGenreNames(genreIds) { genres ->
+                        genresViewModel.fetchGenreNames(genreIds) { genres ->
                             movieGenre = genres.joinToString(", ")
                         }
                     } else {
@@ -126,7 +128,6 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
             }
         commentsViewModel.getComments(id)
     }
-
 
     val commentsList by commentsViewModel.comments.collectAsState()
 
@@ -156,6 +157,8 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                     if (!isCurrentlyFavorite) {
                         // Si no está en favoritos, añadimos a favoritos
                         usersViewModel.saveToFavorites(id, movieTitle, movieCoverUrl, esSerie)
+                        usersViewModel.updateFavoriteGenre(movieGenre)
+                        usersViewModel.updateSimilarContent(id)
                     } else {
                         // Si ya está en favoritos, lo eliminamos de favoritos
                         usersViewModel.removeFromFavorites(id, esSerie)
@@ -359,6 +362,12 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                                 // Aumentar el contador de comentarios en Firebase
                                 moviesViewModel.incrementUserCommentCount(userId)
 
+                                // Si le damos una buena puntuación, recomendamos el genero y contenido similar
+                                if (selectedStars.value > 6){
+                                    usersViewModel.updateFavoriteGenre(movieGenre)
+                                    usersViewModel.updateSimilarContent(id)
+                                }
+
                                 moviesViewModel.calculateNewVoteAverage(movieId, selectedStars.value) { updatedVoteAverage ->
                                     if (updatedVoteAverage != null) {
                                         // Si se obtiene un nuevo promedio válido, actualizamos en Firebase
@@ -425,29 +434,4 @@ fun ShowTrailer(videoId: String) {
     YoutubePlayer(videoId)
 }
 
-fun fetchGenreNames(genreIds: List<Int>, onResult: (List<String>) -> Unit) {
-    val firestore = FirebaseFirestore.getInstance()
-    val genreNames = mutableListOf<String>()
-    var count = 0
 
-    if (genreIds.isEmpty()) {
-        onResult(emptyList())
-        return
-    }
-
-    genreIds.forEach { genreId ->
-        firestore.collection("generos").document(genreId.toString()).get()
-            .addOnSuccessListener { document ->
-                val genreName = document.getString("name")
-                genreName?.let {
-                    genreNames.add(it)
-                }
-            }
-            .addOnCompleteListener {
-                count++
-                if (count == genreIds.size) {
-                    onResult(genreNames)
-                }
-            }
-    }
-}

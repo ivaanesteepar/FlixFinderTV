@@ -9,24 +9,40 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import com.example.flixfindertv.R
 import com.example.flixfindertv.models.Peliculas
+import com.example.flixfindertv.ui.viewmodels.GenresViewModel
+import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 
 @Composable
 fun ContentListSearch (movie: Peliculas, navController: NavHostController) {
     val isSerie = movie.esSerie
+    val usersViewModel: UsersViewModel = viewModel()
+    val genresViewModel: GenresViewModel = viewModel()
+    var movieGenre by remember { mutableStateOf("") }
+
+    genresViewModel.fetchGenreNames(movie.genre_ids) { genres ->
+        movieGenre = genres.joinToString(", ")
+    }
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
             .clickable {
                 navController.navigate("detalles/${movie.id}/${isSerie}")
+                usersViewModel.updateFavoriteGenre(movieGenre)
+                usersViewModel.updateSimilarContent(movie.id)
             },
         shape = MaterialTheme.shapes.small.copy(CornerSize(16.dp)),
         colors = CardDefaults.cardColors(

@@ -47,6 +47,33 @@ class GenresViewModel : ViewModel() {
         _peliculasGenero2.postValue(emptyList()) // Vacía la lista del segundo género
     }
 
+    fun fetchGenreNames(genreIds: List<Int>, onResult: (List<String>) -> Unit) {
+        val firestore = FirebaseFirestore.getInstance()
+        val genreNames = mutableListOf<String>()
+        var count = 0
+
+        if (genreIds.isEmpty()) {
+            onResult(emptyList())
+            return
+        }
+
+        genreIds.forEach { genreId ->
+            firestore.collection("generos").document(genreId.toString()).get()
+                .addOnSuccessListener { document ->
+                    val genreName = document.getString("name")
+                    genreName?.let {
+                        genreNames.add(it)
+                    }
+                }
+                .addOnCompleteListener {
+                    count++
+                    if (count == genreIds.size) {
+                        onResult(genreNames)
+                    }
+                }
+        }
+    }
+
 
     private suspend fun getMoviesAndSeriesByGenreId(genreId: Int) {
         val peliculasList = mutableListOf<Peliculas>()
