@@ -21,6 +21,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -60,6 +61,8 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
     var trailerUrl by remember { mutableStateOf("") }
     var original_language by remember { mutableStateOf("") }
     var status by remember { mutableStateOf("") }
+    var director by remember { mutableStateOf("") }
+    var directorPhoto by remember { mutableStateOf("") }
     val isDialogOpen = remember { mutableStateOf(false) }
     val selectedStars = remember { mutableStateOf(0) }
     val commentText = remember { mutableStateOf("") }
@@ -100,12 +103,18 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                     status = it.status
                     voteCount = it.vote_count
 
-                    movieBannerUrl = "https://image.tmdb.org/t/p/w500${it.backdrop_path}"
-                    movieCoverUrl = "https://image.tmdb.org/t/p/w500${it.poster_path}"
+                    movieBannerUrl = it.backdrop_path.takeIf { path -> path.isNotEmpty() }
+                        ?.let { path -> "https://image.tmdb.org/t/p/w500$path" } ?: ""
 
-                    moviePopularity = it.popularity ?: 0.0
+                    movieCoverUrl = it.poster_path.takeIf { path -> path.isNotEmpty() }
+                        ?.let { path -> "https://image.tmdb.org/t/p/w500$path" } ?: ""
 
-                    val genreIds = it.genre_ids ?: emptyList()
+
+                    moviePopularity = it.popularity
+                    director = it.director_name
+                    directorPhoto = it.director_photo_url
+
+                    val genreIds = it.genre_ids
                     if (genreIds.isNotEmpty()) {
                         genresViewModel.fetchGenreNames(genreIds) { genres ->
                             movieGenre = genres.joinToString(", ")
@@ -120,7 +129,7 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                         it.release_date ?: "Date not available"
                     }
 
-                    voteAverage = it.vote_average?.toString() ?: "N/A"
+                    voteAverage = it.vote_average
                     trailerUrl = it.trailer.toString()
 
                     usersViewModel.checkIfFavorite(id, esSerie)
@@ -142,9 +151,9 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
             // Imagen del banner
             Image(
                 painter = if (movieBannerUrl.isNotEmpty()) {
-                    rememberAsyncImagePainter(movieBannerUrl)
+                    rememberAsyncImagePainter(model = movieBannerUrl)
                 } else {
-                    painterResource(id = R.drawable.banner_placeholder) // Imagen predeterminada
+                    painterResource(id = R.drawable.banner_placeholder)
                 },
                 contentDescription = "Banner",
                 modifier = Modifier.fillMaxSize()
@@ -198,7 +207,6 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                 )
             }
         }
-
         MovieDetailsContent(
             movieId = movieId,
             movieCoverUrl = movieCoverUrl,
@@ -207,9 +215,10 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
             movieGenre = movieGenre,
             releaseDate = releaseDate,
             originalLanguage = original_language,
-            status = status
+            status = status,
+            director = director,
+            directorPhoto = directorPhoto
         )
-
         if (trailerUrl.isEmpty()) {
             Spacer(modifier = Modifier.height(16.dp))
             Text(
@@ -231,18 +240,20 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                         .heightIn(200.dp)
                         .background(Color.Transparent)
                 ) {
-                    // Mostrar la miniatura del video
-                    Image(
-                        painter = rememberAsyncImagePainter(thumbnailUrl),
-                        contentDescription = "Trailer Preview",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(210.dp) // Mantiene la proporción de un video (relación 16:9)
-                            .clickable {
-                                // Cuando se hace clic en la miniatura, actualizamos el estado
-                                showTrailer = true
-                            }
-                    )
+                    // Mostrar la miniatura del video solo si showTrailer es false
+                    if (!showTrailer) {
+                        Image(
+                            painter = rememberAsyncImagePainter(thumbnailUrl),
+                            contentDescription = "Trailer Preview",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(210.dp) // Mantiene la proporción de un video (relación 16:9)
+                                .clickable {
+                                    // Cuando se hace clic en la miniatura, actualizamos el estado para mostrar el trailer
+                                    showTrailer = true
+                                }
+                        )
+                    }
 
                     // Icono de YouTube centrado
                     Image(
@@ -252,7 +263,7 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                             .size(50.dp) // Ajusta el tamaño del icono
                             .align(Alignment.Center) // Centra el icono dentro de la Box
                             .clickable {
-                                // Cuando se hace clic en el ícono, actualizamos el estado
+                                // Cuando se hace clic en el ícono, actualizamos el estado para mostrar el trailer
                                 showTrailer = true
                             }
                     )

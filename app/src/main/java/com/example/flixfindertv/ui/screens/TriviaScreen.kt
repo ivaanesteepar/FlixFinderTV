@@ -206,6 +206,7 @@ fun TriviaScreen(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(16.dp)
+                            .padding(top=30.dp)
                     ) {
                         if (uiState is UiState.Loading) {
                             CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))

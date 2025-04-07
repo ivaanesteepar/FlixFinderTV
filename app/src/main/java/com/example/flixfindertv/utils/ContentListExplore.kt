@@ -31,7 +31,6 @@ fun ContentListExplore(
     navController: NavController,
     listState: LazyListState,
 ) {
-    println("Contenido es: $movies")
     LazyRow(
         modifier = Modifier
             .fillMaxWidth()

@@ -61,9 +61,9 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
     val activity = context as? Activity
 
     var expanded by remember { mutableStateOf(false) }
-    var selectedTab by remember { mutableStateOf("Movies") }
+    var selectedTab by rememberSaveable { mutableStateOf("Movies") }
     val tabs = listOf("Movies", "TV Shows")
-    val selectedIndex = tabs.indexOf(selectedTab).coerceAtLeast(0)
+    val selectedIndex = remember { mutableStateOf(0) }
     val movies by viewModel.listaPeliculas.observeAsState(emptyList())
     val series by seriesViewModel.listaSeries.observeAsState(emptyList())
     val isSeriesLoading by seriesViewModel.isLoadingSeries.observeAsState(false)
@@ -718,21 +718,23 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                         }
                     } else {
                         TabRow(
-                            selectedTabIndex = selectedIndex,
+                            selectedTabIndex = if (selectedTab == "Movies") 0 else 1, // Cambia el índice dependiendo de la pestaña seleccionada
                             modifier = Modifier.fillMaxWidth(),
                             containerColor = Color.Transparent,
                             contentColor = Color.White, // Color del texto y del indicador
                             indicator = { tabPositions ->
                                 SecondaryIndicator(
-                                    modifier = Modifier.tabIndicatorOffset(tabPositions[selectedIndex]),
+                                    modifier = Modifier.tabIndicatorOffset(tabPositions[if (selectedTab == "Movies") 0 else 1]),
                                     color = Color.White // Color del indicador (línea inferior)
                                 )
                             }
                         ) {
                             tabs.forEachIndexed { index, title ->
                                 Tab(
-                                    selected = selectedIndex == index,
-                                    onClick = { selectedTab = title },
+                                    selected = selectedTab == title,
+                                    onClick = {
+                                        selectedTab = title // Cambiar la pestaña seleccionada
+                                    },
                                     text = {
                                         Text(
                                             title,

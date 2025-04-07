@@ -192,6 +192,7 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
 
                     Box(
                         modifier = Modifier
+                            .padding(top = 24.dp)
                             .size(150.dp)  // Tamaño del contenedor circular
                             .background(Color.White, shape = CircleShape)
                             .border(2.dp, Color.Black, shape = CircleShape)

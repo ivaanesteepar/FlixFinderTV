@@ -1,7 +1,9 @@
 package com.example.flixfindertv.utils
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,28 +15,41 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
+import coil.compose.rememberImagePainter
 import com.example.flixfindertv.R
 import com.example.flixfindertv.ui.viewmodels.MoviesViewModel
+import com.example.flixfindertv.ui.viewmodels.TriviaViewModel
+import com.example.flixfindertv.ui.viewmodels.TriviaViewModelFactory
+import com.example.flixfindertv.utils.RetrofitClient.translateFunction
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -48,18 +63,46 @@ fun MovieDetailsContent(
     releaseDate: String?,
     originalLanguage: String?,
     status: String?,
+    director: String,
+    directorPhoto: String
 ) {
     val viewModel: MoviesViewModel = viewModel()
+    // Pasar el contexto y el LifecycleOwner a la fábrica para crear el TriviaViewModel
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val triviaViewModel: TriviaViewModel = viewModel(
+        factory = TriviaViewModelFactory(context, lifecycleOwner)
+    )
     val voteAverage by viewModel.voteAverage.collectAsState()
     val popularity by viewModel.popularity.collectAsState()
     val voteCount by viewModel.voteCount.collectAsState()
     val truncatedVoteAvg = (voteAverage * 10).toInt() / 10.0
     val voteAvgFormatted = String.format("%.1f", truncatedVoteAvg)
+    val language by triviaViewModel.languageState.collectAsState()
+
+    var translatedDescription by remember { mutableStateOf("") }
+
+    println("el idioma de details es: $language")
+
+    // Si el idioma actual es español, traduce la descripción
+    if (language == "es") {
+        LaunchedEffect(movieDescription) {
+            // Realizar la traducción en la corutina correctamente
+            translatedDescription = try {
+                translateFunction(movieDescription)
+            } catch (e: Exception) {
+                // Manejo de errores, en caso de que falle la traducción
+                Log.e("TranslationError", "Error al traducir en details: ${e.message}")
+                movieDescription
+            }
+        }
+    }
+    println("descripcion traducida: $translatedDescription")
 
     val color = when {
         voteAverage in 0.0..4.9 -> Color(0xFFFF6F61)
         voteAverage in 5.0..7.5 -> Color(0xFF00B0FF)
-        voteAverage in 7.5..10.0 -> Color(0xFF2ECC71)
+        voteAverage in 7.6..10.0 -> Color(0xFF2ECC71)
         else -> Color.Gray
     }
 
@@ -130,7 +173,12 @@ fun MovieDetailsContent(
                     withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
                         append("Popularity: ")
                     }
-                    append(String.format("%.1f", popularity ?: 0.0)) // Si no hay popularidad, muestra "0.0"
+                    append(
+                        String.format(
+                            "%.1f",
+                            popularity ?: 0.0
+                        )
+                    ) // Si no hay popularidad, muestra "0.0"
                 },
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.Black.copy(alpha = 0.7f),
@@ -143,7 +191,10 @@ fun MovieDetailsContent(
                         append("Release Date: ")
                     }
                     try {
-                        val originalDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(releaseDate ?: "")
+                        val originalDate =
+                            SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(
+                                releaseDate ?: ""
+                            )
                         val formattedDate =
                             originalDate?.let {
                                 SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(it)
@@ -152,6 +203,17 @@ fun MovieDetailsContent(
                     } catch (e: Exception) {
                         append(releaseDate ?: "N/A")  // Si no hay fecha, muestra "N/A"
                     }
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Black.copy(alpha = 0.7f),
+                modifier = Modifier.padding(start = 16.dp)
+            )
+            Text(
+                text = buildAnnotatedString {
+                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                        append("Votes: ")
+                    }
+                    append(voteCount ?: "N/A") // Si no hay conteo de votos, muestra "N/A"
                 },
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.Black.copy(alpha = 0.7f),
@@ -168,24 +230,68 @@ fun MovieDetailsContent(
         modifier = Modifier.padding(start = 16.dp, end = 16.dp),
         color = Color.Black
     )
-
     Spacer(modifier = Modifier.height(16.dp))
-
     // Mostrar descripción o frase por defecto si está vacía
     Text(
-        text = if (movieDescription.isEmpty()) "No description available" else movieDescription,
+        text = if (translatedDescription.isEmpty()) "No description available" else if (translatedDescription.isNotEmpty()) translatedDescription else movieDescription,
         style = MaterialTheme.typography.bodyMedium,
         color = if (movieDescription.isEmpty()) Color.Gray else Color.Black,
         modifier = Modifier.padding(start = 16.dp, end = 16.dp)
     )
-
     Spacer(modifier = Modifier.height(36.dp))
-
+    Text(
+        text = "Director",
+        style = MaterialTheme.typography.headlineSmall,
+        modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+        color = Color.Black
+    )
+    Spacer(modifier = Modifier.height(16.dp))
+    Card(
+        modifier = Modifier
+            .width(140.dp)
+            .padding(horizontal = 16.dp), // Agrega márgenes
+        elevation = CardDefaults.cardElevation(4.dp)
+    ) {
+        Column {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(160.dp)
+            ) {
+                Image(
+                    painter = if (directorPhoto.isNotEmpty()) {
+                        rememberAsyncImagePainter(directorPhoto)
+                    } else {
+                        painterResource(id = R.drawable.no_poster_image) // Imagen predeterminada
+                    },
+                    contentDescription = "Foto director",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = if (directorPhoto.isNotEmpty()) ContentScale.Fit else ContentScale.Crop
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0xFFD1A1D2)) // Fondo morado claro
+                    .padding(4.dp)
+            ) {
+                Text(
+                    text = if (director.isEmpty()) "Unknown" else director,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = Color.Black
+                    ),
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                )
+            }
+        }
+    }
+    Spacer(modifier = Modifier.height(36.dp))
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 25.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.Center // Esto asegura que las columnas se centren horizontalmente
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -217,21 +323,5 @@ fun MovieDetailsContent(
                 color = Color.Black.copy(alpha = 0.7f)
             )
         }
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        ) {
-            Text(
-                text = "Votes:",
-                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                color = Color.Black.copy(alpha = 0.7f)
-            )
-            Text(
-                text = voteCount,
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.Black.copy(alpha = 0.7f)
-            )
-        }
-
     }
 }

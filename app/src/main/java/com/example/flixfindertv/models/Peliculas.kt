@@ -18,7 +18,9 @@ data class Peliculas(
     val comentarios: List<String> = emptyList(),
     val original_language: String = "",
     val status: String = "",
-    val trailer: String? = null
+    val trailer: String? = null,
+    val director_name: String = "",
+    val director_photo_url: String = ""
 ) {
     val titulo: String
         get() = title ?: name ?: "Título desconocido"

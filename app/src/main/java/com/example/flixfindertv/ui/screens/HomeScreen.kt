@@ -210,7 +210,7 @@ fun HomeScreen(
                     text = "You might be interested...",
                     color = Color.White,
                     style = MaterialTheme.typography.bodyMedium.copy(fontSize = 24.sp),
-                    modifier = Modifier.padding(bottom = 16.dp)
+                    modifier = Modifier.padding(bottom = 16.dp).padding(top=26.dp)
                 )
                 Spacer(modifier = Modifier.height(20.dp))
                 Column(
