@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -28,6 +29,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -385,6 +387,9 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                 cursorColor = Color.White,           // Cursor blanco
                                 focusedTrailingIconColor = Color.White, // Ícono de búsqueda blanco
                                 unfocusedTrailingIconColor = Color.White
+                            ),
+                            keyboardOptions = KeyboardOptions.Default.copy(
+                                capitalization = KeyboardCapitalization.Words // Esto asegura que las primeras letras de cada palabra sean mayúsculas
                             ),
                             trailingIcon = {
                                 if (isSearching) {

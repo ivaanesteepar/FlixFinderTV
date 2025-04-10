@@ -30,14 +30,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.flixfindertv.R
+import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -48,6 +51,8 @@ fun LoginScreen(navController: NavHostController) {
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
     val auth = FirebaseAuth.getInstance()
+    val usersViewModel: UsersViewModel = viewModel()
+    val context = LocalContext.current
 
     Box(
         modifier = Modifier
@@ -167,6 +172,8 @@ fun LoginScreen(navController: NavHostController) {
                                                     isLoading = false
                                                     errorMessage = "Error fetching user data"
                                                 }
+                                            // Guardar la sesión después del login
+                                            usersViewModel.saveSession(context, true)  // 'true' significa que el usuario está logueado
                                         }
                                     } else {
                                         isLoading = false
@@ -178,7 +185,7 @@ fun LoginScreen(navController: NavHostController) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .then(if (isLoading) Modifier.pointerInput(Unit) {} else Modifier),  // No hace nada si isLoading es true, evitando clicks
-                    //enabled =
+
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.Blue, // El botón siempre será azul
                         contentColor = Color.White  // El texto siempre será blanco
@@ -203,7 +210,7 @@ fun LoginScreen(navController: NavHostController) {
                         ) {
                             Text(
                                 "Forgot your password?",
-                                color = Color.Blue
+                                color = Color.White
                             )
                         }
 
@@ -211,7 +218,10 @@ fun LoginScreen(navController: NavHostController) {
                             onClick = { navController.navigate("register") },
                             modifier = Modifier.align(Alignment.CenterHorizontally)  // Centra el TextButton horizontalmente
                         ) {
-                            Text("Don't have an account? Sign up", color = Color.Blue)
+                            Text(
+                                "Don't have an account? Sign up",
+                                color = Color.White
+                            )
                         }
                     }
                 }

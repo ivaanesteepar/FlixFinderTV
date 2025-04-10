@@ -9,6 +9,7 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -243,16 +244,12 @@ fun RegisterScreen(navController: NavHostController) {
                     Text(text = if (isLoading) "Registering..." else "Register")
                 }
                 Spacer(modifier = Modifier.height(8.dp))
-                Button(
-                    onClick = { navController.popBackStack() },
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Blue, // El botón será de color azul
-                        contentColor = Color.White  // El texto será blanco
-                    )
+                Box (
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
                 ) {
-                    Text(text = "Back")
+                    TextButton(onClick = { navController.popBackStack() }) {
+                        Text("Back to login", color = Color.White, modifier = Modifier)
+                    }
                 }
             }
         }

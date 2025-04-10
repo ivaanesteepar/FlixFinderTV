@@ -49,7 +49,6 @@ import com.example.flixfindertv.R
 import com.example.flixfindertv.ui.viewmodels.MoviesViewModel
 import com.example.flixfindertv.ui.viewmodels.TriviaViewModel
 import com.example.flixfindertv.ui.viewmodels.TriviaViewModelFactory
-import com.example.flixfindertv.utils.RetrofitClient.translateFunction
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -58,13 +57,13 @@ fun MovieDetailsContent(
     movieId: String,
     movieCoverUrl: String,
     movieTitle: String,
-    movieDescription: String,
+    movieDescription: String?,
     movieGenre: String?,
     releaseDate: String?,
     originalLanguage: String?,
     status: String?,
-    director: String,
-    directorPhoto: String
+    director: String?,
+    directorPhoto: String?
 ) {
     val viewModel: MoviesViewModel = viewModel()
     // Pasar el contexto y el LifecycleOwner a la fábrica para crear el TriviaViewModel
@@ -81,23 +80,6 @@ fun MovieDetailsContent(
     val language by triviaViewModel.languageState.collectAsState()
 
     var translatedDescription by remember { mutableStateOf("") }
-
-    println("el idioma de details es: $language")
-
-    // Si el idioma actual es español, traduce la descripción
-    if (language == "es") {
-        LaunchedEffect(movieDescription) {
-            // Realizar la traducción en la corutina correctamente
-            translatedDescription = try {
-                translateFunction(movieDescription)
-            } catch (e: Exception) {
-                // Manejo de errores, en caso de que falle la traducción
-                Log.e("TranslationError", "Error al traducir en details: ${e.message}")
-                movieDescription
-            }
-        }
-    }
-    println("descripcion traducida: $translatedDescription")
 
     val color = when {
         voteAverage in 0.0..4.9 -> Color(0xFFFF6F61)
@@ -232,15 +214,21 @@ fun MovieDetailsContent(
     )
     Spacer(modifier = Modifier.height(16.dp))
     // Mostrar descripción o frase por defecto si está vacía
+    val descriptionToShow = when {
+        translatedDescription.isNotEmpty() -> translatedDescription
+        !movieDescription.isNullOrEmpty() -> movieDescription
+        else -> "No description available"
+    }
+
     Text(
-        text = if (translatedDescription.isEmpty()) "No description available" else if (translatedDescription.isNotEmpty()) translatedDescription else movieDescription,
+        text = descriptionToShow,
         style = MaterialTheme.typography.bodyMedium,
-        color = if (movieDescription.isEmpty()) Color.Gray else Color.Black,
+        color = if (movieDescription.isNullOrEmpty()) Color.Gray else Color.Black,
         modifier = Modifier.padding(start = 16.dp, end = 16.dp)
     )
     Spacer(modifier = Modifier.height(36.dp))
     Text(
-        text = "Director",
+        text = "Direction",
         style = MaterialTheme.typography.headlineSmall,
         modifier = Modifier.padding(start = 16.dp, end = 16.dp),
         color = Color.Black
@@ -259,14 +247,14 @@ fun MovieDetailsContent(
                     .height(160.dp)
             ) {
                 Image(
-                    painter = if (directorPhoto.isNotEmpty()) {
+                    painter = if (!directorPhoto.isNullOrEmpty()) {
                         rememberAsyncImagePainter(directorPhoto)
                     } else {
                         painterResource(id = R.drawable.no_poster_image) // Imagen predeterminada
                     },
                     contentDescription = "Foto director",
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = if (directorPhoto.isNotEmpty()) ContentScale.Fit else ContentScale.Crop
+                    contentScale = if (!directorPhoto.isNullOrEmpty()) ContentScale.Fit else ContentScale.Crop
                 )
             }
             Box(
@@ -276,7 +264,7 @@ fun MovieDetailsContent(
                     .padding(4.dp)
             ) {
                 Text(
-                    text = if (director.isEmpty()) "Unknown" else director,
+                    text = if (director.isNullOrEmpty()) "Unknown" else director,
                     style = MaterialTheme.typography.bodyMedium.copy(
                         color = Color.Black
                     ),

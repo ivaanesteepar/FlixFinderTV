@@ -4,7 +4,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -23,15 +25,24 @@ import com.example.flixfindertv.ui.screens.UserListScreen
 import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.ui.viewmodels.MoviesViewModel
 import com.example.flixfindertv.ui.viewmodels.TriviaViewModel
+import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 
 @Composable
-fun FlixFinderTVroutes(modifier: Modifier = Modifier) {
-    val navController = rememberNavController()
+fun FlixFinderTVroutes(modifier: Modifier = Modifier, navController: NavHostController) {
     val moviesViewModel: MoviesViewModel = viewModel()
+    val usersViewModel: UsersViewModel = viewModel()
+    val context = LocalContext.current
+
     Scaffold { padding ->
+        // Verificamos si el usuario está logueado para determinar la pantalla de inicio
+        val startDestination = if (usersViewModel.isUserLoggedIn(context)) {
+            "home"  // Pantalla principal
+        } else {
+            "login"  // Pantalla de login
+        }
         NavHost(
             navController = navController,
-            startDestination = "login", // Pantalla de inicio es el login
+            startDestination = startDestination,
             modifier = Modifier.padding(padding)
         ) {
             composable("login") {

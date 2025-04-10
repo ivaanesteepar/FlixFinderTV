@@ -38,6 +38,7 @@ import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 import com.example.flixfindertv.utils.MovieDetailsContent
 import com.example.flixfindertv.utils.validateComment
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
@@ -76,6 +77,8 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
     var showTrailer by remember { mutableStateOf(false) }
     val context = LocalContext.current // Para mostrar el Toast
     var isUpdating = false
+    val snackbarHostState = remember { SnackbarHostState() }
+    val showOffensiveSnackbar = remember { mutableStateOf(false) }
 
     // Obtener el userId desde FirebaseAuth
     val userId = auth.currentUser?.uid
@@ -86,6 +89,18 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                 .addOnSuccessListener { document ->
                     usuarioNombre = document.getString("nombre") ?: "Usuario desconocido"
                 }
+        }
+    }
+
+    LaunchedEffect(showOffensiveSnackbar.value) {
+        if (showOffensiveSnackbar.value) {
+            // Muestra el Snackbar con duración LARGA (7 segundos)
+            snackbarHostState.showSnackbar(
+                message = "Tu mensaje será revisado antes de publicarse.",
+                duration = SnackbarDuration.Long // 7 segundos
+            )
+            // Cuando el Snackbar termine (automáticamente a los 7s), actualiza el estado
+            showOffensiveSnackbar.value = false
         }
     }
 
@@ -103,10 +118,10 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                     status = it.status
                     voteCount = it.vote_count
 
-                    movieBannerUrl = it.backdrop_path.takeIf { path -> path.isNotEmpty() }
+                    movieBannerUrl = it.backdrop_path?.takeIf { path -> path.isNotEmpty() }
                         ?.let { path -> "https://image.tmdb.org/t/p/w500$path" } ?: ""
 
-                    movieCoverUrl = it.poster_path.takeIf { path -> path.isNotEmpty() }
+                    movieCoverUrl = it.poster_path?.takeIf { path -> path.isNotEmpty() }
                         ?.let { path -> "https://image.tmdb.org/t/p/w500$path" } ?: ""
 
 
@@ -140,301 +155,348 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
 
     val commentsList by commentsViewModel.comments.collectAsState()
 
-    // Pantalla con Scroll
-    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-        // Banner
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(250.dp)
-        ) {
-            // Imagen del banner
-            Image(
-                painter = if (movieBannerUrl.isNotEmpty()) {
-                    rememberAsyncImagePainter(model = movieBannerUrl)
-                } else {
-                    painterResource(id = R.drawable.banner_placeholder)
-                },
-                contentDescription = "Banner",
-                modifier = Modifier.fillMaxSize()
-            )
-
-            // Corazón en la esquina superior derecha
-            IconButton(
-                onClick = {
-                    val isCurrentlyFavorite = usersViewModel.isFavorite.value
-                    if (!isCurrentlyFavorite) {
-                        // Si no está en favoritos, añadimos a favoritos
-                        usersViewModel.saveToFavorites(id, movieTitle, movieCoverUrl, esSerie)
-                        usersViewModel.updateFavoriteGenre(movieGenre)
-                        usersViewModel.updateSimilarContent(id)
-                    } else {
-                        // Si ya está en favoritos, lo eliminamos de favoritos
-                        usersViewModel.removeFromFavorites(id, esSerie)
-                    }
-                    // Asegurarnos de que el estado del corazón se actualice inmediatamente
-                    usersViewModel.checkIfFavorite(id, esSerie)
-                },
-                modifier = Modifier
-                    .padding(16.dp) // Ajusta el espacio alrededor del icono
-                    .align(Alignment.TopEnd) // Posiciona el botón en la parte superior derecha
-                    .background(Color.Gray.copy(alpha = 0.5f), CircleShape) // Fondo gris con forma circular
-                    .size(50.dp)
-                    .padding(8.dp) // Espacio alrededor del icono dentro del círculo
-            ) {
-                // Icono que cambia de color dependiendo de si está en favoritos
-                Icon(
-                    imageVector = if (usersViewModel.isFavorite.value) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                    contentDescription = "Favorito",
-                    tint = if (usersViewModel.isFavorite.value) Color.Red else Color.White // Rojo si está favorito, blanco si no
-                )
-            }
-
-            // Botón para volver atrás en la esquina superior izquierda dentro de un círculo gris
-            IconButton(
-                onClick = { navController.popBackStack() },
-                modifier = Modifier
-                    .padding(16.dp) // Ajusta el espacio alrededor del icono
-                    .align(Alignment.TopStart) // Posiciona el botón en la parte superior izquierda
-                    .background(Color.Gray.copy(alpha = 0.5f), CircleShape) // Fondo gris con forma circular
-                    .size(50.dp)
-                    .padding(8.dp) // Espacio alrededor del icono dentro del círculo
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Volver",
-                    tint = Color.White // Cambia el color del icono a blanco
-                )
+    Scaffold(
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) { data ->
+                Snackbar(snackbarData = data)
             }
         }
-        MovieDetailsContent(
-            movieId = movieId,
-            movieCoverUrl = movieCoverUrl,
-            movieTitle = movieTitle,
-            movieDescription = movieDescription,
-            movieGenre = movieGenre,
-            releaseDate = releaseDate,
-            originalLanguage = original_language,
-            status = status,
-            director = director,
-            directorPhoto = directorPhoto
-        )
-        if (trailerUrl.isEmpty()) {
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "No trailer available.",
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(16.dp),
-                color = Color.Gray
-            )
-        } else {
-            Spacer(modifier = Modifier.height(16.dp))
-            // Verificar si trailerUrl contiene un videoId válido
-            val videoId = trailerUrl.split("v=").getOrNull(1)?.takeWhile { it != '&' }
-            if (videoId != null) {
-                val thumbnailUrl = "https://img.youtube.com/vi/$videoId/hqdefault.jpg"
+    ) { paddingValues ->
+        Column(modifier = Modifier.verticalScroll(rememberScrollState()).padding(paddingValues)) {
+            // Banner
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(250.dp)
+            ) {
+                // Imagen del banner
+                Image(
+                    painter = if (movieBannerUrl.isNotEmpty()) {
+                        rememberAsyncImagePainter(model = movieBannerUrl)
+                    } else {
+                        painterResource(id = R.drawable.banner_placeholder)
+                    },
+                    contentDescription = "Banner",
+                    modifier = Modifier.fillMaxSize()
+                )
 
-                Box(
+                // Corazón en la esquina superior derecha
+                IconButton(
+                    onClick = {
+                        val isCurrentlyFavorite = usersViewModel.isFavorite.value
+                        if (!isCurrentlyFavorite) {
+                            // Si no está en favoritos, añadimos a favoritos
+                            usersViewModel.saveToFavorites(id, movieTitle, movieCoverUrl, esSerie)
+                            usersViewModel.updateFavoriteGenre(movieGenre)
+                            usersViewModel.updateSimilarContent(id)
+                        } else {
+                            // Si ya está en favoritos, lo eliminamos de favoritos
+                            usersViewModel.removeFromFavorites(id, esSerie)
+                        }
+                        // Asegurarnos de que el estado del corazón se actualice inmediatamente
+                        usersViewModel.checkIfFavorite(id, esSerie)
+                    },
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(200.dp)
-                        .background(Color.Transparent)
+                        .padding(16.dp) // Ajusta el espacio alrededor del icono
+                        .align(Alignment.TopEnd) // Posiciona el botón en la parte superior derecha
+                        .background(
+                            Color.Gray.copy(alpha = 0.5f),
+                            CircleShape
+                        ) // Fondo gris con forma circular
+                        .size(50.dp)
+                        .padding(8.dp) // Espacio alrededor del icono dentro del círculo
                 ) {
-                    // Mostrar la miniatura del video solo si showTrailer es false
-                    if (!showTrailer) {
-                        Image(
-                            painter = rememberAsyncImagePainter(thumbnailUrl),
-                            contentDescription = "Trailer Preview",
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(210.dp) // Mantiene la proporción de un video (relación 16:9)
-                                .clickable {
-                                    // Cuando se hace clic en la miniatura, actualizamos el estado para mostrar el trailer
-                                    showTrailer = true
-                                }
-                        )
-                    }
-
-                    // Icono de YouTube centrado
-                    Image(
-                        painter = painterResource(id = R.drawable.youtube_icon),
-                        contentDescription = "Trailer Preview",
-                        modifier = Modifier
-                            .size(50.dp) // Ajusta el tamaño del icono
-                            .align(Alignment.Center) // Centra el icono dentro de la Box
-                            .clickable {
-                                // Cuando se hace clic en el ícono, actualizamos el estado para mostrar el trailer
-                                showTrailer = true
-                            }
+                    // Icono que cambia de color dependiendo de si está en favoritos
+                    Icon(
+                        imageVector = if (usersViewModel.isFavorite.value) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                        contentDescription = "Favorito",
+                        tint = if (usersViewModel.isFavorite.value) Color.Red else Color.White // Rojo si está favorito, blanco si no
                     )
-
-                    // Mostrar el trailer si el estado lo indica
-                    if (showTrailer) {
-                        ShowTrailer(videoId) // Mostrar el video
-                    }
                 }
-            } else {
-                // Si no se obtiene un videoId válido, muestra un mensaje adecuado
+
+                // Botón para volver atrás en la esquina superior izquierda dentro de un círculo gris
+                IconButton(
+                    onClick = { navController.popBackStack() },
+                    modifier = Modifier
+                        .padding(16.dp) // Ajusta el espacio alrededor del icono
+                        .align(Alignment.TopStart) // Posiciona el botón en la parte superior izquierda
+                        .background(
+                            Color.Gray.copy(alpha = 0.5f),
+                            CircleShape
+                        ) // Fondo gris con forma circular
+                        .size(50.dp)
+                        .padding(8.dp) // Espacio alrededor del icono dentro del círculo
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Volver",
+                        tint = Color.White // Cambia el color del icono a blanco
+                    )
+                }
+            }
+            MovieDetailsContent(
+                movieId = movieId,
+                movieCoverUrl = movieCoverUrl,
+                movieTitle = movieTitle,
+                movieDescription = movieDescription,
+                movieGenre = movieGenre,
+                releaseDate = releaseDate,
+                originalLanguage = original_language,
+                status = status,
+                director = director,
+                directorPhoto = directorPhoto
+            )
+            if (trailerUrl.isEmpty()) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "No trailer available",
+                    text = "No trailer available.",
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(16.dp),
                     color = Color.Gray
                 )
-            }
-        }
-        Spacer(modifier = Modifier.height(36.dp))
-        Text(
-            text = "Comments",
-            style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.padding(start = 16.dp, end = 16.dp),
-            color = Color.Black
-        )
+            } else {
+                Spacer(modifier = Modifier.height(16.dp))
+                // Verificar si trailerUrl contiene un videoId válido
+                val videoId = trailerUrl.split("v=").getOrNull(1)?.takeWhile { it != '&' }
+                if (videoId != null) {
+                    val thumbnailUrl = "https://img.youtube.com/vi/$videoId/hqdefault.jpg"
 
-        Button(
-            onClick = { isDialogOpen.value = true },
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Text("Comment")
-        }
-
-        movie?.let { ShowComments(navController, commentsList, commentsViewModel, it.esSerie) }
-
-        if (isDialogOpen.value) {
-            AlertDialog(
-                onDismissRequest = {
-                    isDialogOpen.value = false
-                },
-                title = { Text("Write your comment") },
-                text = {
-                    Column(
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp)
+                            .heightIn(200.dp)
+                            .background(Color.Transparent)
                     ) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(0.dp), verticalAlignment = Alignment.CenterVertically) {
-                            for (i in 1..5) {
-                                Box(
-                                    contentAlignment = Alignment.Center,
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .clickable {
-                                            selectedStars.value = if (selectedStars.value == i * 2) 0 else i * 2
-                                        }
-                                ) {
-                                    Icon(
-                                        imageVector = if (i * 2 <= selectedStars.value) Icons.Filled.Star else Icons.Filled.StarBorder,
-                                        contentDescription = "Estrella",
-                                        tint = if (i * 2 <= selectedStars.value) Color.Yellow else Color.Gray,
-                                        modifier = Modifier.size(50.dp)
-                                    )
-                                }
-                            }
-                        }
-
-                        OutlinedTextField(
-                            value = commentText.value,
-                            onValueChange = { commentText.value = it },
-                            label = { Text("Write your comment") },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(250.dp)
-                                .padding(top = 16.dp)
-                        )
-
-                        // Mostrar el mensaje de error si no se seleccionaron estrellas
-                        if (errorMessage.value.isNotEmpty()) {
-                            Text(
-                                text = errorMessage.value,
-                                color = Color.Red,
-                                style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.padding(top = 8.dp)
+                        // Mostrar la miniatura del video solo si showTrailer es false
+                        if (!showTrailer) {
+                            Image(
+                                painter = rememberAsyncImagePainter(thumbnailUrl),
+                                contentDescription = "Trailer Preview",
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(210.dp) // Mantiene la proporción de un video (relación 16:9)
+                                    .clickable {
+                                        // Cuando se hace clic en la miniatura, actualizamos el estado para mostrar el trailer
+                                        showTrailer = true
+                                    }
                             )
                         }
+
+                        // Icono de YouTube centrado
+                        Image(
+                            painter = painterResource(id = R.drawable.youtube_icon),
+                            contentDescription = "Trailer Preview",
+                            modifier = Modifier
+                                .size(50.dp) // Ajusta el tamaño del icono
+                                .align(Alignment.Center) // Centra el icono dentro de la Box
+                                .clickable {
+                                    // Cuando se hace clic en el ícono, actualizamos el estado para mostrar el trailer
+                                    showTrailer = true
+                                }
+                        )
+
+                        // Mostrar el trailer si el estado lo indica
+                        if (showTrailer) {
+                            ShowTrailer(videoId) // Mostrar el video
+                        }
                     }
-                },
-                confirmButton = {
-                    val coroutineScope = rememberCoroutineScope()
-                    TextButton(onClick = {
-                        if (selectedStars.value == 0) {
-                            errorMessage.value = "Por favor selecciona al menos una estrella."
-                        } else if (commentText.value.isBlank()) {
-                            errorMessage.value = "Por favor escribe un comentario."
-                        } else if (userId != null) {
-                            coroutineScope.launch {
-                                val isOffensive = validateComment(commentText.value)
-                                if (isOffensive) {
-                                    Toast.makeText(context, "Tu mensaje será revisado antes de publicarse.", Toast.LENGTH_SHORT).show()
-                                    commentsViewModel.sendComment(id, usuarioNombre, selectedStars.value, commentText.value, true)
-                                } else {
-                                    commentsViewModel.sendComment(id, usuarioNombre, selectedStars.value, commentText.value, false)
-                                }
-                                // Aumentar el contador de comentarios en Firebase
-                                moviesViewModel.incrementUserCommentCount(userId)
+                } else {
+                    // Si no se obtiene un videoId válido, muestra un mensaje adecuado
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "No trailer available",
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(16.dp),
+                        color = Color.Gray
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(36.dp))
+            Text(
+                text = "Comments",
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+                color = Color.Black
+            )
 
-                                // Si le damos una buena puntuación, recomendamos el genero y contenido similar
-                                if (selectedStars.value > 6){
-                                    usersViewModel.updateFavoriteGenre(movieGenre)
-                                    usersViewModel.updateSimilarContent(id)
-                                }
+            Button(
+                onClick = { isDialogOpen.value = true },
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text("Comment")
+            }
 
-                                moviesViewModel.calculateNewVoteAverage(movieId, selectedStars.value) { updatedVoteAverage ->
-                                    if (updatedVoteAverage != null) {
-                                        // Si se obtiene un nuevo promedio válido, actualizamos en Firebase
-                                        if (!isUpdating) {
-                                            isUpdating = true  // Evitamos que se actualicen los valores mientras estamos en el proceso de actualización
+            movie?.let { ShowComments(navController, commentsList, commentsViewModel, it.esSerie) }
 
-                                            // Convertimos el String a Float para pasarlo a updateVoteAverageInFirebase
-                                            val updatedVoteAverageFloat = updatedVoteAverage.toFloatOrNull()
-
-                                            if (updatedVoteAverageFloat != null) {
-                                                // Actualizamos el promedio de votos en Firebase
-                                                moviesViewModel.updateVoteAverageInFirebase(movieId, updatedVoteAverageFloat)
-
-                                                // También actualizamos la popularidad, si es necesario
-                                                moviesViewModel.calculateNewPopularity(movieId) { newPopularity ->
-                                                    if (newPopularity != null) {
-                                                        // Actualizamos la popularidad en Firebase
-                                                        moviesViewModel.updatePopularityInFirebase(movieId, newPopularity)
-                                                    }
-                                                }
-                                            } else {
-                                                // Si no se puede convertir el String a Float, manejar el error
-                                                Toast.makeText(context, "Error al convertir el promedio a número", Toast.LENGTH_SHORT).show()
+            if (isDialogOpen.value) {
+                AlertDialog(
+                    onDismissRequest = {
+                        isDialogOpen.value = false
+                    },
+                    title = { Text("Write your comment") },
+                    text = {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                        ) {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(0.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                for (i in 1..5) {
+                                    Box(
+                                        contentAlignment = Alignment.Center,
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clickable {
+                                                selectedStars.value =
+                                                    if (selectedStars.value == i * 2) 0 else i * 2
                                             }
-                                        }
-                                    } else {
-                                        // Si no se pudo calcular el nuevo promedio, puedes manejar el error aquí
-                                        Toast.makeText(context, "Error al calcular el promedio de votos", Toast.LENGTH_SHORT).show()
+                                    ) {
+                                        Icon(
+                                            imageVector = if (i * 2 <= selectedStars.value) Icons.Filled.Star else Icons.Filled.StarBorder,
+                                            contentDescription = "Estrella",
+                                            tint = if (i * 2 <= selectedStars.value) Color.Yellow else Color.Gray,
+                                            modifier = Modifier.size(50.dp)
+                                        )
                                     }
-
-                                    // Restablecemos la bandera después de la actualización
-                                    isUpdating = false
                                 }
+                            }
+                            OutlinedTextField(
+                                value = commentText.value,
+                                onValueChange = { commentText.value = it },
+                                label = { Text("Write your comment") },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(250.dp)
+                                    .padding(top = 16.dp)
+                            )
 
-                                // Cerrar el diálogo en ambos casos
-                                isDialogOpen.value = false
-                                selectedStars.value = 0
-                                commentText.value = ""
-                                errorMessage.value = "" // Limpiamos el mensaje de error
+                            // Mostrar el mensaje de error si no se seleccionaron estrellas
+                            if (errorMessage.value.isNotEmpty()) {
+                                Text(
+                                    text = errorMessage.value,
+                                    color = Color.Red,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    modifier = Modifier.padding(top = 8.dp)
+                                )
                             }
                         }
-                    }) {
-                        Text("Send")
+                    },
+                    confirmButton = {
+                        val coroutineScope = rememberCoroutineScope()
+                        TextButton(onClick = {
+                            if (selectedStars.value == 0) {
+                                errorMessage.value = "Por favor selecciona al menos una estrella."
+                            } else if (commentText.value.isBlank()) {
+                                errorMessage.value = "Por favor escribe un comentario."
+                            } else if (userId != null) {
+                                coroutineScope.launch {
+                                    val isOffensive = validateComment(commentText.value)
+                                    if (isOffensive) {
+                                        showOffensiveSnackbar.value = true
+                                        commentsViewModel.sendComment(
+                                            id,
+                                            usuarioNombre,
+                                            selectedStars.value,
+                                            commentText.value,
+                                            true
+                                        )
+                                    } else {
+                                        commentsViewModel.sendComment(
+                                            id,
+                                            usuarioNombre,
+                                            selectedStars.value,
+                                            commentText.value,
+                                            false
+                                        )
+                                    }
+                                    // Aumentar el contador de comentarios en Firebase
+                                    moviesViewModel.incrementUserCommentCount(userId)
+
+                                    // Si le damos una buena puntuación, recomendamos el genero y contenido similar
+                                    if (selectedStars.value > 6) {
+                                        usersViewModel.updateFavoriteGenre(movieGenre)
+                                        usersViewModel.updateSimilarContent(id)
+                                    }
+
+                                    moviesViewModel.calculateNewVoteAverage(
+                                        movieId,
+                                        selectedStars.value
+                                    ) { updatedVoteAverage ->
+                                        if (updatedVoteAverage != null) {
+                                            // Si se obtiene un nuevo promedio válido, actualizamos en Firebase
+                                            if (!isUpdating) {
+                                                isUpdating =
+                                                    true  // Evitamos que se actualicen los valores mientras estamos en el proceso de actualización
+
+                                                // Convertimos el String a Float para pasarlo a updateVoteAverageInFirebase
+                                                val updatedVoteAverageFloat =
+                                                    updatedVoteAverage.toFloatOrNull()
+
+                                                if (updatedVoteAverageFloat != null) {
+                                                    // Actualizamos el promedio de votos en Firebase
+                                                    moviesViewModel.updateVoteAverageInFirebase(
+                                                        movieId,
+                                                        updatedVoteAverageFloat
+                                                    )
+
+                                                    // También actualizamos la popularidad, si es necesario
+                                                    moviesViewModel.calculateNewPopularity(movieId) { newPopularity ->
+                                                        if (newPopularity != null) {
+                                                            // Actualizamos la popularidad en Firebase
+                                                            moviesViewModel.updatePopularityInFirebase(
+                                                                movieId,
+                                                                newPopularity
+                                                            )
+                                                        }
+                                                    }
+                                                } else {
+                                                    // Si no se puede convertir el String a Float, manejar el error
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Error al convertir el promedio a número",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                }
+                                            }
+                                        } else {
+                                            // Si no se pudo calcular el nuevo promedio, puedes manejar el error aquí
+                                            Toast.makeText(
+                                                context,
+                                                "Error al calcular el promedio de votos",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+
+                                        // Restablecemos la bandera después de la actualización
+                                        isUpdating = false
+                                    }
+
+                                    // Cerrar el diálogo en ambos casos
+                                    isDialogOpen.value = false
+                                    selectedStars.value = 0
+                                    commentText.value = ""
+                                    errorMessage.value = "" // Limpiamos el mensaje de error
+                                }
+                            }
+                        }) {
+                            Text("Send")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = {
+                            isDialogOpen.value = false
+                            commentText.value = ""
+                            selectedStars.value = 0
+                            errorMessage.value = "" // Limpiamos el mensaje de error
+                        }) {
+                            Text("Cancel")
+                        }
                     }
-                },
-                dismissButton = {
-                    TextButton(onClick = {
-                        isDialogOpen.value = false
-                        commentText.value = ""
-                        selectedStars.value = 0
-                        errorMessage.value = "" // Limpiamos el mensaje de error
-                    }) {
-                        Text("Cancel")
-                    }
-                }
-            )
+                )
+            }
         }
     }
 }

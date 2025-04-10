@@ -80,7 +80,11 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
 
     // BackHandler para manejar el retroceso
     BackHandler {
-        activity?.finish()
+        if (!isComment) {
+            activity?.finish()
+        } else {
+            navController.popBackStack()
+        }
     }
 
     if (currentUser != null) {
@@ -557,9 +561,16 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                         if (!isComment) {
                             Button(
                                 onClick = {
+                                    // Cerrar sesión de Firebase
                                     auth.signOut()
-                                    Toast.makeText(context, "Sesión cerrada", Toast.LENGTH_SHORT)
-                                        .show()
+
+                                    // Eliminar la sesión guardada en SharedPreferences
+                                    usersViewModel.saveSession(context, false)  // 'false' indica que el usuario ya no está logueado
+
+                                    // Mostrar un mensaje de sesión cerrada
+                                    Toast.makeText(context, "Sesión cerrada", Toast.LENGTH_SHORT).show()
+
+                                    // Navegar a la pantalla de login
                                     navController.navigate("login")
                                 },
                                 modifier = Modifier
@@ -574,6 +585,7 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                                 )
                             }
                         }
+
                     }
                 }
             }

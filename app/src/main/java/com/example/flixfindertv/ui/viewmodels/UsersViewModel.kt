@@ -1,19 +1,15 @@
 package com.example.flixfindertv.ui.viewmodels
 
+import android.content.Context
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.flixfindertv.models.Peliculas
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.DocumentSnapshot
-import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -31,6 +27,20 @@ class UsersViewModel : ViewModel() {
     private val _userIdComment = MutableLiveData<String>()
     val userIdComment: LiveData<String> get() = _userIdComment
 
+    // Guardar sesión en SharedPreferences
+    fun saveSession(context: Context, isLoggedIn: Boolean) {
+        val sharedPreferences = context.getSharedPreferences("user_session", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        editor.putBoolean("is_logged_in", isLoggedIn) // Con 'true' guardamos la sesión, con 'false' eliminamos la sesión
+        editor.apply()
+    }
+
+    // Verificar si el usuario está logueado
+    fun isUserLoggedIn(context: Context): Boolean {
+        val sharedPreferences = context.getSharedPreferences("user_session", Context.MODE_PRIVATE)
+        return sharedPreferences.getBoolean("is_logged_in", false)  // Devuelve 'false' si no está logueado
+    }
+
 
     fun updateSimilarContent(nuevoContenidoId: String) {
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
@@ -44,7 +54,6 @@ class UsersViewModel : ViewModel() {
                 Log.e("ContenidoVisto", "Error al actualizar contenido visto", e)
             }
     }
-
 
 
     fun updateFavoriteGenre(movieGenre: String) {

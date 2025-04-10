@@ -113,14 +113,12 @@ fun ForgotPasswordScreen(navController: NavHostController) {
                 ) {
                     Text(if (isLoading) "Sending..." else "Send recovery link")
                 }
-
-
                 Spacer(modifier = Modifier.height(8.dp))
                 Box (
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 ) {
                     TextButton(onClick = { navController.popBackStack() }) {
-                        Text("Back to login", color = Color.Blue, modifier = Modifier)
+                        Text("Back to login", color = Color.White, modifier = Modifier)
                     }
                 }
             }
