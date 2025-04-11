@@ -70,6 +70,7 @@ fun HomeScreen(
     var apiKeyTmdb by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope() // Obtén el CoroutineScope
 
+
     LaunchedEffect(Unit) {
         coroutineScope.launch {
             val key = moviesViewModel.getTmdbApiKey()

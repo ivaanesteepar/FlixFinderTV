@@ -38,6 +38,7 @@ class TriviaViewModel(private val context: Context, lifecycleOwner: LifecycleOwn
     val languageState: StateFlow<String> = _languageState.asStateFlow()
 
     private val apiKey = BuildConfig.apiKey
+    var explanation: String? = null
 
     private val generativeModel = GenerativeModel(
         modelName = "gemini-1.5-flash",
@@ -129,23 +130,30 @@ class TriviaViewModel(private val context: Context, lifecycleOwner: LifecycleOwn
                     // Generar el contenido en base al idioma
                     val evaluation = generativeModel.generateContent(content {
                         if (language == "es") {
-                            // Si el idioma es español, la respuesta debe estar en español
                             text("$currentQuestion Tu respuesta es: $answer. ¿Cuál es la respuesta correcta y por qué? Explica por qué la respuesta correcta es lo que es, en un párrafo separado. No uses markdown.")
                         } else {
-                            // Por defecto en inglés
                             text("$currentQuestion Your answer is: $answer. What is the correct answer and why? Explain why the correct answer is what it is, in a separate paragraph. Do not use markdown.")
                         }
                     })
 
+                    // Asignar el resultado a la variable global 'explanation'
                     evaluation.text?.let { result ->
-                        _uiState.value = UiState.Success(result)
+                        explanation = result
                     }
+
+                    // Luego puedes actualizar la UI con la explicación si lo deseas
+                    explanation?.let {
+                        // Aquí puedes actualizar el estado de la UI con la explicación
+                        _uiState.value = UiState.Success(it)
+                    }
+
                 } catch (e: Exception) {
                     _uiState.value = UiState.Error(e.localizedMessage ?: "")
                 }
             }
         }
     }
+
 
     override fun onCleared() {
         super.onCleared()

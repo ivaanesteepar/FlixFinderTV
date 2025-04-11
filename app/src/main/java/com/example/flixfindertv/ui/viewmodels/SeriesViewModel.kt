@@ -8,8 +8,12 @@ import androidx.lifecycle.viewModelScope
 import com.example.flixfindertv.models.Peliculas
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class SeriesViewModel : ViewModel() {
     private val db = FirebaseFirestore.getInstance()  // Instancia de Firestore
@@ -38,6 +42,9 @@ class SeriesViewModel : ViewModel() {
     private var _listaSeriesKids = MutableLiveData<List<Peliculas>>(emptyList())
     val listaSeriesKids: LiveData<List<Peliculas>> = _listaSeriesKids
 
+    private var _listaSeriesRecientes = MutableLiveData<List<Peliculas>>(emptyList())
+    val listaSeriesRecientes: LiveData<List<Peliculas>> = _listaSeriesRecientes
+
 
     private var _isLoadingSeries = MutableLiveData<Boolean>(false)
     val isLoadingSeries: LiveData<Boolean> = _isLoadingSeries
@@ -63,6 +70,9 @@ class SeriesViewModel : ViewModel() {
     private var _isLoadingKids = MutableLiveData<Boolean>(false)
     val isLoadingKidsSeries: LiveData<Boolean> = _isLoadingKids
 
+    private val _isLoadingRecentSeries = MutableLiveData(false)
+    val isLoadingRecentSeries: LiveData<Boolean> = _isLoadingRecentSeries
+
     var lastVisibleSeries: DocumentSnapshot? = null
     var lastVisibleActionAdventure: DocumentSnapshot? = null
     var lastVisibleAnimation: DocumentSnapshot? = null
@@ -71,38 +81,61 @@ class SeriesViewModel : ViewModel() {
     var lastVisibleDrama: DocumentSnapshot? = null
     var lastVisibleFamilySeries: DocumentSnapshot? = null
     var lastVisibleKids: DocumentSnapshot? = null
+    var lastVisibleRecentSeries: DocumentSnapshot? = null
 
-    // Métodos públicos para actualizar las listas de series
-    fun actualizarSeriesPopulares(series: List<Peliculas>) {
-        _listaSeries.value = series
-    }
 
-    fun actualizarSeriesAccionAventura(series: List<Peliculas>) {
-        _listaSeriesActionAdventure.value = series
-    }
+    fun obtenerSeriesMasRecientes() {
+        if (_isLoadingRecentSeries.value == true) return
 
-    fun actualizarSeriesAnimacion(series: List<Peliculas>) {
-        _listaSeriesAnimation.value = series
-    }
+        _isLoadingRecentSeries.value = true
+        val listaSeriesRecientes = mutableListOf<Peliculas>()
 
-    fun actualizarSeriesComedia(series: List<Peliculas>) {
-        _listaSeriesComedy.value = series
-    }
+        viewModelScope.launch {
+            try {
+                // Obtener la fecha actual en formato String (por ejemplo: "2024-04-10")
+                val currentDateString = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(
+                    Date()
+                )
 
-    fun actualizarSeriesCrimen(series: List<Peliculas>) {
-        _listaSeriesCrime.value = series
-    }
+                // Consultar las películas más recientes hasta la fecha actual, ordenadas por fecha de lanzamiento
+                var consulta = db.collection("series")
+                    .whereLessThanOrEqualTo("release_date_series", currentDateString) // Filtrar por películas cuyo release_date sea <= a la fecha actual
+                    .orderBy("release_date_series", Query.Direction.DESCENDING) // Ordenar por fecha de lanzamiento
+                    .limit(20)
 
-    fun actualizarSeriesDrama(series: List<Peliculas>) {
-        _listaSeriesDrama.value = series
-    }
+                lastVisibleRecentSeries?.let {
+                    consulta = consulta.startAfter(it)
+                }
 
-    fun actualizarSeriesFamily(series: List<Peliculas>) {
-        _listaSeriesFamily.value = series
-    }
+                val resultado = consulta.get().await()
 
-    fun actualizarSeriesKids(series: List<Peliculas>) {
-        _listaSeriesKids.value = series
+                // Verificar la cantidad de resultados obtenidos
+                Log.d("Debug", "Total series retrieved: ${resultado.size()}")
+
+                for (documento in resultado.documents) {
+                    val pelicula = documento.toObject(Peliculas::class.java)
+                    pelicula?.let {
+                        listaSeriesRecientes.add(it)
+                        println("Serie obtenida: Título = ${it.titulo}, Id = ${it.id}, Portada = ${it.poster_path}")
+                    }
+                }
+
+                if (resultado.documents.isNotEmpty()) {
+                    lastVisibleRecentSeries = resultado.documents.last()
+                }
+
+                if (_listaSeriesRecientes.value.isNullOrEmpty()) {
+                    _listaSeriesRecientes.postValue(listaSeriesRecientes)
+                } else {
+                    _listaSeriesRecientes.value = _listaSeriesRecientes.value.orEmpty() + listaSeriesRecientes
+                }
+
+            } catch (e: Exception) {
+                Log.e("Error", "Error al obtener las series más recientes hasta la fecha actual desde Firebase", e)
+            } finally {
+                _isLoadingRecentSeries.postValue(false)
+            }
+        }
     }
 
     fun obtenerSeriesPopulares() {

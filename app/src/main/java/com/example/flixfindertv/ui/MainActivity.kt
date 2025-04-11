@@ -8,11 +8,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import com.example.flixfindertv.ui.theme.FlixFinderTVTheme
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
+import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : ComponentActivity() {
 
@@ -36,6 +35,12 @@ class MainActivity : ComponentActivity() {
     override fun onPause() {
         super.onPause()
         // Guardar sesión al salir de la app
-        usersViewModel.saveSession(this, true)  // 'true' significa que el usuario está logueado
+        val uid = FirebaseAuth.getInstance().currentUser?.uid // Obtén el UID del usuario logueado
+
+        // Si el UID no es nulo, guardamos la sesión
+        if (uid != null) {
+            usersViewModel.saveSession(context = this, isLoggedIn = true, uid = uid)  // Guardamos la sesión con el UID
+        }
     }
+
 }

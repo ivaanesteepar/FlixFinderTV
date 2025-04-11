@@ -65,11 +65,11 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
     var expanded by remember { mutableStateOf(false) }
     var selectedTab by rememberSaveable { mutableStateOf("Movies") }
     val tabs = listOf("Movies", "TV Shows")
-    val selectedIndex = remember { mutableStateOf(0) }
     val movies by viewModel.listaPeliculas.observeAsState(emptyList())
     val series by seriesViewModel.listaSeries.observeAsState(emptyList())
     val isSeriesLoading by seriesViewModel.isLoadingSeries.observeAsState(false)
     val isLoading by viewModel.isLoadingPeliculas.observeAsState(false)
+    val isRecentLoading by viewModel.isLoadingRecientes.observeAsState(false)
     val isActionLoading by viewModel.isLoadingAction.observeAsState(false)
     val isRomanceMoviesLoading by viewModel.isLoadingRomance.observeAsState(false)
     val isFamilyMoviesLoading by viewModel.isLoadingFamily.observeAsState(false)
@@ -85,6 +85,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
     val isDramaSeriesLoading by seriesViewModel.isLoadingDrama.observeAsState(false)
     val isFamilySeriesLoading by seriesViewModel.isLoadingFamilySeries.observeAsState(false)
     val isKidsSeriesLoading by seriesViewModel.isLoadingKidsSeries.observeAsState(false)
+    val isRecentSeriesLoading by seriesViewModel.isLoadingRecentSeries.observeAsState(false)
 
     val hayConexion by conexionViewModel.conexionEstablecida.collectAsState()
 
@@ -95,6 +96,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
     val thrillerMovies by viewModel.listaPeliculasThriller.observeAsState(emptyList())
     val horrorMovies by viewModel.listaPeliculasHorror.observeAsState(emptyList())
     val scienceFictionMovies by viewModel.listaPeliculasScienceFiction.observeAsState(emptyList())
+    val recentMovies by viewModel.listaPeliculasRecientes.observeAsState(emptyList())
 
     val actionAdventureSeries by seriesViewModel.listaSeriesAccionAventura.observeAsState(emptyList())
     val animationSeries by seriesViewModel.listaSeriesAnimacion.observeAsState(emptyList())
@@ -103,6 +105,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
     val dramaSeries by seriesViewModel.listaSeriesDrama.observeAsState(emptyList())
     val familySeries by seriesViewModel.listaSeriesFamily.observeAsState(emptyList())
     val kidsSeries by seriesViewModel.listaSeriesKids.observeAsState(emptyList())
+    val recentSeries by seriesViewModel.listaSeriesRecientes.observeAsState(emptyList())
 
     val maxMovies = 100  // Límite de películas
     val maxSeries = 100  // Límite de series
@@ -160,6 +163,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
             if (movies.size < 20 || series.size < 20) {  // Se verifica si hay menos de 20 elementos
                 if (movies.size < 20) {
                     viewModel.obtenerPeliculasPopulares()
+                    viewModel.obtenerPeliculasMasRecientes()
                     viewModel.obtenerPeliculasAccion()
                     viewModel.obtenerPeliculasRomance()
                     viewModel.obtenerPeliculasFamily()
@@ -171,6 +175,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
 
                 if (series.size < 20) {
                     seriesViewModel.obtenerSeriesPopulares()
+                    seriesViewModel.obtenerSeriesMasRecientes()
                     seriesViewModel.obtenerSeriesAccionAventura()
                     seriesViewModel.obtenerSeriesAnimacion()
                     seriesViewModel.obtenerSeriesComedia()
@@ -196,6 +201,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
     val thrillerMovieListState = rememberLazyListState()
     val horrorMovieListState = rememberLazyListState()
     val sciencieFictionMovieListState = rememberLazyListState()
+    val recentMovieListState = rememberLazyListState()
 
     val seriesListState = rememberLazyListState()
     val actionadventureSerieListState = rememberLazyListState()
@@ -205,6 +211,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
     val dramaListState = rememberLazyListState()
     val familySerieListState = rememberLazyListState()
     val kidsSerieListState = rememberLazyListState()
+    val recentSerieListState = rememberLazyListState()
 
     // Cargar más películas cuando llegas al final de la lista de películas
     LaunchedEffect(movieListState.firstVisibleItemIndex) {
@@ -213,6 +220,24 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
         // Verificar si estamos cerca del final de la lista de películas y si no se ha alcanzado el límite de 100
         if (movieListState.firstVisibleItemIndex >= (movies.size - threshold) && !isLoading && movies.size < maxMovies && hayConexion) {
             viewModel.obtenerPeliculasPopulares()  // Cargar más películas
+        }
+    }
+    // Cargar más películas cuando llegas al final de la lista de películas
+    LaunchedEffect(recentMovieListState.firstVisibleItemIndex) {
+        val threshold = 10  // Umbral de carga
+
+        // Verificar si estamos cerca del final de la lista de películas y si no se ha alcanzado el límite de 100
+        if (recentMovieListState.firstVisibleItemIndex >= (recentMovies.size - threshold) && !isRecentLoading && recentMovies.size < maxMovies && hayConexion) {
+            viewModel.obtenerPeliculasMasRecientes()  // Cargar más películas
+        }
+    }
+    // Cargar más películas cuando llegas al final de la lista de películas
+    LaunchedEffect(recentSerieListState.firstVisibleItemIndex) {
+        val threshold = 10  // Umbral de carga
+
+        // Verificar si estamos cerca del final de la lista de películas y si no se ha alcanzado el límite de 100
+        if (recentSerieListState.firstVisibleItemIndex >= (recentSeries.size - threshold) && !isRecentSeriesLoading && recentSeries.size < maxSeries && hayConexion) {
+            seriesViewModel.obtenerSeriesMasRecientes()  // Cargar más películas
         }
     }
     LaunchedEffect(seriesListState.firstVisibleItemIndex) {
@@ -327,14 +352,6 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
         if (kidsSerieListState.firstVisibleItemIndex >= (kidsSeries.size - threshold) && !isKidsSeriesLoading && kidsSeries.size < maxSeries && hayConexion) {
             seriesViewModel.obtenerSeriesKids()
         }
-    }
-
-    LaunchedEffect(movies) {
-        println("Películas cargadas: ${movies.size}")
-    }
-
-    LaunchedEffect(series) {
-        println("Series cargadas: ${series.size}")
     }
 
     Scaffold(
@@ -818,6 +835,24 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                         item { Spacer(modifier = Modifier.height(25.dp)) }
                                     }
 
+                                    if (recentMovies.isNotEmpty()) {
+                                        item {
+                                            Text(
+                                                "Latest Releases",
+                                                color = Color.White,
+                                                style = MaterialTheme.typography.headlineMedium
+                                            )
+                                        }
+                                        item { Spacer(modifier = Modifier.height(8.dp)) }
+                                        item {
+                                            ContentListExplore(
+                                                recentMovies,
+                                                navController,
+                                                recentMovieListState,
+                                            )
+                                        }
+                                    }
+
                                     if (actionMovies.isNotEmpty()) {
                                         item {
                                             Text(
@@ -985,6 +1020,23 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                             }
                                         }
                                         item { Spacer(modifier = Modifier.height(25.dp)) }
+                                    }
+                                    if (recentSeries.isNotEmpty()) {
+                                        item {
+                                            Text(
+                                                "Latest Releases",
+                                                color = Color.White,
+                                                style = MaterialTheme.typography.headlineMedium
+                                            )
+                                        }
+                                        item { Spacer(modifier = Modifier.height(8.dp)) }
+                                        item {
+                                            ContentListExplore(
+                                                recentSeries,
+                                                navController,
+                                                recentSerieListState,
+                                            )
+                                        }
                                     }
 
                                     if (actionAdventureSeries.isNotEmpty()) {

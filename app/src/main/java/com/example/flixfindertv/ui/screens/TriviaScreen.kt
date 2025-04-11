@@ -1,18 +1,10 @@
 package com.example.flixfindertv.ui.screens
 
-import android.Manifest
 import android.app.Activity
-import android.content.pm.PackageManager
-import android.speech.RecognizerIntent
-import android.content.Intent
 import androidx.activity.compose.BackHandler
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -25,7 +17,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -105,8 +96,8 @@ fun TriviaScreen(
             result = ""
             questionText = ""
             answersList = emptyList()
+            triviaViewModel.explanation = ""
             explanationShown = true // Mostrar la explicación
-            delay(1000) // 2 segundos de espera
         }
     }
 
@@ -124,29 +115,6 @@ fun TriviaScreen(
             isAnswered = false
             transitioningToNextQuestion = false
             delay(1000) // 1 segundo de espera antes de mostrar la siguiente pregunta
-        }
-    }
-
-    val speechResultLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == android.app.Activity.RESULT_OK) {
-            result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.let {
-                answer = it[0]
-            }
-        }
-    }
-
-    val speechIntent = remember {
-        Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US")
-        }
-    }
-
-    val recordAudioPermissionRequest = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-        if (isGranted) {
-            speechResultLauncher.launch(speechIntent)
         }
     }
 
@@ -244,15 +212,28 @@ fun TriviaScreen(
                                 textAlign = TextAlign.Center,
                                 color = Color.White
                             )
+                            Spacer(modifier = Modifier.height(50.dp))
                             // Mostrar las opciones de respuesta
                             answersList.forEachIndexed { index, answerOption ->
                                 Button(
                                     onClick = {
-                                        // No son clickables
+                                        // Aquí va la lógica para validar la respuesta
+                                        val normalizedAnswer = when (index) {
+                                            0 -> "a"
+                                            1 -> "b"
+                                            2 -> "c"
+                                            3 -> "d"
+                                            else -> ""
+                                        }
+                                        triviaViewModel.checkAnswer(normalizedAnswer)
+                                        showNextButton = true
+                                        answer = ""
+                                        hasAnswered = true
+                                        isAnswered = true
                                     },
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(vertical = 4.dp)
+                                        .padding(vertical = 15.dp)
                                 ) {
                                     Text(text = answerOption)
                                 }
@@ -266,8 +247,9 @@ fun TriviaScreen(
                             modifier = Modifier.height(530.dp)
                         ) {
                             item {
+                                // Usar la variable global 'explanation' para mostrar la explicación
                                 Text(
-                                    text = fullText,
+                                    text = triviaViewModel.explanation ?: "",
                                     style = MaterialTheme.typography.bodyLarge,
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -279,94 +261,14 @@ fun TriviaScreen(
                         }
                     }
 
-                    // Fila con el campo de texto y botones fijos en la parte inferior
+                    // Fila con los botones fijos en la parte inferior
                     Column(
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
                             .padding(16.dp)
                             .fillMaxWidth()
                     ) {
-                        // Campo de texto y botones fijos en la parte inferior
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            if (!explanationShown) {
-                                OutlinedTextField(
-                                    value = answer,
-                                    onValueChange = { answer = it },
-                                    label = { Text("Write your response", color = Color.White) },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(bottom = 8.dp)
-                                        .heightIn(min = 56.dp),
-                                    textStyle = LocalTextStyle.current.copy(color = Color.White), // Texto en blanco
-                                    colors = OutlinedTextFieldDefaults.colors(
-                                        focusedBorderColor = Color.White,    // Borde blanco al estar seleccionado
-                                        unfocusedBorderColor = Color.White, // Borde blanco en estado normal
-                                        focusedTextColor = Color.White,      // Texto en blanco
-                                        unfocusedTextColor = Color.White,
-                                        cursorColor = Color.White,           // Cursor blanco
-                                        focusedTrailingIconColor = Color.White, // Ícono de búsqueda blanco
-                                        unfocusedTrailingIconColor = Color.White
-                                    ),
-                                    trailingIcon = {
-                                        IconButton(
-                                            onClick = {
-                                                if (ContextCompat.checkSelfPermission(
-                                                        context,
-                                                        Manifest.permission.RECORD_AUDIO
-                                                    ) == PackageManager.PERMISSION_GRANTED
-                                                ) {
-                                                    speechResultLauncher.launch(speechIntent)
-                                                } else {
-                                                    recordAudioPermissionRequest.launch(Manifest.permission.RECORD_AUDIO)
-                                                }
-                                            }
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Filled.Mic,
-                                                contentDescription = "Voice Input",
-                                                tint = Color.White
-                                            )
-                                        }
-                                    }
-                                )
-                            }
-                        }
-
-                        Button(
-                            onClick = {
-                                val normalizedAnswer = answer.lowercase().trim()
-                                if (normalizedAnswer in listOf("a", "b", "c", "d")) {
-                                    triviaViewModel.checkAnswer(normalizedAnswer)
-                                    showNextButton = true
-                                    answer = ""
-                                    hasAnswered = true
-                                    isAnswered = true
-                                } else {
-                                    result = "Invalid answer. Please enter a, b, c, or d."
-                                }
-                            },
-                            enabled = !isAnswered && answer.isNotEmpty(),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 8.dp)
-                        ) {
-                            Text(text = "Send response")
-                        }
-
-                        // El mensaje de error
-                        if (result.isNotEmpty()) {
-                            Text(
-                                text = result,
-                                color = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.padding(top = 8.dp)
-                            )
-                        }
-
+                        // Botón para continuar a la siguiente pregunta
                         if (showNextButton) {
                             Button(
                                 onClick = {
@@ -385,5 +287,4 @@ fun TriviaScreen(
         }
     }
 }
-
 

@@ -565,7 +565,7 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                                     auth.signOut()
 
                                     // Eliminar la sesión guardada en SharedPreferences
-                                    usersViewModel.saveSession(context, false)  // 'false' indica que el usuario ya no está logueado
+                                    usersViewModel.saveSession(context, false, uid)  // 'false' indica que el usuario ya no está logueado
 
                                     // Mostrar un mensaje de sesión cerrada
                                     Toast.makeText(context, "Sesión cerrada", Toast.LENGTH_SHORT).show()

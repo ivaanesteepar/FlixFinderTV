@@ -173,7 +173,7 @@ fun LoginScreen(navController: NavHostController) {
                                                     errorMessage = "Error fetching user data"
                                                 }
                                             // Guardar la sesión después del login
-                                            usersViewModel.saveSession(context, true)  // 'true' significa que el usuario está logueado
+                                            usersViewModel.saveSession(context, true, userId)  // 'true' significa que el usuario está logueado
                                         }
                                     } else {
                                         isLoading = false

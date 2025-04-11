@@ -17,10 +17,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import androidx.compose.runtime.State
 import com.example.flixfindertv.models.MovieResponse
+import com.google.firebase.Timestamp
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 // ViewModel que maneja la obtención de las peliculas/series
 class MoviesViewModel : ViewModel() {
@@ -50,6 +54,9 @@ class MoviesViewModel : ViewModel() {
     private var _listaPeliculasScienceFiction = MutableLiveData<List<Peliculas>>(emptyList())
     val listaPeliculasScienceFiction: LiveData<List<Peliculas>> = _listaPeliculasScienceFiction
 
+    private var _listaPeliculasRecientes = MutableLiveData<List<Peliculas>>(emptyList())
+    val listaPeliculasRecientes: LiveData<List<Peliculas>> = _listaPeliculasRecientes
+
 
     private var _isLoadingPeliculas = MutableLiveData<Boolean>(false)
     val isLoadingPeliculas: LiveData<Boolean> = _isLoadingPeliculas
@@ -78,6 +85,9 @@ class MoviesViewModel : ViewModel() {
     private val _isLoadingSimilar = MutableLiveData(false)
     val isLoadingSimilar: LiveData<Boolean> = _isLoadingSimilar
 
+    private val _isLoadingRecientes = MutableLiveData(false)
+    val isLoadingRecientes: LiveData<Boolean> = _isLoadingSimilar
+
     var lastVisiblePeliculas: DocumentSnapshot? = null
     var lastVisibleAction: DocumentSnapshot? = null
     var lastVisibleRomance: DocumentSnapshot? = null
@@ -86,6 +96,7 @@ class MoviesViewModel : ViewModel() {
     var lastVisibleThriller: DocumentSnapshot? = null
     var lastVisibleHorror: DocumentSnapshot? = null
     var lastVisibleScienceFiction: DocumentSnapshot? = null
+    var lastVisibleRecientes: DocumentSnapshot? = null
 
     private val _voteAverage = MutableStateFlow(0.0)
     val voteAverage = _voteAverage.asStateFlow()
@@ -622,6 +633,61 @@ class MoviesViewModel : ViewModel() {
                 Log.e("Firebase", "Error al obtener el documento de peliculas: ${exception.message}")
             }
     }
+
+    fun obtenerPeliculasMasRecientes() {
+        if (_isLoadingRecientes.value == true) return
+
+        _isLoadingRecientes.value = true
+        val listaRecientes = mutableListOf<Peliculas>()
+
+        viewModelScope.launch {
+            try {
+                // Obtener la fecha actual en formato String (por ejemplo: "2024-04-10")
+                val currentDateString = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(
+                    Date()
+                )
+
+                // Consultar las películas más recientes hasta la fecha actual, ordenadas por fecha de lanzamiento
+                var consulta = db.collection("peliculas")
+                    .whereLessThanOrEqualTo("release_date", currentDateString) // Filtrar por películas cuyo release_date sea <= a la fecha actual
+                    .orderBy("release_date", Query.Direction.DESCENDING) // Ordenar por fecha de lanzamiento
+                    .limit(20)
+
+                lastVisibleRecientes?.let {
+                    consulta = consulta.startAfter(it)
+                }
+
+                val resultado = consulta.get().await()
+
+                // Verificar la cantidad de resultados obtenidos
+                Log.d("Debug", "Total movies retrieved: ${resultado.size()}")
+
+                for (documento in resultado.documents) {
+                    val pelicula = documento.toObject(Peliculas::class.java)
+                    pelicula?.let {
+                        listaRecientes.add(it)
+                        println("Película obtenida: Título = ${it.titulo}, Id = ${it.id}, Portada = ${it.poster_path}")
+                    }
+                }
+
+                if (resultado.documents.isNotEmpty()) {
+                    lastVisibleRecientes = resultado.documents.last()
+                }
+
+                if (_listaPeliculasRecientes.value.isNullOrEmpty()) {
+                    _listaPeliculasRecientes.postValue(listaRecientes)
+                } else {
+                    _listaPeliculasRecientes.value = _listaPeliculasRecientes.value.orEmpty() + listaRecientes
+                }
+
+            } catch (e: Exception) {
+                Log.e("Error", "Error al obtener las películas más recientes hasta la fecha actual desde Firebase", e)
+            } finally {
+                _isLoadingRecientes.postValue(false)
+            }
+        }
+    }
+
 
 
     fun obtenerPeliculasPopulares() {

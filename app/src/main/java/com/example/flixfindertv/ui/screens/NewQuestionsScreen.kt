@@ -65,34 +65,33 @@ fun NewQuestionsScreen(navController: NavHostController) {
             )
             Spacer(modifier = Modifier.height(32.dp))
 
-            LazyColumn {
-                itemsIndexed(generos.chunked(3)) { _, filaGeneros ->  // Agrupar en filas de 3
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        filaGeneros.forEach { genero ->
-                            Box(modifier = Modifier.weight(1f)) {  // Se aplica el peso de cada Card
-                                GeneroCard(
-                                    genero = genero,
-                                    isSelected = generosSeleccionados.contains(genero),
-                                    onClick = {
-                                        if (generosSeleccionados.contains(genero)) { // Si deseleccionamos el género
-                                            generosSeleccionados = generosSeleccionados - genero
-                                            errorMessage = null
-                                        } else if (generosSeleccionados.size < 2) { // Si seleccionamos el género
-                                            generosSeleccionados = generosSeleccionados + genero
-                                            errorMessage = null
-                                        } else {
-                                            errorMessage = "Solo puedes seleccionar hasta 2 géneros"
-                                        }
+            // Usando Column en lugar de LazyColumn
+            generos.chunked(3).forEach { filaGeneros ->  // Agrupar en filas de 3
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    filaGeneros.forEach { genero ->
+                        Box(modifier = Modifier.weight(1f)) {  // Se aplica el peso de cada Card
+                            GeneroCard(
+                                genero = genero,
+                                isSelected = generosSeleccionados.contains(genero),
+                                onClick = {
+                                    if (generosSeleccionados.contains(genero)) { // Si deseleccionamos el género
+                                        generosSeleccionados = generosSeleccionados - genero
+                                        errorMessage = null
+                                    } else if (generosSeleccionados.size < 2) { // Si seleccionamos el género
+                                        generosSeleccionados = generosSeleccionados + genero
+                                        errorMessage = null
+                                    } else {
+                                        errorMessage = "Solo puedes seleccionar hasta 2 géneros"
                                     }
-                                )
-                            }
+                                }
+                            )
                         }
                     }
-                    Spacer(modifier = Modifier.height(8.dp))
                 }
+                Spacer(modifier = Modifier.height(8.dp))
             }
 
             errorMessage?.let {

@@ -13,6 +13,10 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 class UsersViewModel : ViewModel() {
 
@@ -27,18 +31,28 @@ class UsersViewModel : ViewModel() {
     private val _userIdComment = MutableLiveData<String>()
     val userIdComment: LiveData<String> get() = _userIdComment
 
-    // Guardar sesión en SharedPreferences
-    fun saveSession(context: Context, isLoggedIn: Boolean) {
+    // Guardar sesión con el UID del usuario
+    fun saveSession(context: Context, isLoggedIn: Boolean, uid: String?) {
         val sharedPreferences = context.getSharedPreferences("user_session", Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()
-        editor.putBoolean("is_logged_in", isLoggedIn) // Con 'true' guardamos la sesión, con 'false' eliminamos la sesión
+
+        // Verifica si el UID es válido antes de guardar
+        if (uid != null) {
+            editor.putBoolean("is_logged_in_$uid", isLoggedIn)  // Guardamos el estado de logueo para ese UID específico
+        }
         editor.apply()
     }
 
-    // Verificar si el usuario está logueado
-    fun isUserLoggedIn(context: Context): Boolean {
+    // Verificar si un usuario específico está logueado usando su UID
+    fun isUserLoggedIn(context: Context, uid: String?): Boolean {
         val sharedPreferences = context.getSharedPreferences("user_session", Context.MODE_PRIVATE)
-        return sharedPreferences.getBoolean("is_logged_in", false)  // Devuelve 'false' si no está logueado
+
+        // Verificar si el UID es válido
+        if (uid != null) {
+            // Obtenemos el estado de logueo del usuario usando su UID
+            return sharedPreferences.getBoolean("is_logged_in_$uid", false)  // Devuelve 'false' si no está logueado
+        }
+        return false
     }
 
 

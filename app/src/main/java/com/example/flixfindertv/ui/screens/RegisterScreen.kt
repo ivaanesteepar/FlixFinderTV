@@ -1,5 +1,6 @@
 package com.example.flixfindertv.ui.screens
 
+import android.app.DatePickerDialog
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
@@ -20,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -31,6 +33,7 @@ import com.example.flixfindertv.R
 import com.example.flixfindertv.models.Usuarios
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import java.util.Calendar
 
 @Composable
 fun RegisterScreen(navController: NavHostController) {
@@ -40,7 +43,6 @@ fun RegisterScreen(navController: NavHostController) {
     var confirmPassword by remember { mutableStateOf(TextFieldValue()) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
-
     val auth = FirebaseAuth.getInstance()
     val firestore = FirebaseFirestore.getInstance()
 
@@ -193,7 +195,6 @@ fun RegisterScreen(navController: NavHostController) {
                                                             nombre = username.text,
                                                             email = email.text,
                                                             fotoPerfil = "",
-                                                            fechaNacimiento = "",
                                                             contenidoVisto = "",
                                                             peliculasFavoritas = emptyList(),
                                                             seriesFavoritas = emptyList(),

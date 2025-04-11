@@ -26,6 +26,7 @@ import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.ui.viewmodels.MoviesViewModel
 import com.example.flixfindertv.ui.viewmodels.TriviaViewModel
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun FlixFinderTVroutes(modifier: Modifier = Modifier, navController: NavHostController) {
@@ -34,12 +35,16 @@ fun FlixFinderTVroutes(modifier: Modifier = Modifier, navController: NavHostCont
     val context = LocalContext.current
 
     Scaffold { padding ->
-        // Verificamos si el usuario está logueado para determinar la pantalla de inicio
-        val startDestination = if (usersViewModel.isUserLoggedIn(context)) {
+        // Obtenemos el UID del usuario desde SharedPreferences
+        val uid = FirebaseAuth.getInstance().currentUser?.uid
+
+        // Verificamos si el usuario está logueado y si el UID no es null
+        val startDestination = if (uid != null && usersViewModel.isUserLoggedIn(context, uid)) {
             "home"  // Pantalla principal
         } else {
             "login"  // Pantalla de login
         }
+
         NavHost(
             navController = navController,
             startDestination = startDestination,
@@ -50,7 +55,11 @@ fun FlixFinderTVroutes(modifier: Modifier = Modifier, navController: NavHostCont
             }
             composable("home") {
                 val conexionViewModel: ConexionViewModel = viewModel()
-                HomeScreen(navController, moviesViewModel, conexionViewModel)   // Pantalla de inicio
+                HomeScreen(
+                    navController,
+                    moviesViewModel,
+                    conexionViewModel
+                )   // Pantalla de inicio
             }
             composable("register") {
                 RegisterScreen(navController)  // Pantalla de registro
@@ -81,10 +90,10 @@ fun FlixFinderTVroutes(modifier: Modifier = Modifier, navController: NavHostCont
             composable("edit_profile") {
                 EditProfileScreen(navController)  // Pantalla de exploración
             }
-            composable("trivia"){
+            composable("trivia") {
                 TriviaScreen(navController)
             }
-            composable("favourite_movies/{uid}/{esSerie}"){ backStackEntry ->
+            composable("favourite_movies/{uid}/{esSerie}") { backStackEntry ->
                 val esSerie = backStackEntry.arguments?.getString("esSerie")?.toBoolean() ?: false
                 val uid = backStackEntry.arguments?.getString("uid") ?: ""
                 FavouriteContent(navController, uid, esSerie)
@@ -92,7 +101,8 @@ fun FlixFinderTVroutes(modifier: Modifier = Modifier, navController: NavHostCont
             composable("users_list/{uid}/{isFollowing}") { backStackEntry ->
                 val uid = backStackEntry.arguments?.getString("uid") ?: ""
                 val isFollowingString = backStackEntry.arguments?.getString("isFollowing")
-                val isFollowing = isFollowingString?.toBoolean() ?: false  // Convierte la cadena a Boolean
+                val isFollowing =
+                    isFollowingString?.toBoolean() ?: false  // Convierte la cadena a Boolean
                 UserListScreen(navController, uid, isFollowing)
             }
 

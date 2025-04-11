@@ -41,7 +41,6 @@ fun EditProfileScreen(navController: NavHostController) {
     val currentUser = auth.currentUser
     var userName by remember { mutableStateOf("") }
     var userEmail by remember { mutableStateOf("") }
-    var userBirthdate by remember { mutableStateOf("") }
     var newEmail by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var showPasswordField by remember { mutableStateOf(false) }
@@ -59,24 +58,6 @@ fun EditProfileScreen(navController: NavHostController) {
             }
         }
 
-    // Función para abrir el DatePicker
-    val openDatePicker = {
-        val calendar = Calendar.getInstance()
-        val year = calendar.get(Calendar.YEAR)
-        val month = calendar.get(Calendar.MONTH)
-        val dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH)
-
-        val datePickerDialog = android.app.DatePickerDialog(
-            context,
-            { _, selectedYear, selectedMonth, selectedDayOfMonth ->
-                // Formato de la fecha: día/mes/año
-                userBirthdate = "${selectedDayOfMonth}/${selectedMonth + 1}/${selectedYear}"
-            },
-            year, month, dayOfMonth
-        )
-        datePickerDialog.show()
-    }
-
     // Cargar datos actuales del usuario
     LaunchedEffect(currentUser) {
         currentUser?.uid?.let { uid ->
@@ -85,7 +66,6 @@ fun EditProfileScreen(navController: NavHostController) {
                     userName = document.getString("nombre") ?: ""
                     userEmail = document.getString("email") ?: ""  // Aquí cargamos el correo actual
                     newEmail = userEmail  // Asignamos el correo actual a newEmail
-                    userBirthdate = document.getString("fechaNacimiento") ?: ""
                     // Aquí puedes cargar la imagen del perfil si está disponible
                     profileImageUri = document.getString("fotoPerfil")
                 }
@@ -207,30 +187,11 @@ fun EditProfileScreen(navController: NavHostController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Campo Fecha de Nacimiento
-            OutlinedTextField(
-                value = userBirthdate,
-                onValueChange = { userBirthdate = it },
-                label = { Text("Fecha de Nacimiento") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                trailingIcon = {
-                    IconButton(onClick = { openDatePicker() }) {
-                        Icon(Icons.Default.CalendarToday, contentDescription = "Seleccionar Fecha")
-                    }
-                }
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
             // Botón Guardar Cambios
             Button(
                 onClick = {
                     currentUser?.uid?.let { uid ->
                         val userUpdates = mutableMapOf<String, Any?>("nombre" to userName)
-                        if (userBirthdate.isNotEmpty()) {
-                            userUpdates["fechaNacimiento"] = userBirthdate
-                        }
 
                         if (deleteImageInUI) {
                             userUpdates["fotoPerfil"] = null
