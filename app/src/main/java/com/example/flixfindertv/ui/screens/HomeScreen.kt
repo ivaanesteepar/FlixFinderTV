@@ -87,33 +87,6 @@ fun HomeScreen(
         }
     }
 
-    // Escuchamos los cambios en el campo "contenidoVisto" en Firestore
-    LaunchedEffect(uid) {
-        if (uid != null) {
-            // Inicializamos prevContenidoVisto correctamente si es null
-            if (prevContenidoVisto.value == null) {
-                // Obtener el valor inicial de contenidoVisto de Firestore
-                val userDoc = db.collection("usuarios").document(uid).get().await()
-                prevContenidoVisto.value = userDoc.getString("contenidoVisto")
-            }
-
-            db.collection("usuarios").document(uid).addSnapshotListener { snapshot, _ ->
-                val nuevoContenidoVisto = snapshot?.getString("contenidoVisto")
-
-                // Comprobamos si realmente ha cambiado el contenido
-                if (nuevoContenidoVisto != null && nuevoContenidoVisto != prevContenidoVisto.value) {
-                    prevContenidoVisto.value = nuevoContenidoVisto
-                    moviesViewModel.limpiarContenidoVisto()
-                    apiKeyTmdb?.let { moviesViewModel.obtenerContenidoSimilar(uid, it) }
-
-                    // Restablecemos la posición de la lista de contenido similar
-                    coroutineScope.launch {
-                        listStateContenidoSimilar.scrollToItem(0)
-                    }
-                }
-            }
-        }
-    }
 
     // BackHandler para manejar el retroceso
     BackHandler {
@@ -167,19 +140,6 @@ fun HomeScreen(
         if (listStateGenero2.firstVisibleItemIndex >= (peliculasGenero2.size - threshold) && !isLoadingGenero2 && peliculasGenero2.size < maxMovies && hayConexion) {
             if (uid != null) {
                 genresViewModel.obtenerPeliculasYSeriesGenero2(uid)
-            }
-        }
-    }
-
-    LaunchedEffect(listStateContenidoSimilar.firstVisibleItemIndex, apiKeyTmdb) {
-        val threshold = 5  // Umbral de carga
-
-        if (apiKeyTmdb.isNotEmpty() &&  // Aseguramos que la clave está disponible
-            listStateContenidoSimilar.firstVisibleItemIndex >= (contenidoSimilar.size - threshold) &&
-            !isLoadingSimilar && contenidoSimilar.size < maxMovies && hayConexion) {
-
-            if (uid != null) {
-                moviesViewModel.obtenerContenidoSimilar(uid, apiKeyTmdb)
             }
         }
     }
@@ -251,21 +211,6 @@ fun HomeScreen(
                             movies = peliculasGenero2,
                             navController = navController,
                             listState = listStateGenero2
-                        )
-                    }
-
-                    if (contenidoSimilar.isNotEmpty()) {
-                        Text(
-                            text = "Similar Content",
-                            color = Color.White,
-                            style = MaterialTheme.typography.bodyMedium.copy(fontSize = 20.sp),
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-
-                        ContentListExplore(
-                            movies = contenidoSimilar,
-                            navController = navController,
-                            listState = listStateContenidoSimilar
                         )
                     }
                 }

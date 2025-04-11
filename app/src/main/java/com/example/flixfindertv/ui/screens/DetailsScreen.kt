@@ -185,7 +185,6 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                         // Si no está en favoritos, añadimos a favoritos
                         usersViewModel.saveToFavorites(id, movieTitle, movieCoverUrl, esSerie)
                         usersViewModel.updateFavoriteGenre(movieGenre)
-                        usersViewModel.updateSimilarContent(id)
                     } else {
                         // Si ya está en favoritos, lo eliminamos de favoritos
                         usersViewModel.removeFromFavorites(id, esSerie)
@@ -420,7 +419,6 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                                 // Si le damos una buena puntuación, recomendamos el genero y contenido similar
                                 if (selectedStars.value > 6) {
                                     usersViewModel.updateFavoriteGenre(movieGenre)
-                                    usersViewModel.updateSimilarContent(id)
                                 }
 
                                 moviesViewModel.calculateNewVoteAverage(

@@ -42,7 +42,6 @@ fun ContentListSearch (movie: Peliculas, navController: NavHostController) {
             .clickable {
                 navController.navigate("detalles/${movie.id}/${isSerie}")
                 usersViewModel.updateFavoriteGenre(movieGenre)
-                usersViewModel.updateSimilarContent(movie.id)
             },
         shape = MaterialTheme.shapes.small.copy(CornerSize(16.dp)),
         colors = CardDefaults.cardColors(

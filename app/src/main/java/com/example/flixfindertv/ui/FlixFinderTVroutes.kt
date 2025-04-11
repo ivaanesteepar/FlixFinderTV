@@ -35,7 +35,7 @@ fun FlixFinderTVroutes(modifier: Modifier = Modifier, navController: NavHostCont
     val context = LocalContext.current
 
     Scaffold { padding ->
-        // Obtenemos el UID del usuario desde SharedPreferences
+        // Obtenemos el UID del usuario
         val uid = FirebaseAuth.getInstance().currentUser?.uid
 
         // Verificamos si el usuario está logueado y si el UID no es null

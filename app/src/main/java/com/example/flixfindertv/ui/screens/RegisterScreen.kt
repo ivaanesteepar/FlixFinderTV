@@ -195,7 +195,6 @@ fun RegisterScreen(navController: NavHostController) {
                                                             nombre = username.text,
                                                             email = email.text,
                                                             fotoPerfil = "",
-                                                            contenidoVisto = "",
                                                             peliculasFavoritas = emptyList(),
                                                             seriesFavoritas = emptyList(),
                                                             seguidores = emptyList(),

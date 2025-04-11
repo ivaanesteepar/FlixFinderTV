@@ -56,20 +56,6 @@ class UsersViewModel : ViewModel() {
     }
 
 
-    fun updateSimilarContent(nuevoContenidoId: String) {
-        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
-        val userDocRef = FirebaseFirestore.getInstance().collection("usuarios").document(userId)
-
-        userDocRef.update("contenidoVisto", nuevoContenidoId)
-            .addOnSuccessListener {
-                Log.d("ContenidoVisto", "Contenido actualizado a $nuevoContenidoId")
-            }
-            .addOnFailureListener { e ->
-                Log.e("ContenidoVisto", "Error al actualizar contenido visto", e)
-            }
-    }
-
-
     fun updateFavoriteGenre(movieGenre: String) {
         val firstGenre = movieGenre.split(",").first().trim()
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
