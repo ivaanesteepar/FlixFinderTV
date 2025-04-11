@@ -92,11 +92,6 @@ fun TriviaScreen(
     // Retraso de  segundos antes de mostrar la explicación
     LaunchedEffect(hasAnswered) {
         if (hasAnswered && !explanationShown) {
-            fullText = ""
-            result = ""
-            questionText = ""
-            answersList = emptyList()
-            triviaViewModel.explanation = ""
             explanationShown = true // Mostrar la explicación
         }
     }
@@ -114,6 +109,7 @@ fun TriviaScreen(
             hasAnswered = false
             isAnswered = false
             transitioningToNextQuestion = false
+            triviaViewModel.explanation = ""
             delay(1000) // 1 segundo de espera antes de mostrar la siguiente pregunta
         }
     }
@@ -177,7 +173,13 @@ fun TriviaScreen(
                             .padding(top=30.dp)
                     ) {
                         if (uiState is UiState.Loading) {
-                            CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(16.dp)
+                            ) {
+                                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                            }
                         } else if (uiState is UiState.Success) {
                             fullText = (uiState as UiState.Success).outputText
 
@@ -227,7 +229,6 @@ fun TriviaScreen(
                                         }
                                         triviaViewModel.checkAnswer(normalizedAnswer)
                                         showNextButton = true
-                                        answer = ""
                                         hasAnswered = true
                                         isAnswered = true
                                     },

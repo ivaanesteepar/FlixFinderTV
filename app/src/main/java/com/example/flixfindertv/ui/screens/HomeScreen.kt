@@ -46,12 +46,12 @@ fun HomeScreen(
 
     val isLoadingGenero1 by genresViewModel.isLoadingGenero1.observeAsState(false)
     val isLoadingGenero2 by genresViewModel.isLoadingGenero2.observeAsState(false)
-    val isLoadingSimilar by moviesViewModel.isLoadingSimilar.observeAsState(false)
+    val isLoadingPeliculasProximas by moviesViewModel.isLoadingProximas.observeAsState(false)
 
     // Listas de películas/series para los géneros
     val peliculasGenero1 by genresViewModel.peliculasGenero1.observeAsState(emptyList())
     val peliculasGenero2 by genresViewModel.peliculasGenero2.observeAsState(emptyList())
-    val contenidoSimilar by moviesViewModel.contenidoSimilar.observeAsState(emptyList())
+    val peliculasProximas by moviesViewModel.listaPeliculasProximas.observeAsState(emptyList())
 
     // Nombres de los géneros
     val nombreGenero1 = genresViewModel.nombreGenero1.value
@@ -60,13 +60,11 @@ fun HomeScreen(
     // LazyListState para manejar el estado de desplazamiento
     val listStateGenero1 = rememberLazyListState()
     val listStateGenero2 = rememberLazyListState()
-    val listStateContenidoSimilar = rememberLazyListState()
+    val listStatePeliculasProximas = rememberLazyListState()
 
     val prevGenero1 = remember { mutableStateOf(genresViewModel.nombreGenero1.value) }
     val prevGenero2 = remember { mutableStateOf(genresViewModel.nombreGenero2.value) }
-    val prevContenidoVisto = remember { mutableStateOf<String?>(null) }
 
-    val db = FirebaseFirestore.getInstance()
     var apiKeyTmdb by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope() // Obtén el CoroutineScope
 
@@ -86,7 +84,6 @@ fun HomeScreen(
             genresViewModel.obtenerGenerosFavoritos(uid)
         }
     }
-
 
     // BackHandler para manejar el retroceso
     BackHandler {
@@ -132,14 +129,21 @@ fun HomeScreen(
             }
         }
     }
-
-
     LaunchedEffect(listStateGenero2.firstVisibleItemIndex) {
         val threshold = 10  // Umbral de carga
 
         if (listStateGenero2.firstVisibleItemIndex >= (peliculasGenero2.size - threshold) && !isLoadingGenero2 && peliculasGenero2.size < maxMovies && hayConexion) {
             if (uid != null) {
                 genresViewModel.obtenerPeliculasYSeriesGenero2(uid)
+            }
+        }
+    }
+    LaunchedEffect(listStatePeliculasProximas.firstVisibleItemIndex) {
+        val threshold = 10  // Umbral de carga
+
+        if (listStatePeliculasProximas.firstVisibleItemIndex >= (peliculasProximas.size - threshold) && !isLoadingPeliculasProximas && peliculasProximas.size < maxMovies && hayConexion) {
+            if (uid != null) {
+                moviesViewModel.obtenerContenidoProximo()
             }
         }
     }
@@ -211,6 +215,22 @@ fun HomeScreen(
                             movies = peliculasGenero2,
                             navController = navController,
                             listState = listStateGenero2
+                        )
+                    }
+
+                    if (peliculasProximas.isNotEmpty()) {
+                        Text(
+                            text = "Next Releases",
+                            color = Color.White,
+                            style = MaterialTheme.typography.bodyMedium.copy(fontSize = 20.sp),
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+
+                        // Usamos LazyRow para mostrar las películas y series
+                        ContentListExplore(
+                            movies = peliculasProximas,
+                            navController = navController,
+                            listState = listStatePeliculasProximas
                         )
                     }
                 }

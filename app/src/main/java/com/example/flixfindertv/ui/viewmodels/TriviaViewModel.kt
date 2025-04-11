@@ -153,9 +153,4 @@ class TriviaViewModel(private val context: Context, lifecycleOwner: LifecycleOwn
             }
         }
     }
-
-
-    override fun onCleared() {
-        super.onCleared()
-    }
 }

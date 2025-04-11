@@ -56,6 +56,9 @@ class MoviesViewModel : ViewModel() {
     private var _listaPeliculasRecientes = MutableLiveData<List<Peliculas>>(emptyList())
     val listaPeliculasRecientes: LiveData<List<Peliculas>> = _listaPeliculasRecientes
 
+    private var _listaPeliculasProximas = MutableLiveData<List<Peliculas>>(emptyList())
+    val listaPeliculasProximas: LiveData<List<Peliculas>> = _listaPeliculasProximas
+
 
     private var _isLoadingPeliculas = MutableLiveData<Boolean>(false)
     val isLoadingPeliculas: LiveData<Boolean> = _isLoadingPeliculas
@@ -87,6 +90,9 @@ class MoviesViewModel : ViewModel() {
     private val _isLoadingRecientes = MutableLiveData(false)
     val isLoadingRecientes: LiveData<Boolean> = _isLoadingSimilar
 
+    private val _isLoadingProximas = MutableLiveData(false)
+    val isLoadingProximas: LiveData<Boolean> = _isLoadingProximas
+
     var lastVisiblePeliculas: DocumentSnapshot? = null
     var lastVisibleAction: DocumentSnapshot? = null
     var lastVisibleRomance: DocumentSnapshot? = null
@@ -96,6 +102,7 @@ class MoviesViewModel : ViewModel() {
     var lastVisibleHorror: DocumentSnapshot? = null
     var lastVisibleScienceFiction: DocumentSnapshot? = null
     var lastVisibleRecientes: DocumentSnapshot? = null
+    var lastVisibleProximas: DocumentSnapshot? = null
 
     private val _voteAverage = MutableStateFlow(0.0)
     val voteAverage = _voteAverage.asStateFlow()
@@ -109,8 +116,6 @@ class MoviesViewModel : ViewModel() {
     private val _contenidoSimilar = MutableLiveData<List<Peliculas>>(emptyList())
     val contenidoSimilar: LiveData<List<Peliculas>> = _contenidoSimilar
 
-    // Declarar currentPage como una propiedad mutable en el ViewModel
-    private var currentPage = 1  // Página inicial
 
     suspend fun getTmdbApiKey(): String {
         return try {
@@ -196,7 +201,6 @@ class MoviesViewModel : ViewModel() {
                 }
             }
     }
-
 
     private fun getVoteCountFromFirebase(movieId: String, callback: (String?) -> Unit) {
         val db = FirebaseFirestore.getInstance()
@@ -551,6 +555,76 @@ class MoviesViewModel : ViewModel() {
             }
         }
     }
+
+    fun obtenerContenidoProximo() {
+        if (_isLoadingProximas.value == true) return
+
+        _isLoadingProximas.value = true
+        val listaProximos = mutableListOf<Peliculas>()
+
+        viewModelScope.launch {
+            try {
+                val currentDateString = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+
+                // Consultas a ambas colecciones (películas y series)
+                val peliculasTask = db.collection("peliculas")
+                    .whereGreaterThan("release_date", currentDateString)
+                    .orderBy("release_date", Query.Direction.ASCENDING)
+                    .limit(10)
+                    .get()
+
+                val seriesTask = db.collection("series")
+                    .whereGreaterThan("release_date_series", currentDateString)
+                    .orderBy("release_date_series", Query.Direction.ASCENDING)
+                    .limit(10)
+                    .get()
+
+                // Esperar ambos resultados
+                val peliculasResult = peliculasTask.await()
+                val seriesResult = seriesTask.await()
+
+                Log.d("Debug", "Total series obtenidas: ${seriesResult.size()}")
+
+                // Convertir documentos a objetos de tipo Peliculas (ya que las series también tienen el mismo modelo)
+                val peliculas = peliculasResult.documents.mapNotNull { doc ->
+                    doc.toObject(Peliculas::class.java)
+                }
+
+                val series = seriesResult.documents.mapNotNull { doc ->
+                    doc.toObject(Peliculas::class.java)
+                }
+
+                series.forEach {
+                    Log.d("Debug", "Serie obtenida: Título = ${it.titulo} | Fecha de lanzamiento = ${it.release_date_series}")
+                }
+
+                // Mezclar ambos y ordenarlos por fecha de lanzamiento
+                listaProximos.addAll(peliculas)
+                listaProximos.addAll(series)
+
+                // Ordenamos todos los contenidos por fecha de lanzamiento, considerando release_date para películas y release_date_series para series
+                listaProximos.sortBy {
+                    // Usamos release_date si es una película, sino usamos release_date_series para series
+                    it.release_date ?: it.release_date_series
+                }
+
+                // Log para verificar
+                Log.d("Debug", "Total contenido próximo: ${listaProximos.size}")
+                listaProximos.forEach {
+                    Log.d("Debug", "→ ${it.titulo} | ${it.release_date ?: it.release_date_series}")
+                }
+
+                _listaPeliculasProximas.postValue(listaProximos)
+
+            } catch (e: Exception) {
+                Log.e("Error", "Error al obtener próximos estrenos de películas y series", e)
+            } finally {
+                _isLoadingProximas.postValue(false)
+            }
+        }
+    }
+
+
 
 
 
