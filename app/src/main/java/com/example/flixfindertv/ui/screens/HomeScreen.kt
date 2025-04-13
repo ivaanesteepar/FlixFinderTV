@@ -118,7 +118,6 @@ fun HomeScreen(
         }
     }
 
-
     // Efectos de carga para manejar la carga incremental de las listas
     LaunchedEffect(listStateGenero1.firstVisibleItemIndex) {
         val threshold = 10  // Umbral de carga

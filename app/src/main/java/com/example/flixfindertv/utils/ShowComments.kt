@@ -58,7 +58,7 @@ import kotlinx.coroutines.launch
 
 
 @Composable
-fun ShowComments(navController: NavController, commentsList: List<Comentarios>, viewModel: CommentsViewModel, esSerie: Boolean) {
+fun ShowComments(navController: NavController, commentsList: List<Comentarios>, viewModel: CommentsViewModel) {
     val usersViewModel: UsersViewModel = viewModel()
     var nombreUsuario: String? by remember { mutableStateOf(null) }
     val responseText = remember { mutableStateOf("") }
@@ -77,6 +77,7 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
 
     // Usamos LaunchedEffect para actualizar mutableCommentsList y respuestasParaMostrar cuando commentsList cambia
     LaunchedEffect(commentsList) {
+        println("obtencion de comentarios2")
         mutableCommentsList.value = commentsList
     }
 
@@ -94,10 +95,11 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
             Text(
                 text = "There are no comments yet. Be the first to comment!",
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.Gray,
+                color = Color.White,
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .padding(16.dp)
+                    .padding(bottom = 36.dp)
             )
         } else {
             mutableCommentsList.value.forEach { comentario ->
@@ -150,7 +152,7 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                 // Cambiar el color del Card si el comentario tiene revision == true
                 Card(modifier = Modifier.background(Color.White)) {
                     Column(modifier = Modifier
-                        .padding(8.dp)
+                        //.padding(8.dp)
                         .background( // ESTE PADDING PONE EL BORDE GRIS DE LAS CARDS
                             if (isUserAdmin && comentario.revision) Color(0xFFFFCDD2)
                             else Color.White
@@ -243,7 +245,7 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                                 },
                                 modifier = Modifier.padding(end = 8.dp) // Espaciado entre el botón y el icono del corazón
                             ) {
-                                Text("Responder")
+                                Text("Reply")
                             }
                             Row(
                                 verticalAlignment = Alignment.CenterVertically, // Alinea todos los íconos verticalmente al centro
@@ -331,7 +333,6 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                                 }
                             }
                         }
-
                         // Mostrar el AlertDialog solo para el comentario correspondiente
                         if (showDialog) {
                             AlertDialog(
@@ -342,12 +343,12 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                                         }
                                     responseText.value = ""
                                 },
-                                title = { Text(text = "Responder al comentario") },
+                                title = { Text(text = "Reply to the comment") },
                                 text = {
                                     OutlinedTextField(
                                         value = responseText.value,
                                         onValueChange = { responseText.value = it },
-                                        label = { Text("Escribe tu respuesta") },
+                                        label = { Text("Write your reply") },
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .height(250.dp)
@@ -372,7 +373,12 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                                                     responseText.value = ""
 
                                                     // Mostrar Toast indicando que el comentario será revisado
-                                                    Toast.makeText(context, "Tu mensaje será revisado antes de publicarse.", Toast.LENGTH_SHORT).show()
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Offensive message detected. Your comment will be reviewed.",
+                                                        Toast.LENGTH_LONG
+                                                    ).show()
+
                                                     viewModel.sendResponse(
                                                         idContenido = comentario.idContenido,
                                                         comentarioId = comentario.id,
@@ -397,7 +403,7 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                                             }
                                         }
                                     ) {
-                                        Text("Enviar")
+                                        Text("Send")
                                     }
                                 },
                                 dismissButton = {
@@ -408,7 +414,7 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                                             }
                                         responseText.value = ""
                                     }) {
-                                        Text("Cancelar")
+                                        Text("Cancel")
                                     }
                                 }
                             )
@@ -420,10 +426,10 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                                     showDeleteDialog.value = false // Cerrar el diálogo si se toca fuera de él
                                 },
                                 title = {
-                                    Text("Confirmar eliminación")
+                                    Text("Confirm deletion")
                                 },
                                 text = {
-                                    Text("¿Estás seguro de que quieres eliminar este mensaje?")
+                                    Text("Are you sure you want to delete this message?")
                                 },
                                 confirmButton = {
                                     Button(
@@ -441,7 +447,7 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                                             )
                                         }
                                     ) {
-                                        Text("Sí")
+                                        Text("Yes")
                                     }
                                 },
                                 dismissButton = {
@@ -463,10 +469,10 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                                     showPublishDialog.value = false // Cerrar el diálogo si se toca fuera de él
                                 },
                                 title = {
-                                    Text("Confirmar publicación")
+                                    Text("Confirm post")
                                 },
                                 text = {
-                                    Text("¿Estás seguro de que quieres publicar este mensaje?")
+                                    Text("Are you sure you want to post this message?")
                                 },
                                 confirmButton = {
                                     Button(
@@ -489,7 +495,7 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                                             )
                                         }
                                     ) {
-                                        Text("Sí")
+                                        Text("Yes")
                                     }
                                 },
                                 dismissButton = {
@@ -869,10 +875,10 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                                     }) {
                                         Text(
                                             text = if (showAllResponses) {
-                                                "Ver menos"
+                                                "See less"
                                             } else {
-                                                // Mostrar cuántas respuestas adicionales hay (solo las que no están en revisión)
-                                                "Ver más respuestas (${respuestasAcontar.size})"
+                                                // Show how many additional responses there are (only those not under review)
+                                                "See more responses (${respuestasAcontar.size})"
                                             },
                                             color = MaterialTheme.colorScheme.primary
                                         )

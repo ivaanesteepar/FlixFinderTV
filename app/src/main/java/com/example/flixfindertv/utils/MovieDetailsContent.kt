@@ -96,7 +96,7 @@ fun MovieDetailsContent(
         Box(
             modifier = Modifier
                 .width(160.dp)
-                .height(240.dp)
+                .height(235.dp)
                 .padding(end = 8.dp)
         ) {
             Image(
@@ -134,7 +134,7 @@ fun MovieDetailsContent(
             Text(
                 text = movieTitle,
                 style = MaterialTheme.typography.headlineMedium,
-                color = Color.Black,
+                color = Color.White,
                 modifier = Modifier.padding(start = 16.dp)
             )
 
@@ -146,7 +146,7 @@ fun MovieDetailsContent(
                     append(movieGenre ?: "N/A") // Si no hay género, muestra "N/A"
                 },
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.Black.copy(alpha = 0.7f),
+                color = Color.White.copy(alpha = 0.7f),
                 modifier = Modifier.padding(start = 16.dp)
             )
 
@@ -163,7 +163,7 @@ fun MovieDetailsContent(
                     ) // Si no hay popularidad, muestra "0.0"
                 },
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.Black.copy(alpha = 0.7f),
+                color = Color.White.copy(alpha = 0.7f),
                 modifier = Modifier.padding(start = 16.dp)
             )
 
@@ -187,7 +187,7 @@ fun MovieDetailsContent(
                     }
                 },
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.Black.copy(alpha = 0.7f),
+                color = Color.White.copy(alpha = 0.7f),
                 modifier = Modifier.padding(start = 16.dp)
             )
             Text(
@@ -198,7 +198,7 @@ fun MovieDetailsContent(
                     append(voteCount ?: "N/A") // Si no hay conteo de votos, muestra "N/A"
                 },
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.Black.copy(alpha = 0.7f),
+                color = Color.White.copy(alpha = 0.7f),
                 modifier = Modifier.padding(start = 16.dp)
             )
         }
@@ -210,7 +210,7 @@ fun MovieDetailsContent(
         text = "Description",
         style = MaterialTheme.typography.headlineSmall,
         modifier = Modifier.padding(start = 16.dp, end = 16.dp),
-        color = Color.Black
+        color = Color.White
     )
     Spacer(modifier = Modifier.height(16.dp))
     // Mostrar descripción o frase por defecto si está vacía
@@ -223,7 +223,7 @@ fun MovieDetailsContent(
     Text(
         text = descriptionToShow,
         style = MaterialTheme.typography.bodyMedium,
-        color = if (movieDescription.isNullOrEmpty()) Color.Gray else Color.Black,
+        color = if (movieDescription.isNullOrEmpty()) Color.Gray else Color.White,
         modifier = Modifier.padding(start = 16.dp, end = 16.dp)
     )
     Spacer(modifier = Modifier.height(36.dp))
@@ -231,7 +231,7 @@ fun MovieDetailsContent(
         text = "Direction",
         style = MaterialTheme.typography.headlineSmall,
         modifier = Modifier.padding(start = 16.dp, end = 16.dp),
-        color = Color.Black
+        color = Color.White
     )
     Spacer(modifier = Modifier.height(16.dp))
     Card(
@@ -288,12 +288,12 @@ fun MovieDetailsContent(
             Text(
                 text = "Original Language:",
                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                color = Color.Black.copy(alpha = 0.7f)
+                color = Color.White
             )
             Text(
                 text = originalLanguage ?: "N/A", // Si no hay idioma original, muestra "N/A"
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.Black.copy(alpha = 0.7f)
+                color = Color.White
             )
         }
         Column(
@@ -303,12 +303,12 @@ fun MovieDetailsContent(
             Text(
                 text = "Status:",
                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                color = Color.Black.copy(alpha = 0.7f)
+                color = Color.White
             )
             Text(
                 text = status ?: "N/A", // Si no hay estado, muestra "N/A"
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.Black.copy(alpha = 0.7f)
+                color = Color.White
             )
         }
     }

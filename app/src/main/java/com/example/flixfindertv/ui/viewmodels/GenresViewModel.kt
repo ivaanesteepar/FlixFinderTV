@@ -74,7 +74,6 @@ class GenresViewModel : ViewModel() {
         }
     }
 
-
     private suspend fun getMoviesAndSeriesByGenreId(genreId: Int) {
         val peliculasList = mutableListOf<Peliculas>()
 
@@ -164,17 +163,18 @@ class GenresViewModel : ViewModel() {
     }
 
     fun obtenerPeliculasYSeriesGenero1(userId: String) {
+        // Verifica si ya se está cargando para evitar carga repetida
         if (_isLoadingGenero1.value == true) return
 
-        _isLoadingGenero1.value = true
+        _isLoadingGenero1.value = true  // Inicia la carga
         obtenerGenerosFavoritos(userId) { generos ->
             if (generos.isNotEmpty()) {
                 val nuevoGenero = generos[0] // Tomamos el primer genero de la lista
 
-                // Restablecemos lastVisibleGenero1 a null cada vez que cambiamos de género
+                // Restablecer lastVisibleGenero1 si cambiamos de género
                 if (nuevoGenero != prevGenero1.value) {
-                    prevGenero1.value = nuevoGenero // Actualizamos el género anterior
-                    lastVisibleGenero1 = null // Restablecer lastVisible al cambiar de género
+                    prevGenero1.value = nuevoGenero
+                    lastVisibleGenero1 = null  // Restablecer lastVisible al cambiar de género
                 }
 
                 obtenerIdGeneroPorNombre(nuevoGenero) { idGenero ->
@@ -183,11 +183,12 @@ class GenresViewModel : ViewModel() {
                             try {
                                 val peliculasList = mutableListOf<Peliculas>()
 
-                                // Obtener películas
+                                // Construir la consulta para películas
                                 var query = db.collection("peliculas")
                                     .whereArrayContains("genre_ids", idGenero)
                                     .limit(10)
 
+                                // Agregar la paginación
                                 lastVisibleGenero1?.let {
                                     query = query.startAfter(it)
                                 }
@@ -195,7 +196,7 @@ class GenresViewModel : ViewModel() {
                                 val peliculasSnapshot = query.get().await()
                                 peliculasSnapshot.documents.mapNotNullTo(peliculasList) { it.toObject(Peliculas::class.java) }
 
-                                // Obtener series
+                                // Consultar series
                                 var querySeries = db.collection("series")
                                     .whereArrayContains("genre_ids", idGenero)
                                     .limit(10)
@@ -207,7 +208,7 @@ class GenresViewModel : ViewModel() {
                                 val seriesSnapshot = querySeries.get().await()
                                 seriesSnapshot.documents.mapNotNullTo(peliculasList) { it.toObject(Peliculas::class.java) }
 
-                                // Si hay documentos, actualizamos lastVisible
+                                // Actualizar lastVisibleGenero1 si se encontraron nuevos documentos
                                 if (peliculasSnapshot.documents.isNotEmpty()) {
                                     lastVisibleGenero1 = peliculasSnapshot.documents.last()
                                 }
@@ -220,7 +221,6 @@ class GenresViewModel : ViewModel() {
                                 val peliculasIterator = peliculasList.filter { !it.esSerie }.iterator()
                                 val seriesIterator = peliculasList.filter { it.esSerie }.iterator()
 
-                                // Alternar entre películas y series
                                 while (peliculasIterator.hasNext() || seriesIterator.hasNext()) {
                                     if (peliculasIterator.hasNext()) {
                                         mezclada.add(peliculasIterator.next())
@@ -230,24 +230,18 @@ class GenresViewModel : ViewModel() {
                                     }
                                 }
 
-                                // Guardamos el valor actual de las películas
-                                val peliculasActuales = _peliculasGenero1.value?.toList()
-                                println("Tamaño de peliculas genero1: ${_peliculasGenero1.value?.size}")
+                                // Guardar el valor actual y actualizar con los nuevos elementos
+                                val peliculasActuales = _peliculasGenero1.value?.toList() ?: listOf()
+                                _peliculasGenero1.value = peliculasActuales + mezclada
 
-                                // Actualizamos _peliculasGenero1 con los nuevos elementos
-                                if (peliculasActuales != null) {
-                                    _peliculasGenero1.value = peliculasActuales + mezclada
-                                }
-
-                                // Verificamos si hemos cargado 100 elementos
+                                // Verificar si hemos cargado suficientes elementos (100 en este caso)
                                 if (_peliculasGenero1.value!!.size >= 100) {
-                                    // Restablecer lastVisibleGenero1 a null después de 100 elementos
-                                    lastVisibleGenero1 = null
+                                    lastVisibleGenero1 = null  // Restablecer lastVisible si cargamos suficientes elementos
                                 }
                             } catch (e: Exception) {
                                 e.printStackTrace()
                             } finally {
-                                _isLoadingGenero1.value = false
+                                _isLoadingGenero1.value = false  // Siempre poner en false después de completar
                             }
                         }
                     }
@@ -255,6 +249,7 @@ class GenresViewModel : ViewModel() {
             }
         }
     }
+
 
     fun obtenerPeliculasYSeriesGenero2(userId: String) {
         if (_isLoadingGenero2.value == true) return
