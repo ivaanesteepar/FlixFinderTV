@@ -26,11 +26,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.flixfindertv.R
+import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.utils.ImgurUploader
 import java.util.Calendar
 
@@ -40,6 +42,8 @@ fun EditProfileScreen(navController: NavHostController) {
     val auth = FirebaseAuth.getInstance()
     val firestore = FirebaseFirestore.getInstance()
     val context = LocalContext.current
+    val conexionViewModel: ConexionViewModel = viewModel()
+    val hayConexion by conexionViewModel.conexionEstablecida.collectAsState()
 
     val currentUser = auth.currentUser
     var userName by remember { mutableStateOf("") }
@@ -83,7 +87,7 @@ fun EditProfileScreen(navController: NavHostController) {
             TopAppBar(
                 title = {
                     Text(
-                        text = "Editar Perfil",
+                        text = "Edit Profile",
                         color = Color.White // Cambia el color del texto a blanco
                     )
                 },
@@ -172,7 +176,7 @@ fun EditProfileScreen(navController: NavHostController) {
                                 modifier = Modifier.size(20.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Eliminar")
+                            Text("Delete")
                         }
                     }
                 }
@@ -182,7 +186,7 @@ fun EditProfileScreen(navController: NavHostController) {
                 OutlinedTextField(
                     value = userName,
                     onValueChange = { userName = it },
-                    label = { Text("Nombre", color = Color.White) },
+                    label = { Text("Name", color = Color.White) },
                     textStyle = LocalTextStyle.current.copy(color = Color.White), // Texto en blanco
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = Color.White,    // Borde blanco al estar seleccionado
@@ -201,7 +205,7 @@ fun EditProfileScreen(navController: NavHostController) {
                 OutlinedTextField(
                     value = userEmail,
                     onValueChange = {},
-                    label = { Text("Correo Electrónico", color = Color(0xFFB0B0B0)) },
+                    label = { Text("Email", color = Color(0xFFB0B0B0)) },
                     textStyle = LocalTextStyle.current.copy(color = Color(0xFFB0B0B0)), // Texto en blanco
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = Color(0xFFB0B0B0),    // Borde blanco al estar seleccionado
@@ -246,80 +250,99 @@ fun EditProfileScreen(navController: NavHostController) {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Botón Guardar Cambios
                 Button(
                     onClick = {
-                        currentUser?.uid?.let { uid ->
-                            val userUpdates = mutableMapOf<String, Any?>("nombre" to userName)
+                        if (hayConexion) {
+                            currentUser?.uid?.let { uid ->
+                                val userUpdates = mutableMapOf<String, Any?>("nombre" to userName)
 
-                            if (deleteImageInUI) {
-                                userUpdates["fotoPerfil"] = null
-                            } else if (!profileImageUri.isNullOrEmpty()) {
-                                val imageUri = profileImageUri
-                                val imageBytes = imageUri?.let { uri ->
-                                    val inputStream = context.contentResolver.openInputStream(
-                                        android.net.Uri.parse(uri)
-                                    )
-                                    inputStream?.readBytes()
-                                }
+                                if (deleteImageInUI) {
+                                    userUpdates["fotoPerfil"] = null
+                                } else if (!profileImageUri.isNullOrEmpty()) {
+                                    val imageUri = profileImageUri
+                                    val isRemoteUrl = imageUri?.startsWith("http") == true
 
-                                if (imageBytes != null) {
-                                    ImgurUploader.uploadImage(imageBytes) { imageUrl ->
-                                        if (imageUrl != null) {
-                                            userUpdates["fotoPerfil"] = imageUrl
-                                            firestore.collection("usuarios").document(uid)
-                                                .update(userUpdates)
-                                                .addOnSuccessListener {
-                                                    Toast.makeText(
-                                                        context,
-                                                        "Perfil actualizado",
-                                                        Toast.LENGTH_SHORT
-                                                    ).show()
-                                                    navController.popBackStack()
+                                    if (!isRemoteUrl) {
+                                        try {
+                                            val inputStream = context.contentResolver.openInputStream(
+                                                android.net.Uri.parse(imageUri)
+                                            )
+                                            val imageBytes = inputStream?.readBytes()
+
+                                            if (imageBytes != null) {
+                                                ImgurUploader.uploadImage(imageBytes) { imageUrl ->
+                                                    if (imageUrl != null) {
+                                                        userUpdates["fotoPerfil"] = imageUrl
+                                                        // Guardar con imagen subida
+                                                        firestore.collection("usuarios").document(uid)
+                                                            .update(userUpdates)
+                                                            .addOnSuccessListener {
+                                                                Toast.makeText(
+                                                                    context,
+                                                                    "Perfil actualizado",
+                                                                    Toast.LENGTH_SHORT
+                                                                ).show()
+                                                                navController.popBackStack()
+                                                            }
+                                                            .addOnFailureListener {
+                                                                Toast.makeText(
+                                                                    context,
+                                                                    "Error al actualizar",
+                                                                    Toast.LENGTH_SHORT
+                                                                ).show()
+                                                            }
+                                                    } else {
+                                                        Toast.makeText(
+                                                            context,
+                                                            "Error al subir la imagen",
+                                                            Toast.LENGTH_SHORT
+                                                        ).show()
+                                                    }
                                                 }
-                                                .addOnFailureListener {
-                                                    Toast.makeText(
-                                                        context,
-                                                        "Error al actualizar",
-                                                        Toast.LENGTH_SHORT
-                                                    ).show()
-                                                }
-                                        } else {
+                                                return@Button // Evita doble llamada si subimos imagen
+                                            }
+                                        } catch (e: Exception) {
                                             Toast.makeText(
                                                 context,
-                                                "Error al subir la imagen",
+                                                "Error al procesar la imagen",
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                         }
                                     }
-                                    return@Button
+                                }
+
+                                // Si no subimos imagen o solo cambiamos el nombre
+                                if (userUpdates.isNotEmpty()) {
+                                    firestore.collection("usuarios").document(uid)
+                                        .update(userUpdates)
+                                        .addOnSuccessListener {
+                                            Toast.makeText(
+                                                context,
+                                                "Perfil actualizado",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                            navController.popBackStack()
+                                        }
+                                        .addOnFailureListener {
+                                            Toast.makeText(
+                                                context,
+                                                "Error al actualizar",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
                                 }
                             }
-
-                            // Si no hay nueva imagen y tampoco se marcó eliminar la foto, no modificar el campo fotoPerfil
-                            if (userUpdates.isNotEmpty()) {
-                                firestore.collection("usuarios").document(uid).update(userUpdates)
-                                    .addOnSuccessListener {
-                                        Toast.makeText(
-                                            context,
-                                            "Perfil actualizado",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                        navController.popBackStack()
-                                    }
-                                    .addOnFailureListener {
-                                        Toast.makeText(
-                                            context,
-                                            "Error al actualizar",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    }
-                            }
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "You need an internet connection to update your profile",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Guardar Cambios")
+                    Text("Save Changes")
                 }
             }
         }

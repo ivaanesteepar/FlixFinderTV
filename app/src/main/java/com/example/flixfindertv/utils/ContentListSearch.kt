@@ -9,6 +9,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,6 +23,7 @@ import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import com.example.flixfindertv.R
 import com.example.flixfindertv.models.Peliculas
+import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.ui.viewmodels.GenresViewModel
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 
@@ -31,6 +33,8 @@ fun ContentListSearch (movie: Peliculas, navController: NavHostController) {
     val usersViewModel: UsersViewModel = viewModel()
     val genresViewModel: GenresViewModel = viewModel()
     var movieGenre by remember { mutableStateOf("") }
+    val conexionViewModel: ConexionViewModel = viewModel()
+    val hayConexion by conexionViewModel.conexionEstablecida.collectAsState()
 
     genresViewModel.fetchGenreNames(movie.genre_ids) { genres ->
         movieGenre = genres.joinToString(", ")
@@ -49,7 +53,7 @@ fun ContentListSearch (movie: Peliculas, navController: NavHostController) {
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            val imagePainter = if (movie.poster_path != null) {
+            val imagePainter = if (hayConexion && movie.poster_path != null) {
                 rememberAsyncImagePainter("https://image.tmdb.org/t/p/w500${movie.poster_path}")
             } else {
                 rememberAsyncImagePainter(R.drawable.no_poster_image)  // Imagen local si no hay poster_path

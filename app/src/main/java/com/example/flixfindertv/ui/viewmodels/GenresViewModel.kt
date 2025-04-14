@@ -12,6 +12,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
+
 class GenresViewModel : ViewModel() {
     val db = FirebaseFirestore.getInstance()
 
@@ -46,6 +47,7 @@ class GenresViewModel : ViewModel() {
     fun limpiarPeliculasGenero2() {
         _peliculasGenero2.postValue(emptyList()) // Vacía la lista del segundo género
     }
+
 
     fun fetchGenreNames(genreIds: List<Int>, onResult: (List<String>) -> Unit) {
         val firestore = FirebaseFirestore.getInstance()

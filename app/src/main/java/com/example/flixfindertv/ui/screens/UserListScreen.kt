@@ -25,6 +25,7 @@ import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.flixfindertv.R
 import com.example.flixfindertv.ui.viewmodels.CommentsViewModel
+import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 import kotlinx.coroutines.launch
 
@@ -32,7 +33,9 @@ import kotlinx.coroutines.launch
 fun UserListScreen(navController: NavController, uid: String, isFollowing: Boolean) {
     val usersViewModel: UsersViewModel = viewModel()
     val commentsViewModel: CommentsViewModel = viewModel()
+    val conexionViewModel: ConexionViewModel = viewModel()
 
+    val hayConexion by conexionViewModel.conexionEstablecida.collectAsState()
     var userList by remember { mutableStateOf<List<Pair<String, String>>?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     val coroutineScope = rememberCoroutineScope()
@@ -58,7 +61,9 @@ fun UserListScreen(navController: NavController, uid: String, isFollowing: Boole
             contentScale = ContentScale.Crop
         )
         Column(
-            modifier = Modifier.fillMaxSize().padding(16.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
         ) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
                 IconButton(
@@ -81,63 +86,80 @@ fun UserListScreen(navController: NavController, uid: String, isFollowing: Boole
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(16.dp))
-            if (isLoading) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
-            } else {
-                if (userList.isNullOrEmpty()) {
+            if (hayConexion) {
+                if (isLoading) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(
-                            text = "Este usuario no tiene ${if (isFollowing) "seguidos" else "seguidores"}.",
-                            color = Color.Gray
-                        )
+                        CircularProgressIndicator()
                     }
                 } else {
-                    LazyColumn {
-                        items(userList ?: emptyList()) { user ->
-                            var profilePhotoUrl by remember { mutableStateOf<String?>(null) }
+                    if (userList.isNullOrEmpty()) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "This user has no ${if (isFollowing) "following" else "followers"}.",
+                                textAlign = TextAlign.Center, // Esto asegura que el texto esté centrado
+                                color = Color.Gray
+                            )
+                        }
+                    } else {
+                        LazyColumn {
+                            items(userList ?: emptyList()) { user ->
+                                var profilePhotoUrl by remember { mutableStateOf<String?>(null) }
 
-                            LaunchedEffect(user.second) {
-                                commentsViewModel.getUserProfilePhoto(user.second) { url ->
-                                    profilePhotoUrl = url
-                                }
-                            }
-
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(8.dp)
-                                    .clickable {
-                                        navController.navigate("profile/${user.first}/true")
-                                    },
-                                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(16.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    val painter = if (!profilePhotoUrl.isNullOrEmpty()) {
-                                        rememberAsyncImagePainter(profilePhotoUrl)
-                                    } else {
-                                        painterResource(R.drawable.no_profile_icon)
+                                LaunchedEffect(user.second) {
+                                    commentsViewModel.getUserProfilePhoto(user.second) { url ->
+                                        profilePhotoUrl = url
                                     }
+                                }
 
-                                    Image(
-                                        painter = painter,
-                                        contentDescription = "Foto de perfil",
-                                        modifier = Modifier
-                                            .size(40.dp)
-                                            .border(2.dp, Color.Black, CircleShape)
-                                            .clip(CircleShape),
-                                        contentScale = ContentScale.Crop
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(text = user.second)
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(8.dp)
+                                        .clickable {
+                                            navController.navigate("profile/${user.first}/true")
+                                        },
+                                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(16.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        val painter = if (!profilePhotoUrl.isNullOrEmpty()) {
+                                            rememberAsyncImagePainter(profilePhotoUrl)
+                                        } else {
+                                            painterResource(R.drawable.no_profile_icon)
+                                        }
+
+                                        Image(
+                                            painter = painter,
+                                            contentDescription = "Foto de perfil",
+                                            modifier = Modifier
+                                                .size(40.dp)
+                                                .border(2.dp, Color.Black, CircleShape)
+                                                .clip(CircleShape),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(text = user.second)
+                                    }
                                 }
                             }
                         }
                     }
+                }
+            } else {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "You need an internet connection to view followers/following",
+                        color = Color.Gray,
+                        textAlign = TextAlign.Center // Esto asegura que el texto esté centrado
+                    )
                 }
             }
         }

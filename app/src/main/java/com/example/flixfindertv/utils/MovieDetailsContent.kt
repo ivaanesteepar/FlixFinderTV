@@ -46,6 +46,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import coil.compose.rememberImagePainter
 import com.example.flixfindertv.R
+import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.ui.viewmodels.MoviesViewModel
 import com.example.flixfindertv.ui.viewmodels.TriviaViewModel
 import com.example.flixfindertv.ui.viewmodels.TriviaViewModelFactory
@@ -67,17 +68,13 @@ fun MovieDetailsContent(
 ) {
     val viewModel: MoviesViewModel = viewModel()
     // Pasar el contexto y el LifecycleOwner a la fábrica para crear el TriviaViewModel
-    val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
-    val triviaViewModel: TriviaViewModel = viewModel(
-        factory = TriviaViewModelFactory(context, lifecycleOwner)
-    )
+    val conexionViewModel: ConexionViewModel = viewModel()
     val voteAverage by viewModel.voteAverage.collectAsState()
     val popularity by viewModel.popularity.collectAsState()
     val voteCount by viewModel.voteCount.collectAsState()
     val truncatedVoteAvg = (voteAverage * 10).toInt() / 10.0
     val voteAvgFormatted = String.format("%.1f", truncatedVoteAvg)
-    val language by triviaViewModel.languageState.collectAsState()
+    val hayConexion by conexionViewModel.conexionEstablecida.collectAsState()
 
     var translatedDescription by remember { mutableStateOf("") }
 
@@ -247,7 +244,7 @@ fun MovieDetailsContent(
                     .height(160.dp)
             ) {
                 Image(
-                    painter = if (!directorPhoto.isNullOrEmpty()) {
+                    painter = if (hayConexion && !directorPhoto.isNullOrEmpty()) {
                         rememberAsyncImagePainter(directorPhoto)
                     } else {
                         painterResource(id = R.drawable.no_poster_image) // Imagen predeterminada
@@ -257,6 +254,7 @@ fun MovieDetailsContent(
                     contentScale = if (!directorPhoto.isNullOrEmpty()) ContentScale.Fit else ContentScale.Crop
                 )
             }
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()

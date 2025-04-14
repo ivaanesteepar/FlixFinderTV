@@ -16,7 +16,7 @@ import java.net.URL
 class ConexionViewModel(application: Application) : AndroidViewModel(application) {
 
     // Usamos StateFlow para poder observar la conexión
-    private val _conexionEstablecida = MutableStateFlow(true)  // true por defecto, asumimos conexión al inicio
+    private val _conexionEstablecida = MutableStateFlow(false)  // true por defecto, asumimos conexión al inicio
     val conexionEstablecida: StateFlow<Boolean> get() = _conexionEstablecida
 
     init {

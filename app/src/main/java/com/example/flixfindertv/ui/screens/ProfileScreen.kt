@@ -42,6 +42,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,6 +58,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.flixfindertv.R
 import com.example.flixfindertv.models.Peliculas
+import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 import com.example.flixfindertv.utils.BottomNavigationBar
 
@@ -65,6 +67,8 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
     val auth = FirebaseAuth.getInstance()
     val firestore = FirebaseFirestore.getInstance()
     val usersViewModel: UsersViewModel = viewModel()
+    val conexionViewModel: ConexionViewModel = viewModel()
+    val hayConexion by conexionViewModel.conexionEstablecida.collectAsState()
 
     var userName by remember { mutableStateOf("Usuario desconocido") }
     var userProfilePic by remember { mutableStateOf("") }
@@ -319,50 +323,59 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                     if (uid != currentUid) {
                         Button(
                             onClick = {
-                                if (isFollowing.value) {
-                                    // Si ya sigue al usuario, hacer "dejar de seguir"
-                                    usersViewModel.unfollowUser(currentUid, uid,
-                                        onSuccess = {
-                                            // Acción cuando se deja de seguir exitosamente
-                                            Toast.makeText(
-                                                context,
-                                                "Has dejado de seguir a este usuario",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                            isFollowing.value =
-                                                false // Cambia el estado a "no siguiendo"
-                                        },
-                                        onFailure = { exception ->
-                                            // Acción cuando ocurre un error
-                                            Toast.makeText(
-                                                context,
-                                                "Error: ${exception.message}",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        }
-                                    )
-                                } else {
-                                    // Si no sigue al usuario, hacer "seguir"
-                                    usersViewModel.followUser(currentUid, uid,
-                                        onSuccess = {
-                                            // Acción cuando se sigue exitosamente al usuario
-                                            Toast.makeText(
-                                                context,
-                                                "¡Ahora sigues a este usuario!",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                            isFollowing.value =
-                                                true // Cambia el estado a "siguiendo"
-                                        },
-                                        onFailure = { exception ->
-                                            // Acción cuando ocurre un error
-                                            Toast.makeText(
-                                                context,
-                                                "Error: ${exception.message}",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        }
-                                    )
+                                if (hayConexion) {
+                                    if (isFollowing.value) {
+                                        // Si ya sigue al usuario, hacer "dejar de seguir"
+                                        usersViewModel.unfollowUser(currentUid, uid,
+                                            onSuccess = {
+                                                // Acción cuando se deja de seguir exitosamente
+                                                Toast.makeText(
+                                                    context,
+                                                    "Has dejado de seguir a este usuario",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                                isFollowing.value =
+                                                    false // Cambia el estado a "no siguiendo"
+                                            },
+                                            onFailure = { exception ->
+                                                // Acción cuando ocurre un error
+                                                Toast.makeText(
+                                                    context,
+                                                    "Error: ${exception.message}",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        )
+                                    } else {
+                                        // Si no sigue al usuario, hacer "seguir"
+                                        usersViewModel.followUser(currentUid, uid,
+                                            onSuccess = {
+                                                // Acción cuando se sigue exitosamente al usuario
+                                                Toast.makeText(
+                                                    context,
+                                                    "¡Ahora sigues a este usuario!",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                                isFollowing.value =
+                                                    true // Cambia el estado a "siguiendo"
+                                            },
+                                            onFailure = { exception ->
+                                                // Acción cuando ocurre un error
+                                                Toast.makeText(
+                                                    context,
+                                                    "Error: ${exception.message}",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        )
+                                    }
+                                }
+                                else{
+                                    Toast.makeText(
+                                        context,
+                                        "You need an internet connection to follow/unfollow an user",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
                             },
                             colors = ButtonDefaults.buttonColors(
@@ -384,14 +397,126 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                             color = Color.White
                         )
                         Spacer(modifier = Modifier.height(15.dp))
-                        Column(modifier = Modifier.fillMaxWidth()) {
-                            if (favoriteMovies.isNotEmpty()) {
+                        if (hayConexion) {
+                            Column(modifier = Modifier.fillMaxWidth()) {
+                                if (favoriteMovies.isNotEmpty()) {
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        // Limitar a las 3 primeras películas
+                                        favoriteMovies.take(3).forEach { movie ->
+                                            Column(
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                modifier = Modifier.width(120.dp)
+                                            ) {
+                                                Card(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .clickable {
+                                                            // Navegar a la pantalla de detalles de la película
+                                                            navController.navigate("detalles/${movie.id}/false") {
+                                                                launchSingleTop = true
+                                                            }
+                                                        },
+                                                    elevation = CardDefaults.cardElevation(4.dp)
+                                                ) {
+                                                    Column {
+                                                        Box(
+                                                            modifier = Modifier
+                                                                .fillMaxWidth()
+                                                                .height(160.dp)
+                                                        ) {
+                                                            val imageUrl =
+                                                                "https://image.tmdb.org/t/p/w500${movie.poster_path}"
+                                                            Image(
+                                                                painter = rememberAsyncImagePainter(
+                                                                    imageUrl
+                                                                ),
+                                                                contentDescription = "Imagen de la película",
+                                                                modifier = Modifier.fillMaxSize(),
+                                                                contentScale = ContentScale.Crop
+                                                            )
+                                                        }
+                                                        Box(
+                                                            modifier = Modifier
+                                                                .fillMaxWidth()
+                                                                .background(
+                                                                    if (movie.esSerie) Color(
+                                                                        0xFF4DB6AC
+                                                                    )
+                                                                    else Color(0xFF42A5F5)
+                                                                )
+                                                                .padding(4.dp)
+                                                        ) {
+                                                            Text(
+                                                                text = movie.titulo,
+                                                                style = MaterialTheme.typography.bodyMedium.copy(
+                                                                    color = Color.White
+                                                                ),
+                                                                maxLines = 1,
+                                                                overflow = TextOverflow.Ellipsis,
+                                                                modifier = Modifier.padding(
+                                                                    horizontal = 8.dp
+                                                                )
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    Text(
+                                        text = if (uid == currentUid) "You don't have favourite movies." else "He has no favourite movies",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = Color.White
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(20.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End // Alinea "View More" a la derecha
+                            ) {
+                                Text(
+                                    text = "View More",
+                                    style = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
+                                    modifier = Modifier.clickable {
+                                        navController.navigate("favourite_movies/$uid/false") {
+                                            popUpTo("favourite_movies") {
+                                                inclusive = true
+                                            } // Elimina la pantalla de la pila
+                                            launchSingleTop = true // Evita duplicaciones
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                        else{
+                            Text(
+                                text = "To view the favourite movies, you need an internet connection",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.Gray
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(40.dp))
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            text = "Favourite TV shows",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = Color.White
+                        )
+                        Spacer(modifier = Modifier.height(15.dp))
+                        if(hayConexion) {
+                            if (favoriteSeries.isNotEmpty()) {
                                 Row(
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    // Limitar a las 3 primeras películas
-                                    favoriteMovies.take(3).forEach { movie ->
+                                    // Limitar a las 3 primeras series
+                                    favoriteSeries.take(3).forEach { series ->
                                         Column(
                                             horizontalAlignment = Alignment.CenterHorizontally,
                                             modifier = Modifier.width(120.dp)
@@ -400,8 +525,8 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                                                 modifier = Modifier
                                                     .fillMaxWidth()
                                                     .clickable {
-                                                        // Navegar a la pantalla de detalles de la película
-                                                        navController.navigate("detalles/${movie.id}/false") {
+                                                        // Navegar a la pantalla de detalles de la serie
+                                                        navController.navigate("detalles/${series.id}/true") {
                                                             launchSingleTop = true
                                                         }
                                                     },
@@ -414,12 +539,12 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                                                             .height(160.dp)
                                                     ) {
                                                         val imageUrl =
-                                                            "https://image.tmdb.org/t/p/w500${movie.poster_path}"
+                                                            "https://image.tmdb.org/t/p/w500${series.poster_path}"
                                                         Image(
                                                             painter = rememberAsyncImagePainter(
                                                                 imageUrl
                                                             ),
-                                                            contentDescription = "Imagen de la película",
+                                                            contentDescription = "Imagen de la serie",
                                                             modifier = Modifier.fillMaxSize(),
                                                             contentScale = ContentScale.Crop
                                                         )
@@ -427,24 +552,17 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                                                     Box(
                                                         modifier = Modifier
                                                             .fillMaxWidth()
-                                                            .background(
-                                                                if (movie.esSerie) Color(
-                                                                    0xFF4DB6AC
-                                                                )
-                                                                else Color(0xFF42A5F5)
-                                                            )
+                                                            .background(Color(0xFF42A5F5)) // Color para las series
                                                             .padding(4.dp)
                                                     ) {
                                                         Text(
-                                                            text = movie.titulo,
+                                                            text = series.titulo,
                                                             style = MaterialTheme.typography.bodyMedium.copy(
                                                                 color = Color.White
                                                             ),
                                                             maxLines = 1,
                                                             overflow = TextOverflow.Ellipsis,
-                                                            modifier = Modifier.padding(
-                                                                horizontal = 8.dp
-                                                            )
+                                                            modifier = Modifier.padding(horizontal = 8.dp)
                                                         )
                                                     }
                                                 }
@@ -454,121 +572,35 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                                 }
                             } else {
                                 Text(
-                                    text = if (uid == currentUid) "You don't have favourite movies." else "He has no favourite movies",
+                                    text = if (uid == currentUid) "You don't have favourite TV shows" else "He has no favourite TV shows",
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = Color.White
                                 )
                             }
-                        }
-                        Spacer(modifier = Modifier.height(20.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End // Alinea "View More" a la derecha
-                        ) {
-                            Text(
-                                text = "View More",
-                                style = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
-                                modifier = Modifier.clickable {
-                                    navController.navigate("favourite_movies/$uid/false") {
-                                        popUpTo("favourite_movies") {
-                                            inclusive = true
-                                        } // Elimina la pantalla de la pila
-                                        launchSingleTop = true // Evita duplicaciones
-                                    }
-                                }
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(40.dp))
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            text = "Favourite TV shows",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = Color.White
-                        )
-                        Spacer(modifier = Modifier.height(15.dp))
-
-                        if (favoriteSeries.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(20.dp))
                             Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End // Alinea "View More" a la derecha
                             ) {
-                                // Limitar a las 3 primeras series
-                                favoriteSeries.take(3).forEach { series ->
-                                    Column(
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        modifier = Modifier.width(120.dp)
-                                    ) {
-                                        Card(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .clickable {
-                                                    // Navegar a la pantalla de detalles de la serie
-                                                    navController.navigate("detalles/${series.id}/true") {
-                                                        launchSingleTop = true
-                                                    }
-                                                },
-                                            elevation = CardDefaults.cardElevation(4.dp)
-                                        ) {
-                                            Column {
-                                                Box(
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .height(160.dp)
-                                                ) {
-                                                    val imageUrl =
-                                                        "https://image.tmdb.org/t/p/w500${series.poster_path}"
-                                                    Image(
-                                                        painter = rememberAsyncImagePainter(imageUrl),
-                                                        contentDescription = "Imagen de la serie",
-                                                        modifier = Modifier.fillMaxSize(),
-                                                        contentScale = ContentScale.Crop
-                                                    )
-                                                }
-                                                Box(
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .background(Color(0xFF42A5F5)) // Color para las series
-                                                        .padding(4.dp)
-                                                ) {
-                                                    Text(
-                                                        text = series.titulo,
-                                                        style = MaterialTheme.typography.bodyMedium.copy(
-                                                            color = Color.White
-                                                        ),
-                                                        maxLines = 1,
-                                                        overflow = TextOverflow.Ellipsis,
-                                                        modifier = Modifier.padding(horizontal = 8.dp)
-                                                    )
-                                                }
-                                            }
+                                Text(
+                                    text = "View More",
+                                    style = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
+                                    modifier = Modifier.clickable {
+                                        navController.navigate("favourite_movies/$uid/true") {
+                                            popUpTo("favourite_movies") {
+                                                inclusive = true
+                                            } // Elimina la pantalla de la pila
+                                            launchSingleTop = true // Evita duplicaciones
                                         }
                                     }
-                                }
+                                )
                             }
-                        } else {
-                            Text(
-                                text = if (uid == currentUid) "You don't have favourite TV shows" else "He has no favourite TV shows",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = Color.White
-                            )
                         }
-                        Spacer(modifier = Modifier.height(20.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End // Alinea "View More" a la derecha
-                        ) {
+                        else{
                             Text(
-                                text = "View More",
-                                style = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
-                                modifier = Modifier.clickable {
-                                    navController.navigate("favourite_movies/$uid/true") {
-                                        popUpTo("favourite_movies") {
-                                            inclusive = true
-                                        } // Elimina la pantalla de la pila
-                                        launchSingleTop = true // Evita duplicaciones
-                                    }
-                                }
+                                text = "To view the favourite TV shows, you need an internet connection",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.Gray
                             )
                         }
                     }

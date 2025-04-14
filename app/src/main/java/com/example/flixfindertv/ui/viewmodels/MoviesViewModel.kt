@@ -1,7 +1,6 @@
 package com.example.flixfindertv.ui.viewmodels
 
 import android.util.Log
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -10,20 +9,15 @@ import com.example.flixfindertv.models.Peliculas
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import androidx.compose.runtime.State
-import com.example.flixfindertv.models.MovieResponse
-import com.google.firebase.Timestamp
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
+import com.example.flixfindertv.room.repository.MovieRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
 
 // ViewModel que maneja la obtención de las peliculas/series
 class MoviesViewModel : ViewModel() {
@@ -113,9 +107,13 @@ class MoviesViewModel : ViewModel() {
     private val _voteCount = MutableStateFlow("")
     val voteCount = _voteCount.asStateFlow()
 
-    private val _contenidoSimilar = MutableLiveData<List<Peliculas>>(emptyList())
-    val contenidoSimilar: LiveData<List<Peliculas>> = _contenidoSimilar
-
+    fun loadProximasMovies(repository: MovieRepository) {
+        viewModelScope.launch {
+            val entities = repository.getAllMoviesGenero1()
+            val movies = entities.map { it.toPelicula() }
+            _listaPeliculasProximas.postValue(movies)
+        }
+    }
 
     suspend fun getTmdbApiKey(): String {
         return try {
@@ -450,7 +448,6 @@ class MoviesViewModel : ViewModel() {
             }
         }
     }
-
 
     fun updatePopularityInFirebase(movieId: String, newPopularity: Double) {
         val db = FirebaseFirestore.getInstance()

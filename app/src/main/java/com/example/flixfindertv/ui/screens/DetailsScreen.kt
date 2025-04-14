@@ -1,7 +1,5 @@
 package com.example.flixfindertv.ui.screens
 
-import android.os.Handler
-import android.os.Looper
 import android.widget.Toast
 import com.example.flixfindertv.utils.YoutubePlayer
 import com.example.flixfindertv.utils.ShowComments
@@ -26,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -34,22 +33,22 @@ import com.example.flixfindertv.R
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.flixfindertv.models.Peliculas
 import com.example.flixfindertv.ui.viewmodels.CommentsViewModel
+import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.ui.viewmodels.GenresViewModel
 import com.example.flixfindertv.ui.viewmodels.MoviesViewModel
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 import com.example.flixfindertv.utils.MovieDetailsContent
 import com.example.flixfindertv.utils.validateComment
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
 fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean) {
     val usersViewModel: UsersViewModel = viewModel()
+    val conexionViewModel: ConexionViewModel = viewModel()
     val commentsViewModel: CommentsViewModel = viewModel()
     val moviesViewModel: MoviesViewModel = viewModel()
     val genresViewModel: GenresViewModel = viewModel()
-
     var movie by remember { mutableStateOf<Peliculas?>(null) }
     var movieId by remember { mutableStateOf("") }
     var movieTitle by remember { mutableStateOf("") }
@@ -74,6 +73,7 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
     val firestore = FirebaseFirestore.getInstance()
     val auth = FirebaseAuth.getInstance()
     val collectionName = if (esSerie) "series" else "peliculas"
+    val hayConexion by conexionViewModel.conexionEstablecida.collectAsState()
 
     val errorMessage = remember { mutableStateOf("") }
     var showTrailer by remember { mutableStateOf(false) }
@@ -174,9 +174,8 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                     .fillMaxWidth()
                     .height(250.dp)
             ) {
-                // Imagen del banner
                 Image(
-                    painter = if (movieBannerUrl.isNotEmpty()) {
+                    painter = if (hayConexion && movieBannerUrl.isNotEmpty()) {
                         rememberAsyncImagePainter(model = movieBannerUrl)
                     } else {
                         painterResource(id = R.drawable.banner_placeholder)
@@ -185,37 +184,44 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                     modifier = Modifier.fillMaxSize()
                 )
 
-                // Corazón en la esquina superior derecha
-                IconButton(
-                    onClick = {
-                        val isCurrentlyFavorite = usersViewModel.isFavorite.value
-                        if (!isCurrentlyFavorite) {
-                            // Si no está en favoritos, añadimos a favoritos
-                            usersViewModel.saveToFavorites(id, movieTitle, movieCoverUrl, esSerie)
-                            usersViewModel.updateFavoriteGenre(movieGenre)
-                        } else {
-                            // Si ya está en favoritos, lo eliminamos de favoritos
-                            usersViewModel.removeFromFavorites(id, esSerie)
-                        }
-                        // Asegurarnos de que el estado del corazón se actualice inmediatamente
-                        usersViewModel.checkIfFavorite(id, esSerie)
-                    },
-                    modifier = Modifier
-                        .padding(16.dp) // Ajusta el espacio alrededor del icono
-                        .align(Alignment.TopEnd) // Posiciona el botón en la parte superior derecha
-                        .background(
-                            Color.Gray.copy(alpha = 0.5f),
-                            CircleShape
-                        ) // Fondo gris con forma circular
-                        .size(50.dp)
-                        .padding(8.dp) // Espacio alrededor del icono dentro del círculo
-                ) {
-                    // Icono que cambia de color dependiendo de si está en favoritos
-                    Icon(
-                        imageVector = if (usersViewModel.isFavorite.value) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                        contentDescription = "Favorito",
-                        tint = if (usersViewModel.isFavorite.value) Color.Red else Color.White // Rojo si está favorito, blanco si no
-                    )
+                if (hayConexion) {
+                    // Corazón en la esquina superior derecha
+                    IconButton(
+                        onClick = {
+                            val isCurrentlyFavorite = usersViewModel.isFavorite.value
+                            if (!isCurrentlyFavorite) {
+                                // Si no está en favoritos, añadimos a favoritos
+                                usersViewModel.saveToFavorites(
+                                    id,
+                                    movieTitle,
+                                    movieCoverUrl,
+                                    esSerie
+                                )
+                                usersViewModel.updateFavoriteGenre(movieGenre)
+                            } else {
+                                // Si ya está en favoritos, lo eliminamos de favoritos
+                                usersViewModel.removeFromFavorites(id, esSerie)
+                            }
+                            // Asegurarnos de que el estado del corazón se actualice inmediatamente
+                            usersViewModel.checkIfFavorite(id, esSerie)
+                        },
+                        modifier = Modifier
+                            .padding(16.dp) // Ajusta el espacio alrededor del icono
+                            .align(Alignment.TopEnd) // Posiciona el botón en la parte superior derecha
+                            .background(
+                                Color.Gray.copy(alpha = 0.5f),
+                                CircleShape
+                            ) // Fondo gris con forma circular
+                            .size(50.dp)
+                            .padding(8.dp) // Espacio alrededor del icono dentro del círculo
+                    ) {
+                        // Icono que cambia de color dependiendo de si está en favoritos
+                        Icon(
+                            imageVector = if (usersViewModel.isFavorite.value) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                            contentDescription = "Favorito",
+                            tint = if (usersViewModel.isFavorite.value) Color.Red else Color.White // Rojo si está favorito, blanco si no
+                        )
+                    }
                 }
 
                 // Botón para volver atrás en la esquina superior izquierda dentro de un círculo gris
@@ -250,15 +256,7 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                 director = director,
                 directorPhoto = directorPhoto
             )
-            if (trailerUrl.isEmpty()) {
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "No trailer available.",
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(16.dp),
-                    color = Color.Gray
-                )
-            } else {
+            if (hayConexion) {
                 Spacer(modifier = Modifier.height(16.dp))
                 // Verificar si trailerUrl contiene un videoId válido
                 val videoId = trailerUrl.split("v=").getOrNull(1)?.takeWhile { it != '&' }
@@ -307,11 +305,32 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                 } else {
                     // Si no se obtiene un videoId válido, muestra un mensaje adecuado
                     Spacer(modifier = Modifier.height(16.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No trailer available",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Gray
+                        )
+                    }
+                }
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                        .padding(top = 26.dp)
+                ) {
                     Text(
-                        text = "No trailer available",
+                        text = "To watch the trailer, you need an internet connection",
+                        color = Color.Gray,
                         style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(16.dp),
-                        color = Color.Gray
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.align(Alignment.Center)
                     )
                 }
             }
@@ -322,17 +341,33 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp),
                 color = Color.White
             )
+            if (hayConexion) {
+                Button(
+                    onClick = { isDialogOpen.value = true },
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text("Comment")
+                }
 
-            Button(
-                onClick = { isDialogOpen.value = true },
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text("Comment")
+                // Se ejecutará la función siempre que cualquiera de los parametros cambie, en este caso commentsList
+                movie?.let { ShowComments(navController, commentsList, commentsViewModel) }
+
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                        .padding(bottom = 20.dp)
+                ) {
+                    Text(
+                        text = "To view the comments, you need an internet connection",
+                        color = Color.Gray,
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
             }
-
-            // Se ejecutará la función siempre que cualquiera de los parametros cambie, en este caso commentsList
-            movie?.let { ShowComments(navController, commentsList, commentsViewModel) }
-
             if (isDialogOpen.value) {
                 AlertDialog(
                     onDismissRequest = {

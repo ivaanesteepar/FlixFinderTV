@@ -29,6 +29,7 @@ playServicesAuth = "21.3.0"
 playServicesAuthVersion = "20.1.0'"
 playServicesDrive = "17.0.0"
 playServicesIdentity = "20.0.0"
+roomRuntime = "2.7.0"
 seleniumChromeDriver = "4.11.0"
 seleniumhqSeleniumJava = "4.11.0"
 seleniumJava = "4.11.0"
@@ -43,6 +44,9 @@ youtubeAndroidPlayerApi = "1.2.2"
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomRuntime" }
+androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomRuntime" }
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 com-amazonaws-aws-android-sdk-s3 = { module = "com.amazonaws:aws-android-sdk-s3", version.ref = "amazonawsAwsAndroidSdkS3" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }

@@ -1,10 +1,13 @@
 package com.example.flixfindertv.ui.viewmodels
 
 import android.content.Context
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.flixfindertv.BuildConfig
 import com.example.flixfindertv.interfaces.UiState
 import com.example.flixfindertv.utils.LanguageLifecycleObserver
@@ -14,6 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.*
+
 
 class TriviaViewModelFactory(
     private val context: Context,

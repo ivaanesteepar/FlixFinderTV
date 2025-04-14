@@ -1,6 +1,7 @@
 package com.example.flixfindertv.ui.screens
 
 import android.app.Activity
+import android.app.Application
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -24,11 +25,14 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import com.example.flixfindertv.R
+import com.example.flixfindertv.room.entities.Genero1MovieEntity
+import com.example.flixfindertv.room.entities.Genero2MovieEntity
+import com.example.flixfindertv.room.entities.ProximasMovieEntity
 import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
+import com.example.flixfindertv.ui.viewmodels.OfflineViewModel
+import com.example.flixfindertv.ui.viewmodels.OfflineViewModelFactory
 import com.example.flixfindertv.utils.BottomNavigationBar
-import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 
 @Composable
 fun HomeScreen(
@@ -41,6 +45,9 @@ fun HomeScreen(
     val hayConexion by conexionViewModel.conexionEstablecida.collectAsState()
     val context = LocalContext.current
     val activity = context as? Activity
+    val offlineViewModel: OfflineViewModel = viewModel(
+        factory = OfflineViewModelFactory(context.applicationContext as Application)
+    )
 
     val maxMovies = 100
 
@@ -52,6 +59,11 @@ fun HomeScreen(
     val peliculasGenero1 by genresViewModel.peliculasGenero1.observeAsState(emptyList())
     val peliculasGenero2 by genresViewModel.peliculasGenero2.observeAsState(emptyList())
     val peliculasProximas by moviesViewModel.listaPeliculasProximas.observeAsState(emptyList())
+
+    // Listas de películas/series para los géneros
+    val peliculasGenero1Offline by offlineViewModel.listaPeliculasGenero1.observeAsState(emptyList())
+    val peliculasGenero2Offline by offlineViewModel.listaPeliculasGenero2.observeAsState(emptyList())
+    val peliculasProximasOffline by offlineViewModel.listaPeliculasProximas.observeAsState(emptyList())
 
     // Nombres de los géneros
     val nombreGenero1 = genresViewModel.nombreGenero1.value
@@ -147,6 +159,45 @@ fun HomeScreen(
         }
     }
 
+    fun guardarPeliculasEnRoom() {
+        // Limpiar las tablas antes de insertar nuevas películas
+        offlineViewModel.limpiarPeliculasGenero1()
+        offlineViewModel.limpiarPeliculasGenero2()
+        offlineViewModel.limpiarPeliculasProximas()
+
+        // Insertar las primeras 20 películas de cada categoría en las tablas correspondientes
+        offlineViewModel.insertMoviesGenero1(peliculasGenero1.take(10).map { Genero1MovieEntity.fromPelicula(it) })
+        offlineViewModel.insertMoviesGenero2(peliculasGenero2.take(10).map { Genero2MovieEntity.fromPelicula(it) })
+        offlineViewModel.insertMoviesProximas(peliculasProximas.take(10).map { ProximasMovieEntity.fromPelicula(it) })
+    }
+
+
+    LaunchedEffect(hayConexion, peliculasGenero1.isEmpty(), peliculasGenero2.isEmpty(), peliculasProximas.isEmpty()) {
+        if (hayConexion) {
+            println("aqui hay conexion")
+            if (uid != null) {
+                genresViewModel.obtenerPeliculasYSeriesGenero1(uid)
+                genresViewModel.obtenerPeliculasYSeriesGenero2(uid)
+                moviesViewModel.obtenerContenidoProximo()
+                guardarPeliculasEnRoom()
+            }
+        } else {
+            println("no hay conexion asi que accedemos a room")
+            offlineViewModel.loadGenero1Movies()
+            offlineViewModel.loadGenero2Movies()
+            offlineViewModel.loadProximasMovies()
+        }
+    }
+
+    LaunchedEffect(hayConexion) {
+        // Si hay cambio de conexión, hacer scroll al principio de las listas
+        listStateGenero1.scrollToItem(0)
+        listStateGenero2.scrollToItem(0)
+        listStatePeliculasProximas.scrollToItem(0)
+
+    }
+
+
     Scaffold(
         bottomBar = {
             if (uid != null) {
@@ -174,7 +225,9 @@ fun HomeScreen(
                     text = "You might be interested...",
                     color = Color.White,
                     style = MaterialTheme.typography.bodyMedium.copy(fontSize = 24.sp),
-                    modifier = Modifier.padding(bottom = 16.dp).padding(top=26.dp)
+                    modifier = Modifier
+                        .padding(bottom = 16.dp)
+                        .padding(top = 26.dp)
                 )
                 Spacer(modifier = Modifier.height(20.dp))
                 Column(
@@ -182,55 +235,97 @@ fun HomeScreen(
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
                 ) {
+                    // Verificar si hay conexión
+                    if (hayConexion) {
+                        // Mostrar películas del primer género si hay conexión
+                        if (peliculasGenero1.isNotEmpty() && nombreGenero1.isNotEmpty()) {
+                            Text(
+                                text = nombreGenero1,
+                                color = Color.White,
+                                style = MaterialTheme.typography.bodyMedium.copy(fontSize = 20.sp),
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                            ContentListExplore(
+                                movies = peliculasGenero1,
+                                navController = navController,
+                                listState = listStateGenero1
+                            )
+                        }
 
-                    // Mostrar películas y series del primer género
-                    if (peliculasGenero1.isNotEmpty() && nombreGenero1.isNotEmpty()) {
-                        Text(
-                            text = nombreGenero1, // Usamos el nombre del género
-                            color = Color.White,
-                            style = MaterialTheme.typography.bodyMedium.copy(fontSize = 20.sp),
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
+                        // Mostrar películas del segundo género si hay conexión
+                        if (peliculasGenero2.isNotEmpty() && nombreGenero2.isNotEmpty()) {
+                            Text(
+                                text = nombreGenero2,
+                                color = Color.White,
+                                style = MaterialTheme.typography.bodyMedium.copy(fontSize = 20.sp),
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                            ContentListExplore(
+                                movies = peliculasGenero2,
+                                navController = navController,
+                                listState = listStateGenero2
+                            )
+                        }
 
-                        // Usamos LazyRow para mostrar las películas y series
-                        ContentListExplore(
-                            movies = peliculasGenero1,
-                            navController = navController,
-                            listState = listStateGenero1
-                        )
-                    }
+                        // Mostrar próximas películas si hay conexión
+                        if (peliculasProximas.isNotEmpty()) {
+                            Text(
+                                text = "Next Releases",
+                                color = Color.White,
+                                style = MaterialTheme.typography.bodyMedium.copy(fontSize = 20.sp),
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                            ContentListExplore(
+                                movies = peliculasProximas,
+                                navController = navController,
+                                listState = listStatePeliculasProximas
+                            )
+                        }
+                    } else {
+                        // Mostrar películas offline cuando no hay conexión
+                        if (peliculasGenero1Offline.isNotEmpty() && nombreGenero1.isNotEmpty()) {
+                            Text(
+                                text = nombreGenero1,
+                                color = Color.White,
+                                style = MaterialTheme.typography.bodyMedium.copy(fontSize = 20.sp),
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                            ContentListExplore(
+                                movies = peliculasGenero1Offline.map { it.toPelicula() },  // Mapeo de las entidades a Peliculas
+                                navController = navController,
+                                listState = listStateGenero1
+                            )
+                        }
 
-                    // Mostrar películas y series del segundo género
-                    if (peliculasGenero2.isNotEmpty() && nombreGenero2.isNotEmpty()) {
-                        Text(
-                            text = nombreGenero2, // Usamos el nombre del género
-                            color = Color.White,
-                            style = MaterialTheme.typography.bodyMedium.copy(fontSize = 20.sp),
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
+                        // Mostrar películas del segundo género offline
+                        if (peliculasGenero2Offline.isNotEmpty() && nombreGenero2.isNotEmpty()) {
+                            Text(
+                                text = nombreGenero2,
+                                color = Color.White,
+                                style = MaterialTheme.typography.bodyMedium.copy(fontSize = 20.sp),
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                            ContentListExplore(
+                                movies = peliculasGenero2Offline.map { it.toPelicula() },
+                                navController = navController,
+                                listState = listStateGenero2
+                            )
+                        }
 
-                        // Usamos LazyRow para mostrar las películas y series
-                        ContentListExplore(
-                            movies = peliculasGenero2,
-                            navController = navController,
-                            listState = listStateGenero2
-                        )
-                    }
-
-                    if (peliculasProximas.isNotEmpty()) {
-                        Text(
-                            text = "Next Releases",
-                            color = Color.White,
-                            style = MaterialTheme.typography.bodyMedium.copy(fontSize = 20.sp),
-                            modifier = Modifier.padding(bottom = 8.dp)
-                        )
-
-                        // Usamos LazyRow para mostrar las películas y series
-                        ContentListExplore(
-                            movies = peliculasProximas,
-                            navController = navController,
-                            listState = listStatePeliculasProximas
-                        )
+                        // Mostrar próximas películas offline
+                        if (peliculasProximasOffline.isNotEmpty()) {
+                            Text(
+                                text = "Next Releases",
+                                color = Color.White,
+                                style = MaterialTheme.typography.bodyMedium.copy(fontSize = 20.sp),
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                            ContentListExplore(
+                                movies = peliculasProximasOffline.map { it.toPelicula() },
+                                navController = navController,
+                                listState = listStatePeliculasProximas
+                            )
+                        }
                     }
                 }
             }

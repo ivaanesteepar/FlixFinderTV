@@ -95,7 +95,7 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
             Text(
                 text = "There are no comments yet. Be the first to comment!",
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.White,
+                color = Color.Gray,
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .padding(16.dp)
