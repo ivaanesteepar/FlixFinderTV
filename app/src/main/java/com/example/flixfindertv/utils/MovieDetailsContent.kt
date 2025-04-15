@@ -97,7 +97,7 @@ fun MovieDetailsContent(
                 .padding(end = 8.dp)
         ) {
             Image(
-                painter = if (movieCoverUrl.isNotEmpty()) {
+                painter = if (hayConexion && movieCoverUrl.isNotEmpty()) {
                     rememberAsyncImagePainter(movieCoverUrl)
                 } else {
                     painterResource(id = R.drawable.no_poster_image) // Imagen predeterminada

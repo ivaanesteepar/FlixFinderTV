@@ -135,8 +135,9 @@ class GenresViewModel : ViewModel() {
     }
 
     // Obtiene los géneros favoritos del usuario
-    fun obtenerGenerosFavoritos(userId: String) {
+    fun cargarGenerosFavoritos(userId: String) {
         obtenerGenerosFavoritos(userId) { generos ->
+            println("Géneros favoritos obtenidos para el usuario $userId: $generos")
             if (generos.size >= 2) {
                 nombreGenero1.value = generos[0]
                 nombreGenero2.value = generos[1]

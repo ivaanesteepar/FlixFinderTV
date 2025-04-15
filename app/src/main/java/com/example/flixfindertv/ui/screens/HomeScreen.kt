@@ -43,6 +43,7 @@ fun HomeScreen(
     val genresViewModel: GenresViewModel = viewModel()
     val uid = FirebaseAuth.getInstance().currentUser?.uid
     val hayConexion by conexionViewModel.conexionEstablecida.collectAsState()
+    var prevHayConexion by remember { mutableStateOf(hayConexion) }
     val context = LocalContext.current
     val activity = context as? Activity
     val offlineViewModel: OfflineViewModel = viewModel(
@@ -93,7 +94,7 @@ fun HomeScreen(
 
     LaunchedEffect(uid) {
         if (uid != null) {
-            genresViewModel.obtenerGenerosFavoritos(uid)
+            genresViewModel.cargarGenerosFavoritos(uid)
         }
     }
 
@@ -190,11 +191,14 @@ fun HomeScreen(
     }
 
     LaunchedEffect(hayConexion) {
-        // Si hay cambio de conexión, hacer scroll al principio de las listas
-        listStateGenero1.scrollToItem(0)
-        listStateGenero2.scrollToItem(0)
-        listStatePeliculasProximas.scrollToItem(0)
-
+        if (hayConexion != prevHayConexion) {
+            println("la conexion actual es distinta a la anterior")
+            // Solo se ejecuta si hay un cambio real en la conexión
+            listStateGenero1.scrollToItem(0)
+            listStateGenero2.scrollToItem(0)
+            listStatePeliculasProximas.scrollToItem(0)
+            prevHayConexion = hayConexion
+        }
     }
 
 

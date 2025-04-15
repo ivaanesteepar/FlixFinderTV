@@ -65,31 +65,45 @@ class UsersViewModel : ViewModel() {
         userDocRef.get().addOnSuccessListener { document ->
             if (document.exists()) {
                 val generosFavoritos = document.get("generosFavoritos") as? Map<String, Number> ?: emptyMap()
-                val nuevosGeneros = generosFavoritos.toMutableMap()
+                val nuevosGeneros = HashMap(generosFavoritos) // Asegura que sea mutable y compatible
+
+                println("Géneros actuales: $nuevosGeneros")
 
                 if (nuevosGeneros.containsKey(firstGenre)) {
                     // El género ya existe, actualizamos el timestamp
                     nuevosGeneros[firstGenre] = System.currentTimeMillis()
+                    println("Género ya existe, se actualiza timestamp: $firstGenre")
                 } else {
                     if (nuevosGeneros.size < maxGeneros) {
                         // Hay espacio, lo agregamos
                         nuevosGeneros[firstGenre] = System.currentTimeMillis()
+                        println("Género agregado: $firstGenre")
                     } else {
                         // Reemplazamos el más antiguo
                         val generoMasAntiguo = nuevosGeneros.minByOrNull { it.value.toLong() }?.key
                         if (generoMasAntiguo != null) {
                             nuevosGeneros.remove(generoMasAntiguo)
                             nuevosGeneros[firstGenre] = System.currentTimeMillis()
+                            println("Género reemplazado: $generoMasAntiguo por $firstGenre")
                         }
                     }
                 }
 
                 userDocRef.update("generosFavoritos", nuevosGeneros)
+                    .addOnSuccessListener {
+                        println("Géneros favoritos actualizados: $nuevosGeneros")
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("UpdateFavoriteGenre", "Error al actualizar géneros favoritos", e)
+                    }
+            } else {
+                println("Documento de usuario no existe.")
             }
         }.addOnFailureListener { e ->
             Log.e("UpdateFavoriteGenre", "Error al obtener el documento del usuario", e)
         }
     }
+
 
 
     suspend fun getFollowersUsers(uid: String): List<Pair<String, String>>? {
