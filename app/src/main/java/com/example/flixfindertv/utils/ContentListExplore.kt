@@ -31,6 +31,9 @@ fun ContentListExplore(
     navController: NavController,
     listState: LazyListState,
 ) {
+
+    println("movies en content list explore: $movies")
+
     LazyRow(
         modifier = Modifier
             .fillMaxWidth()
@@ -38,7 +41,7 @@ fun ContentListExplore(
         state = listState,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        itemsIndexed(movies.filter { !contieneCaracteresNoLatinos(it.titulo ?: "") }) { index, movie ->
+        itemsIndexed(movies.filter { !contieneCaracteresNoLatinos(it.titulo) }) { index, movie ->
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.width(120.dp)
@@ -47,8 +50,8 @@ fun ContentListExplore(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            println("Se seleccionó la película en el índice: $index con id: ${movie.id ?: "Desconocido"} y es serie: ${movie.esSerie ?: false}")
-                            navController.navigate("detalles/${movie.id ?: "0"}/${movie.esSerie ?: false}")
+                            println("Se seleccionó la película en el índice: $index con id: ${movie.id} y es serie: ${movie.esSerie ?: false}")
+                            navController.navigate("detalles/${movie.id}/${movie.esSerie}")
                         },
                     elevation = CardDefaults.cardElevation(4.dp)
                 ) {
@@ -77,12 +80,12 @@ fun ContentListExplore(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .background(
-                                    if (movie.esSerie == true) Color(0xFF4DB6AC) else Color(0xFF42A5F5)
+                                    if (movie.esSerie) Color(0xFF4DB6AC) else Color(0xFF42A5F5)
                                 )
                                 .padding(4.dp)
                         ) {
                             Text(
-                                text = movie.titulo ?: "Sin título",
+                                text = movie.titulo,
                                 style = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,

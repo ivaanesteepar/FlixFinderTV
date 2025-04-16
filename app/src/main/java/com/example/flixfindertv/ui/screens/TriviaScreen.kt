@@ -154,9 +154,13 @@ fun TriviaScreen(
                                     textAlign = TextAlign.Center,
                                     modifier = Modifier.padding(16.dp)
                                 )
-                                Button(onClick = { showWelcomeScreen = false }) {
-                                    Text(text = "Start")
+                                Button(
+                                    onClick = { showWelcomeScreen = false },
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color.Blue)
+                                ) {
+                                    Text(text = "Start", color = Color.White)
                                 }
+
                             }
                             Text(
                                 text = "Powered by Gemini AI",

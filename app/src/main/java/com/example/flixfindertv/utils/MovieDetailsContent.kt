@@ -100,11 +100,13 @@ fun MovieDetailsContent(
                 painter = if (hayConexion && movieCoverUrl.isNotEmpty()) {
                     rememberAsyncImagePainter(movieCoverUrl)
                 } else {
-                    painterResource(id = R.drawable.no_poster_image) // Imagen predeterminada
+                    painterResource(id = R.drawable.no_poster_image)
                 },
                 contentDescription = "Portada",
-                contentScale = if (movieCoverUrl.isNotEmpty()) ContentScale.Fit else ContentScale.FillBounds, // Hace que la imagen se estire
-                modifier = Modifier.fillMaxSize()
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .width(160.dp)
+                    .height(235.dp)
             )
 
             Box(

@@ -167,9 +167,9 @@ fun HomeScreen(
         offlineViewModel.limpiarPeliculasProximas()
 
         // Insertar las primeras 20 películas de cada categoría en las tablas correspondientes
-        offlineViewModel.insertMoviesGenero1(peliculasGenero1.take(10).map { Genero1MovieEntity.fromPelicula(it) })
-        offlineViewModel.insertMoviesGenero2(peliculasGenero2.take(10).map { Genero2MovieEntity.fromPelicula(it) })
-        offlineViewModel.insertMoviesProximas(peliculasProximas.take(10).map { ProximasMovieEntity.fromPelicula(it) })
+        offlineViewModel.insertPeliculasGenero1(peliculasGenero1.take(10).map { Genero1MovieEntity.fromPelicula(it) })
+        offlineViewModel.insertPeliculasGenero2(peliculasGenero2.take(10).map { Genero2MovieEntity.fromPelicula(it) })
+        offlineViewModel.insertPeliculasProximas(peliculasProximas.take(10).map { ProximasMovieEntity.fromPelicula(it) })
     }
 
 
@@ -192,7 +192,6 @@ fun HomeScreen(
 
     LaunchedEffect(hayConexion) {
         if (hayConexion != prevHayConexion) {
-            println("la conexion actual es distinta a la anterior")
             // Solo se ejecuta si hay un cambio real en la conexión
             listStateGenero1.scrollToItem(0)
             listStateGenero2.scrollToItem(0)
@@ -239,10 +238,9 @@ fun HomeScreen(
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
                 ) {
-                    // Verificar si hay conexión
-                    if (hayConexion) {
-                        // Mostrar películas del primer género si hay conexión
-                        if (peliculasGenero1.isNotEmpty() && nombreGenero1.isNotEmpty()) {
+                    if (nombreGenero1.isNotEmpty() && nombreGenero2.isNotEmpty()) {
+                        // Películas del primer género
+                        if (peliculasGenero1.isNotEmpty() || peliculasGenero1Offline.isNotEmpty()) {
                             Text(
                                 text = nombreGenero1,
                                 color = Color.White,
@@ -250,14 +248,14 @@ fun HomeScreen(
                                 modifier = Modifier.padding(bottom = 8.dp)
                             )
                             ContentListExplore(
-                                movies = peliculasGenero1,
+                                movies = if (peliculasGenero1.isNotEmpty()) peliculasGenero1 else peliculasGenero1Offline.map { it.toPelicula() },
                                 navController = navController,
                                 listState = listStateGenero1
                             )
                         }
 
-                        // Mostrar películas del segundo género si hay conexión
-                        if (peliculasGenero2.isNotEmpty() && nombreGenero2.isNotEmpty()) {
+                        // Películas del segundo género
+                        if (peliculasGenero2.isNotEmpty() || peliculasGenero2Offline.isNotEmpty()) {
                             Text(
                                 text = nombreGenero2,
                                 color = Color.White,
@@ -265,14 +263,14 @@ fun HomeScreen(
                                 modifier = Modifier.padding(bottom = 8.dp)
                             )
                             ContentListExplore(
-                                movies = peliculasGenero2,
+                                movies = if (peliculasGenero2.isNotEmpty()) peliculasGenero2 else peliculasGenero2Offline.map { it.toPelicula() },
                                 navController = navController,
                                 listState = listStateGenero2
                             )
                         }
 
-                        // Mostrar próximas películas si hay conexión
-                        if (peliculasProximas.isNotEmpty()) {
+                        // Próximas películas
+                        if (peliculasProximas.isNotEmpty() || peliculasProximasOffline.isNotEmpty()) {
                             Text(
                                 text = "Next Releases",
                                 color = Color.White,
@@ -280,52 +278,7 @@ fun HomeScreen(
                                 modifier = Modifier.padding(bottom = 8.dp)
                             )
                             ContentListExplore(
-                                movies = peliculasProximas,
-                                navController = navController,
-                                listState = listStatePeliculasProximas
-                            )
-                        }
-                    } else {
-                        // Mostrar películas offline cuando no hay conexión
-                        if (peliculasGenero1Offline.isNotEmpty() && nombreGenero1.isNotEmpty()) {
-                            Text(
-                                text = nombreGenero1,
-                                color = Color.White,
-                                style = MaterialTheme.typography.bodyMedium.copy(fontSize = 20.sp),
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            )
-                            ContentListExplore(
-                                movies = peliculasGenero1Offline.map { it.toPelicula() },  // Mapeo de las entidades a Peliculas
-                                navController = navController,
-                                listState = listStateGenero1
-                            )
-                        }
-
-                        // Mostrar películas del segundo género offline
-                        if (peliculasGenero2Offline.isNotEmpty() && nombreGenero2.isNotEmpty()) {
-                            Text(
-                                text = nombreGenero2,
-                                color = Color.White,
-                                style = MaterialTheme.typography.bodyMedium.copy(fontSize = 20.sp),
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            )
-                            ContentListExplore(
-                                movies = peliculasGenero2Offline.map { it.toPelicula() },
-                                navController = navController,
-                                listState = listStateGenero2
-                            )
-                        }
-
-                        // Mostrar próximas películas offline
-                        if (peliculasProximasOffline.isNotEmpty()) {
-                            Text(
-                                text = "Next Releases",
-                                color = Color.White,
-                                style = MaterialTheme.typography.bodyMedium.copy(fontSize = 20.sp),
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            )
-                            ContentListExplore(
-                                movies = peliculasProximasOffline.map { it.toPelicula() },
+                                movies = if (peliculasProximas.isNotEmpty()) peliculasProximas else peliculasProximasOffline.map { it.toPelicula() },
                                 navController = navController,
                                 listState = listStatePeliculasProximas
                             )
