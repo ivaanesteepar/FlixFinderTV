@@ -214,26 +214,27 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
 
 
         // Insertar las primeras 10 películas de cada categoría en la base de datos
-        offlineViewModel.insertPeliculasPopulares(movies.take(10).map { PeliculasPopularesEntity.fromPelicula(it) })
-        offlineViewModel.insertPeliculasUltimosLanzamientos(recentMovies.take(10).map { UltimosLanzamientosMovieEntity.fromPelicula(it) })
-        offlineViewModel.insertPeliculasAccion(actionMovies.take(10).map { AccionMovieEntity.fromPelicula(it) })
-        offlineViewModel.insertPeliculasRomance(romanceMovies.take(10).map { RomanceMovieEntity.fromPelicula(it) })
-        offlineViewModel.insertPeliculasFamilia(familyMovies.take(10).map { FamiliaMovieEntity.fromPelicula(it) })
-        offlineViewModel.insertPeliculasComedia(comedyMovies.take(10).map { ComediaMovieEntity.fromPelicula(it) })
-        offlineViewModel.insertPeliculasThriller(thrillerMovies.take(10).map { ThrillerMovieEntity.fromPelicula(it) })
-        offlineViewModel.insertPeliculasHorror(horrorMovies.take(10).map { HorrorMovieEntity.fromPelicula(it) })
-        offlineViewModel.insertPeliculasCienciaFiccion(scienceFictionMovies.take(10).map { CienciaFiccionMovieEntity.fromPelicula(it) })
+        offlineViewModel.insertPeliculasPopulares(movies.take(10).map { PeliculasPopularesEntity(it) })
+        offlineViewModel.insertPeliculasUltimosLanzamientos(recentMovies.take(10).map { UltimosLanzamientosMovieEntity(it) })
+        offlineViewModel.insertPeliculasAccion(actionMovies.take(10).map { AccionMovieEntity(it) })
+        offlineViewModel.insertPeliculasRomance(romanceMovies.take(10).map { RomanceMovieEntity(it) })
+        offlineViewModel.insertPeliculasFamilia(familyMovies.take(10).map { FamiliaMovieEntity(it) })
+        offlineViewModel.insertPeliculasComedia(comedyMovies.take(10).map { ComediaMovieEntity(it) })
+        offlineViewModel.insertPeliculasThriller(thrillerMovies.take(10).map { ThrillerMovieEntity(it) })
+        offlineViewModel.insertPeliculasHorror(horrorMovies.take(10).map { HorrorMovieEntity(it) })
+        offlineViewModel.insertPeliculasCienciaFiccion(scienceFictionMovies.take(10).map { CienciaFiccionMovieEntity(it) })
 
         // Insertar las primeras 10 series de cada categoría en la base de datos
-        offlineViewModel.insertSeriesPopulares(series.take(10).map { SeriesPopularesEntity.fromPelicula(it) })
-        offlineViewModel.insertSeriesUltimosLanzamientos(recentSeries.take(10).map { UltimosLanzamientosSeriesEntity.fromPelicula(it) })
-        offlineViewModel.insertSeriesAccionAventura(actionAdventureSeries.take(10).map { AccionAventuraSerieEntity.fromPelicula(it) })
-        offlineViewModel.insertSeriesAnimacion(animationSeries.take(10).map { AnimacionSerieEntity.fromPelicula(it) })
-        offlineViewModel.insertSeriesComedia(comedySeries.take(10).map { ComediaSerieEntity.fromPelicula(it) })
-        offlineViewModel.insertSeriesCrimen(crimeSeries.take(10).map { CrimenSerieEntity.fromPelicula(it) })
-        offlineViewModel.insertSeriesDrama(dramaSeries.take(10).map { DramaSerieEntity.fromPelicula(it) })
-        offlineViewModel.insertSeriesFamilia(familySeries.take(10).map { FamiliaSerieEntity.fromPelicula(it) })
-        offlineViewModel.insertSeriesKids(kidsSeries.take(10).map { KidsSerieEntity.fromPelicula(it) })
+        offlineViewModel.insertSeriesPopulares(series.take(10).map { SeriesPopularesEntity(it) })
+        offlineViewModel.insertSeriesUltimosLanzamientos(recentSeries.take(10).map { UltimosLanzamientosSeriesEntity(it) })
+        offlineViewModel.insertSeriesAccionAventura(actionAdventureSeries.take(10).map { AccionAventuraSerieEntity(it) })
+        offlineViewModel.insertSeriesAnimacion(animationSeries.take(10).map { AnimacionSerieEntity(it) })
+        offlineViewModel.insertSeriesComedia(comedySeries.take(10).map { ComediaSerieEntity(it) })
+        offlineViewModel.insertSeriesCrimen(crimeSeries.take(10).map { CrimenSerieEntity(it) })
+        offlineViewModel.insertSeriesDrama(dramaSeries.take(10).map { DramaSerieEntity(it) })
+        offlineViewModel.insertSeriesFamilia(familySeries.take(10).map { FamiliaSerieEntity(it) })
+        offlineViewModel.insertSeriesKids(kidsSeries.take(10).map { KidsSerieEntity(it) })
+
     }
 
     LaunchedEffect(hayConexion) {
@@ -501,13 +502,12 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
         }
     }
 
-    println("PELICULAS POPULARES OFFLINE EN EXPLORE: $peliculasPopularesOffline")
-
     LaunchedEffect(hayConexion) {
         if (hayConexion != prevHayConexion) {
             prevHayConexion = hayConexion
 
             movieListState.scrollToItem(0)
+            recentMovieListState.scrollToItem(0)
             actionMovieListState.scrollToItem(0)
             romanceMovieListState.scrollToItem(0)
             familyMovieListState.scrollToItem(0)
@@ -518,6 +518,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
             recentMovieListState.scrollToItem(0)
 
             seriesListState.scrollToItem(0)
+            recentSerieListState.scrollToItem(0)
             actionadventureSerieListState.scrollToItem(0)
             animationSerieListState.scrollToItem(0)
             comedySerieListState.scrollToItem(0)
@@ -961,7 +962,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                             .padding(horizontal = 16.dp)
                     ) {
                         val isLoadingExplore = movies.isEmpty() && peliculasPopularesOffline.isEmpty()
-                        println("LAS PELICULAS OFFLINE EN EXPLORE SON: ${peliculasPopularesOffline.map { it.toPelicula() }}")
+                        println("LAS PELICULAS OFFLINE EN EXPLORE SON: ${peliculasPopularesOffline.map { it.pelicula }}")
 
                         // Mostrar indicador de carga si no hay películas ni series
                         if (isLoadingExplore) {
@@ -1012,7 +1013,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                                 )
                                                 Spacer(modifier = Modifier.height(8.dp)) // Espacio entre el texto y la lista
                                                 ContentListExplore(
-                                                    if (hayConexion) movies else peliculasPopularesOffline.map { it.toPelicula() },
+                                                    if (hayConexion) movies else peliculasPopularesOffline.map { it.pelicula },
                                                     navController,
                                                     movieListState,
                                                 )
@@ -1033,7 +1034,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                     item { Spacer(modifier = Modifier.height(8.dp)) }
                                     item {
                                         ContentListExplore(
-                                            if (hayConexion) recentMovies else peliculasUltimosLanzamientosOffline.map { it.toPelicula() },
+                                            if (hayConexion) recentMovies else peliculasUltimosLanzamientosOffline.map { it.pelicula },
                                             navController,
                                             recentMovieListState,
                                         )
@@ -1051,7 +1052,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                     item { Spacer(modifier = Modifier.height(8.dp)) }
                                     item {
                                         ContentListExplore(
-                                            if (hayConexion) actionMovies else peliculasAccionOffline.map { it.toPelicula() },
+                                            if (hayConexion) actionMovies else peliculasAccionOffline.map { it.pelicula },
                                             navController,
                                             actionMovieListState,
                                         )
@@ -1069,7 +1070,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                     item { Spacer(modifier = Modifier.height(8.dp)) }
                                     item {
                                         ContentListExplore(
-                                            if (hayConexion) romanceMovies else peliculasRomanceOffline.map { it.toPelicula() },
+                                            if (hayConexion) romanceMovies else peliculasRomanceOffline.map { it.pelicula },
                                             navController,
                                             romanceMovieListState,
                                         )
@@ -1087,7 +1088,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                     item { Spacer(modifier = Modifier.height(8.dp)) }
                                     item {
                                         ContentListExplore(
-                                            if (hayConexion) familyMovies else peliculasFamiliaOffline.map { it.toPelicula() },
+                                            if (hayConexion) familyMovies else peliculasFamiliaOffline.map { it.pelicula },
                                             navController,
                                             familyMovieListState,
                                         )
@@ -1105,7 +1106,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                     item { Spacer(modifier = Modifier.height(8.dp)) }
                                     item {
                                         ContentListExplore(
-                                            if (hayConexion) comedyMovies else peliculasComediaOffline.map { it.toPelicula() },
+                                            if (hayConexion) comedyMovies else peliculasComediaOffline.map { it.pelicula },
                                             navController,
                                             comedyMovieListState,
                                         )
@@ -1123,7 +1124,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                     item { Spacer(modifier = Modifier.height(8.dp)) }
                                     item {
                                         ContentListExplore(
-                                            if (hayConexion) thrillerMovies else peliculasThrillerOffline.map { it.toPelicula() },
+                                            if (hayConexion) thrillerMovies else peliculasThrillerOffline.map { it.pelicula },
                                             navController,
                                             thrillerMovieListState,
                                         )
@@ -1141,7 +1142,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                     item { Spacer(modifier = Modifier.height(8.dp)) }
                                     item {
                                         ContentListExplore(
-                                            if (hayConexion) horrorMovies else peliculasHorrorOffline.map { it.toPelicula() },
+                                            if (hayConexion) horrorMovies else peliculasHorrorOffline.map { it.pelicula },
                                             navController,
                                             horrorMovieListState,
                                         )
@@ -1159,7 +1160,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                     item { Spacer(modifier = Modifier.height(8.dp)) }
                                     item {
                                         ContentListExplore(
-                                            if (hayConexion) scienceFictionMovies else peliculasCienciaFiccionOffline.map { it.toPelicula() },
+                                            if (hayConexion) scienceFictionMovies else peliculasCienciaFiccionOffline.map { it.pelicula },
                                             navController,
                                             sciencieFictionMovieListState,
                                         )
@@ -1199,7 +1200,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                                 )
                                                 Spacer(modifier = Modifier.height(8.dp)) // Espacio entre el texto y la lista
                                                 ContentListExplore(
-                                                    if (hayConexion) series else seriesPopularesOffline.map { it.toPelicula() },
+                                                    if (hayConexion) series else seriesPopularesOffline.map { it.pelicula },
                                                     navController,
                                                     seriesListState,
                                                 )
@@ -1219,7 +1220,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                     item { Spacer(modifier = Modifier.height(8.dp)) }
                                     item {
                                         ContentListExplore(
-                                            if (hayConexion) recentSeries else seriesUltimosLanzamientosOffline.map { it.toPelicula() },
+                                            if (hayConexion) recentSeries else seriesUltimosLanzamientosOffline.map { it.pelicula },
                                             navController,
                                             recentSerieListState,
                                         )
@@ -1237,7 +1238,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                     item { Spacer(modifier = Modifier.height(8.dp)) }
                                     item {
                                         ContentListExplore(
-                                            if (hayConexion) actionAdventureSeries else seriesAccionAventuraOffline.map { it.toPelicula() },
+                                            if (hayConexion) actionAdventureSeries else seriesAccionAventuraOffline.map { it.pelicula },
                                             navController,
                                             actionadventureSerieListState,
                                         )
@@ -1255,7 +1256,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                     item { Spacer(modifier = Modifier.height(8.dp)) }
                                     item {
                                         ContentListExplore(
-                                            if (hayConexion) animationSeries else seriesAnimacionOffline.map { it.toPelicula() },
+                                            if (hayConexion) animationSeries else seriesAnimacionOffline.map { it.pelicula },
                                             navController,
                                             animationSerieListState,
                                         )
@@ -1273,7 +1274,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                     item { Spacer(modifier = Modifier.height(8.dp)) }
                                     item {
                                         ContentListExplore(
-                                            if (hayConexion) comedySeries else seriesComediaOffline.map { it.toPelicula() },
+                                            if (hayConexion) comedySeries else seriesComediaOffline.map { it.pelicula },
                                             navController,
                                             comedySerieListState,
                                         )
@@ -1291,7 +1292,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                     item { Spacer(modifier = Modifier.height(8.dp)) }
                                     item {
                                         ContentListExplore(
-                                            if (hayConexion) crimeSeries else seriesCrimenOffline.map { it.toPelicula() },
+                                            if (hayConexion) crimeSeries else seriesCrimenOffline.map { it.pelicula },
                                             navController,
                                             crimeListState,
                                         )
@@ -1309,7 +1310,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                     item { Spacer(modifier = Modifier.height(8.dp)) }
                                     item {
                                         ContentListExplore(
-                                            if (hayConexion) dramaSeries else seriesDramaOffline.map { it.toPelicula() },
+                                            if (hayConexion) dramaSeries else seriesDramaOffline.map { it.pelicula },
                                             navController,
                                             dramaListState,
                                         )
@@ -1327,7 +1328,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                     item { Spacer(modifier = Modifier.height(8.dp)) }
                                     item {
                                         ContentListExplore(
-                                            if (hayConexion) familySeries else seriesFamiliaOffline.map { it.toPelicula() },
+                                            if (hayConexion) familySeries else seriesFamiliaOffline.map { it.pelicula },
                                             navController,
                                             familySerieListState,
                                         )
@@ -1345,7 +1346,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                     item { Spacer(modifier = Modifier.height(8.dp)) }
                                     item {
                                         ContentListExplore(
-                                            if (hayConexion) kidsSeries else seriesKidsOffline.map { it.toPelicula() },
+                                            if (hayConexion) kidsSeries else seriesKidsOffline.map { it.pelicula },
                                             navController,
                                             kidsSerieListState,
                                         )
@@ -1359,5 +1360,3 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
         }
     }
 }
-
-

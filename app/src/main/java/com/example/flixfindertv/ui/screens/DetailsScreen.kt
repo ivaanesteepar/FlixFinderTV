@@ -53,7 +53,7 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
     var movieId by remember { mutableStateOf("") }
     var movieTitle by remember { mutableStateOf("") }
     var movieDescription by remember { mutableStateOf("") }
-    var movieBannerUrl by remember { mutableStateOf("") }
+    var movieBannerUrl by remember { mutableStateOf<String?>(null) }
     var movieCoverUrl by remember { mutableStateOf("") }
     var moviePopularity by remember { mutableStateOf(0.0) }
     var voteCount by remember { mutableStateOf("") }
@@ -122,15 +122,16 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                     voteCount = it.vote_count
 
                     movieBannerUrl = it.backdrop_path?.takeIf { path -> path.isNotEmpty() }
-                        ?.let { path -> "https://image.tmdb.org/t/p/w500$path" } ?: ""
+                        ?.let { path -> "https://image.tmdb.org/t/p/w500$path" } // Ahora puede aceptar null
 
-                    movieCoverUrl = it.poster_path?.takeIf { path -> path.isNotEmpty() }
+
+                    movieCoverUrl = it.poster_path.takeIf { path -> path.isNotEmpty() }
                         ?.let { path -> "https://image.tmdb.org/t/p/w500$path" } ?: ""
 
 
                     moviePopularity = it.popularity
-                    director = it.director_name
-                    directorPhoto = it.director_photo_url
+                    director = it.director_name ?: ""
+                    directorPhoto = it.director_photo_url ?: ""
 
                     val genreIds = it.genre_ids
                     if (genreIds.isNotEmpty()) {
@@ -175,7 +176,7 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                     .height(250.dp)
             ) {
                 Image(
-                    painter = if (hayConexion && movieBannerUrl.isNotEmpty()) {
+                    painter = if (hayConexion && !movieBannerUrl.isNullOrEmpty()) {
                         rememberAsyncImagePainter(model = movieBannerUrl)
                     } else {
                         painterResource(id = R.drawable.banner_placeholder)

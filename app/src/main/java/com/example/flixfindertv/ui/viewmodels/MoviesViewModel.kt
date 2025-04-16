@@ -107,14 +107,6 @@ class MoviesViewModel : ViewModel() {
     private val _voteCount = MutableStateFlow("")
     val voteCount = _voteCount.asStateFlow()
 
-    fun loadProximasMovies(repository: MovieRepository) {
-        viewModelScope.launch {
-            val entities = repository.getAllMoviesGenero1()
-            val movies = entities.map { it.toPelicula() }
-            _listaPeliculasProximas.postValue(movies)
-        }
-    }
-
     suspend fun getTmdbApiKey(): String {
         return try {
             val db = FirebaseFirestore.getInstance()

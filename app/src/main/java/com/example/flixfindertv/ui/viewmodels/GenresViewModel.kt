@@ -150,7 +150,8 @@ class GenresViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val doc = db.collection("usuarios").document(userId).get().await()
-                val generosFavoritos = doc.get("generosFavoritos") as? Map<String, Long> ?: emptyMap()
+                val generosFavoritos =
+                    doc.get("generosFavoritos") as? Map<String, Long> ?: emptyMap()
                 val generosOrdenados = generosFavoritos.keys.toList()
 
                 if (generosOrdenados.size >= 2) {
@@ -197,7 +198,11 @@ class GenresViewModel : ViewModel() {
                                 }
 
                                 val peliculasSnapshot = query.get().await()
-                                peliculasSnapshot.documents.mapNotNullTo(peliculasList) { it.toObject(Peliculas::class.java) }
+                                peliculasSnapshot.documents.mapNotNullTo(peliculasList) {
+                                    it.toObject(
+                                        Peliculas::class.java
+                                    )
+                                }
 
                                 // Consultar series
                                 var querySeries = db.collection("series")
@@ -209,7 +214,11 @@ class GenresViewModel : ViewModel() {
                                 }
 
                                 val seriesSnapshot = querySeries.get().await()
-                                seriesSnapshot.documents.mapNotNullTo(peliculasList) { it.toObject(Peliculas::class.java) }
+                                seriesSnapshot.documents.mapNotNullTo(peliculasList) {
+                                    it.toObject(
+                                        Peliculas::class.java
+                                    )
+                                }
 
                                 // Actualizar lastVisibleGenero1 si se encontraron nuevos documentos
                                 if (peliculasSnapshot.documents.isNotEmpty()) {
@@ -221,7 +230,8 @@ class GenresViewModel : ViewModel() {
 
                                 // Mezclar películas y series
                                 val mezclada = mutableListOf<Peliculas>()
-                                val peliculasIterator = peliculasList.filter { !it.esSerie }.iterator()
+                                val peliculasIterator =
+                                    peliculasList.filter { !it.esSerie }.iterator()
                                 val seriesIterator = peliculasList.filter { it.esSerie }.iterator()
 
                                 while (peliculasIterator.hasNext() || seriesIterator.hasNext()) {
@@ -233,18 +243,28 @@ class GenresViewModel : ViewModel() {
                                     }
                                 }
 
-                                // Guardar el valor actual y actualizar con los nuevos elementos
-                                val peliculasActuales = _peliculasGenero1.value?.toList() ?: listOf()
-                                _peliculasGenero1.value = peliculasActuales + mezclada
+                                // Obtener las películas actuales y filtrar duplicados
+                                val peliculasActuales =
+                                    _peliculasGenero1.value?.toList() ?: listOf()
+
+                                // Filtrar las películas duplicadas basándose en el ID
+                                val peliculasNoDuplicadas = mezclada.filterNot { nuevaPelicula ->
+                                    peliculasActuales.any { it.id == nuevaPelicula.id }
+                                }
+
+                                // Actualizar la lista sin duplicados
+                                _peliculasGenero1.value = peliculasActuales + peliculasNoDuplicadas
 
                                 // Verificar si hemos cargado suficientes elementos (100 en este caso)
                                 if (_peliculasGenero1.value!!.size >= 100) {
-                                    lastVisibleGenero1 = null  // Restablecer lastVisible si cargamos suficientes elementos
+                                    lastVisibleGenero1 =
+                                        null  // Restablecer lastVisible si cargamos suficientes elementos
                                 }
                             } catch (e: Exception) {
                                 e.printStackTrace()
                             } finally {
-                                _isLoadingGenero1.value = false  // Siempre poner en false después de completar
+                                _isLoadingGenero1.value =
+                                    false  // Siempre poner en false después de completar
                             }
                         }
                     }
@@ -284,7 +304,11 @@ class GenresViewModel : ViewModel() {
                                 }
 
                                 val peliculasSnapshot = query.get().await()
-                                peliculasSnapshot.documents.mapNotNullTo(peliculasList) { it.toObject(Peliculas::class.java) }
+                                peliculasSnapshot.documents.mapNotNullTo(peliculasList) {
+                                    it.toObject(
+                                        Peliculas::class.java
+                                    )
+                                }
 
                                 // Obtener series
                                 var querySeries = db.collection("series")
@@ -296,7 +320,11 @@ class GenresViewModel : ViewModel() {
                                 }
 
                                 val seriesSnapshot = querySeries.get().await()
-                                seriesSnapshot.documents.mapNotNullTo(peliculasList) { it.toObject(Peliculas::class.java) }
+                                seriesSnapshot.documents.mapNotNullTo(peliculasList) {
+                                    it.toObject(
+                                        Peliculas::class.java
+                                    )
+                                }
 
                                 // Si hay documentos, actualizamos lastVisible
                                 if (peliculasSnapshot.documents.isNotEmpty()) {
@@ -308,7 +336,8 @@ class GenresViewModel : ViewModel() {
 
                                 // Mezclar películas y series
                                 val mezclada = mutableListOf<Peliculas>()
-                                val peliculasIterator = peliculasList.filter { !it.esSerie }.iterator()
+                                val peliculasIterator =
+                                    peliculasList.filter { !it.esSerie }.iterator()
                                 val seriesIterator = peliculasList.filter { it.esSerie }.iterator()
 
                                 // Alternar entre películas y series
@@ -321,7 +350,16 @@ class GenresViewModel : ViewModel() {
                                     }
                                 }
 
-                                _peliculasGenero2.value = _peliculasGenero2.value.orEmpty() + mezclada
+                                // Filtrar duplicados
+                                val peliculasActuales =
+                                    _peliculasGenero2.value?.toList() ?: listOf()
+                                val peliculasNoDuplicadas = mezclada.filterNot { nuevaPelicula ->
+                                    peliculasActuales.any { it.id == nuevaPelicula.id }
+                                }
+
+                                // Actualizar la lista sin duplicados
+                                _peliculasGenero2.value =
+                                    _peliculasGenero2.value.orEmpty() + peliculasNoDuplicadas
                             } catch (e: Exception) {
                                 e.printStackTrace()
                             } finally {

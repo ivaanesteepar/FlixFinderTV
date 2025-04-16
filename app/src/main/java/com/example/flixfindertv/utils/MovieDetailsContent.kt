@@ -73,16 +73,23 @@ fun MovieDetailsContent(
     val popularity by viewModel.popularity.collectAsState()
     val voteCount by viewModel.voteCount.collectAsState()
     val truncatedVoteAvg = (voteAverage * 10).toInt() / 10.0
-    val voteAvgFormatted = String.format("%.1f", truncatedVoteAvg)
+    val cappedVoteAvg = minOf(truncatedVoteAvg, 10.0)
+    val voteAvgFormatted = if (cappedVoteAvg % 1.0 == 0.0) {
+        cappedVoteAvg.toInt().toString()
+    } else {
+        String.format("%.1f", cappedVoteAvg)
+    }
+
+
     val hayConexion by conexionViewModel.conexionEstablecida.collectAsState()
 
     var translatedDescription by remember { mutableStateOf("") }
 
     val color = when {
-        voteAverage in 0.0..4.9 -> Color(0xFFFF6F61)
-        voteAverage in 5.0..7.5 -> Color(0xFF00B0FF)
-        voteAverage in 7.6..10.0 -> Color(0xFF2ECC71)
-        else -> Color.Gray
+        voteAverage < 5.0 -> Color(0xFFFF6F61) // Rojo
+        voteAverage <= 7.5 -> Color(0xFF00B0FF) // Azul
+        voteAverage <= 10.0 -> Color(0xFF2ECC71) // Verde
+        else -> Color(0xFF2ECC71) // Verde también para valores superiores a 10
     }
 
     LaunchedEffect(movieId) {

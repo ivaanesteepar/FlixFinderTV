@@ -1,7 +1,10 @@
 package com.example.flixfindertv.models
 
+import androidx.room.PrimaryKey
+
+
 data class Peliculas(
-    val id: String = "", // ID de Firebase
+    @PrimaryKey val id: String = "",  // ID de Firebase
     val title: String? = null,
     val name: String? = null,
     val overview: String = "",
@@ -12,20 +15,16 @@ data class Peliculas(
     val vote_count: String = "0",
     val genre_ids: List<Int> = emptyList(),
     val adult: Boolean = false,
-    val backdrop_path: String = "",
+    val backdrop_path: String? = null,
     val popularity: Double = 0.0,
     val esSerie: Boolean = false,
     val comentarios: List<String> = emptyList(),
     val original_language: String = "",
     val status: String = "",
     val trailer: String? = null,
-    val director_name: String = "",
-    val director_photo_url: String = ""
+    val director_name: String? = "",
+    val director_photo_url: String? = ""  // Asignar un valor por defecto vacío
 ) {
     val titulo: String
         get() = title ?: name ?: "Título desconocido"
 }
-
-data class MovieResponse(
-    val results: List<Peliculas>
-)

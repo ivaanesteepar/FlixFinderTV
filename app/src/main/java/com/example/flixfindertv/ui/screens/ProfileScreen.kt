@@ -509,7 +509,7 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                             color = Color.White
                         )
                         Spacer(modifier = Modifier.height(15.dp))
-                        if(hayConexion) {
+                        if (hayConexion) {
                             if (favoriteSeries.isNotEmpty()) {
                                 Row(
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -552,7 +552,7 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                                                     Box(
                                                         modifier = Modifier
                                                             .fillMaxWidth()
-                                                            .background(Color(0xFF42A5F5)) // Color para las series
+                                                            .background(Color(0xFF4DB6AC)) // Color para las series
                                                             .padding(4.dp)
                                                     ) {
                                                         Text(

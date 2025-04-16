@@ -52,7 +52,7 @@ fun HomeScreen(
     )
 
     val maxMovies = 100
-    var listasGuardadas by rememberSaveable { mutableStateOf(false) }
+    var contenidoOfflineCargado by rememberSaveable { mutableStateOf(false) }
 
     val isLoadingGenero1 by genresViewModel.isLoadingGenero1.observeAsState(false)
     val isLoadingGenero2 by genresViewModel.isLoadingGenero2.observeAsState(false)
@@ -92,6 +92,10 @@ fun HomeScreen(
                 println("API Key obtenida correctamente: $apiKeyTmdb")
             }
         }
+    }
+
+    LaunchedEffect(Unit) {
+        moviesViewModel.obtenerContenidoProximo()
     }
 
     LaunchedEffect(uid) {
@@ -169,25 +173,26 @@ fun HomeScreen(
         offlineViewModel.limpiarPeliculasProximas()
 
         // Insertar las primeras 20 películas de cada categoría en las tablas correspondientes
-        offlineViewModel.insertPeliculasGenero1(peliculasGenero1.take(10).map { Genero1MovieEntity.fromPelicula(it) })
-        offlineViewModel.insertPeliculasGenero2(peliculasGenero2.take(10).map { Genero2MovieEntity.fromPelicula(it) })
-        offlineViewModel.insertPeliculasProximas(peliculasProximas.take(10).map { ProximasMovieEntity.fromPelicula(it) })
+        offlineViewModel.insertPeliculasGenero1(
+            peliculasGenero1.take(10).map { Genero1MovieEntity(idMovieEntity = it.id, pelicula = it) }
+        )
+
+        offlineViewModel.insertPeliculasGenero2(
+            peliculasGenero2.take(10).map { Genero2MovieEntity(idMovieEntity = it.id, pelicula = it) }
+        )
+
+        offlineViewModel.insertPeliculasProximas(
+            peliculasProximas.take(10).map { ProximasMovieEntity(idMovieEntity = it.id, pelicula = it) }
+        )
     }
 
-
-    LaunchedEffect(hayConexion, peliculasGenero1.isEmpty(), peliculasGenero2.isEmpty(), peliculasProximas.isEmpty()) {
-        if (hayConexion) {
-            println("aqui hay conexion")
-            if (uid != null) {
-                genresViewModel.obtenerPeliculasYSeriesGenero1(uid)
-                genresViewModel.obtenerPeliculasYSeriesGenero2(uid)
-                moviesViewModel.obtenerContenidoProximo()
-            }
-        } else {
+    LaunchedEffect(hayConexion) {
+        if (!contenidoOfflineCargado) {
             println("no hay conexion asi que accedemos a room")
             offlineViewModel.loadGenero1Movies()
             offlineViewModel.loadGenero2Movies()
             offlineViewModel.loadProximasMovies()
+            contenidoOfflineCargado = true
         }
     }
 
@@ -202,11 +207,10 @@ fun HomeScreen(
     }
 
     // Efecto de guardado solo cuando las listas estén completas y no estén guardadas
-    LaunchedEffect(peliculasGenero1.isNotEmpty() && peliculasGenero2.isNotEmpty() && peliculasProximas.isNotEmpty() && !listasGuardadas) {
-        if (peliculasGenero1.isNotEmpty() && peliculasGenero2.isNotEmpty() && peliculasProximas.isNotEmpty() && !listasGuardadas) {
+    LaunchedEffect(peliculasGenero1.isNotEmpty() && peliculasGenero2.isNotEmpty() && peliculasProximas.isNotEmpty()) {
+        if (peliculasGenero1.isNotEmpty() && peliculasGenero2.isNotEmpty() && peliculasProximas.isNotEmpty()) {
             println("Listas completas. Guardando en Room...")
             guardarPeliculasEnRoom()
-            listasGuardadas = true
         }
     }
 
@@ -258,7 +262,7 @@ fun HomeScreen(
                                 modifier = Modifier.padding(bottom = 8.dp)
                             )
                             ContentListExplore(
-                                movies = if (peliculasGenero1.isNotEmpty()) peliculasGenero1 else peliculasGenero1Offline.map { it.toPelicula() },
+                                movies = if (hayConexion) peliculasGenero1 else peliculasGenero1Offline.map { it.pelicula },
                                 navController = navController,
                                 listState = listStateGenero1
                             )
@@ -273,7 +277,7 @@ fun HomeScreen(
                                 modifier = Modifier.padding(bottom = 8.dp)
                             )
                             ContentListExplore(
-                                movies = if (peliculasGenero2.isNotEmpty()) peliculasGenero2 else peliculasGenero2Offline.map { it.toPelicula() },
+                                movies = if (hayConexion) peliculasGenero2 else peliculasGenero2Offline.map { it.pelicula },
                                 navController = navController,
                                 listState = listStateGenero2
                             )
@@ -288,7 +292,7 @@ fun HomeScreen(
                                 modifier = Modifier.padding(bottom = 8.dp)
                             )
                             ContentListExplore(
-                                movies = if (peliculasProximas.isNotEmpty()) peliculasProximas else peliculasProximasOffline.map { it.toPelicula() },
+                                movies = if (hayConexion) peliculasProximas else peliculasProximasOffline.map { it.pelicula },
                                 navController = navController,
                                 listState = listStatePeliculasProximas
                             )

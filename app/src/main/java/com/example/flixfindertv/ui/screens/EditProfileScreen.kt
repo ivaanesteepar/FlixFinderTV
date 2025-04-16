@@ -1,5 +1,9 @@
 package com.example.flixfindertv.ui.screens
 
+import android.Manifest
+import android.app.Activity
+import android.content.pm.PackageManager
+import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
@@ -26,6 +30,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
@@ -42,6 +47,7 @@ fun EditProfileScreen(navController: NavHostController) {
     val auth = FirebaseAuth.getInstance()
     val firestore = FirebaseFirestore.getInstance()
     val context = LocalContext.current
+    val activity = context as? Activity
     val conexionViewModel: ConexionViewModel = viewModel()
     val hayConexion by conexionViewModel.conexionEstablecida.collectAsState()
 
@@ -55,15 +61,36 @@ fun EditProfileScreen(navController: NavHostController) {
 
     var deleteImageInUI by remember { mutableStateOf(false) }
 
-    // Launcher to pick an image from gallery
-    val pickImageLauncher: ActivityResultLauncher<String> =
-        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-            // Solo actualiza la URI de la imagen si se seleccionó una nueva
-            if (uri != null) {
-                profileImageUri = uri.toString()
-                deleteImageInUI = false
-            }
+    val pickImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let {
+            profileImageUri = it.toString()
+            deleteImageInUI = false
         }
+    }
+
+    val requestPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            pickImageLauncher.launch("image/*")
+        } else {
+            Toast.makeText(context, "Se necesita el permiso para acceder a las fotos", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    val onProfileImageClick = {
+        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            Manifest.permission.READ_MEDIA_IMAGES
+        } else {
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        }
+
+        if (ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED) {
+            pickImageLauncher.launch("image/*")
+        } else {
+            requestPermissionLauncher.launch(permission)
+        }
+    }
 
     // Cargar datos actuales del usuario
     LaunchedEffect(currentUser) {
@@ -139,7 +166,8 @@ fun EditProfileScreen(navController: NavHostController) {
                                 .fillMaxSize()
                                 .clip(CircleShape) // Esto asegura que la imagen tenga forma circular
                                 .border(2.dp, Color.White, CircleShape) // Aquí se agrega el borde blanco
-                                .clickable { pickImageLauncher.launch("image/*") },
+                                .clickable { onProfileImageClick() },
+
                             contentScale = ContentScale.Crop
                         )
                     } else {
@@ -150,7 +178,8 @@ fun EditProfileScreen(navController: NavHostController) {
                                 .fillMaxSize()
                                 .clip(CircleShape) // Esto asegura que la imagen tenga forma circular
                                 .border(2.dp, Color.White, CircleShape) // Aquí se agrega el borde blanco
-                                .clickable { pickImageLauncher.launch("image/*") },
+                                .clickable { onProfileImageClick() },
+
                             contentScale = ContentScale.Crop
                         )
                     }
