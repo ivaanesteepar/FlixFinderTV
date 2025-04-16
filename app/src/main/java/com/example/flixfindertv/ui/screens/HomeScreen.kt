@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -51,6 +52,7 @@ fun HomeScreen(
     )
 
     val maxMovies = 100
+    var listasGuardadas by rememberSaveable { mutableStateOf(false) }
 
     val isLoadingGenero1 by genresViewModel.isLoadingGenero1.observeAsState(false)
     val isLoadingGenero2 by genresViewModel.isLoadingGenero2.observeAsState(false)
@@ -180,7 +182,6 @@ fun HomeScreen(
                 genresViewModel.obtenerPeliculasYSeriesGenero1(uid)
                 genresViewModel.obtenerPeliculasYSeriesGenero2(uid)
                 moviesViewModel.obtenerContenidoProximo()
-                guardarPeliculasEnRoom()
             }
         } else {
             println("no hay conexion asi que accedemos a room")
@@ -197,6 +198,15 @@ fun HomeScreen(
             listStateGenero2.scrollToItem(0)
             listStatePeliculasProximas.scrollToItem(0)
             prevHayConexion = hayConexion
+        }
+    }
+
+    // Efecto de guardado solo cuando las listas estén completas y no estén guardadas
+    LaunchedEffect(peliculasGenero1.isNotEmpty() && peliculasGenero2.isNotEmpty() && peliculasProximas.isNotEmpty() && !listasGuardadas) {
+        if (peliculasGenero1.isNotEmpty() && peliculasGenero2.isNotEmpty() && peliculasProximas.isNotEmpty() && !listasGuardadas) {
+            println("Listas completas. Guardando en Room...")
+            guardarPeliculasEnRoom()
+            listasGuardadas = true
         }
     }
 

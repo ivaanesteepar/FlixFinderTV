@@ -289,7 +289,6 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
             kidsSeries.isNotEmpty()
 
     LaunchedEffect(peliculasListas, seriesListas) {
-        println("listas guardadas es: ${!listasGuardadas}")
         if (peliculasListas && seriesListas && !listasGuardadas) {
             println("Listas completas. Guardando en Room...")
             guardarPeliculasEnRoom()
