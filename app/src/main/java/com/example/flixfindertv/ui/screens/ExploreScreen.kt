@@ -63,6 +63,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
     val offlineViewModel: OfflineViewModel = viewModel()
     val context = LocalContext.current
     val activity = context as? Activity
+    var listasGuardadas by rememberSaveable { mutableStateOf(false) }
 
     var expanded by remember { mutableStateOf(false) }
     var selectedTab by rememberSaveable { mutableStateOf("Movies") }
@@ -214,6 +215,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
 
         // Insertar las primeras 10 películas de cada categoría en la base de datos
         offlineViewModel.insertPeliculasPopulares(movies.take(10).map { PeliculasPopularesEntity.fromPelicula(it) })
+        offlineViewModel.insertPeliculasUltimosLanzamientos(recentMovies.take(10).map { UltimosLanzamientosMovieEntity.fromPelicula(it) })
         offlineViewModel.insertPeliculasAccion(actionMovies.take(10).map { AccionMovieEntity.fromPelicula(it) })
         offlineViewModel.insertPeliculasRomance(romanceMovies.take(10).map { RomanceMovieEntity.fromPelicula(it) })
         offlineViewModel.insertPeliculasFamilia(familyMovies.take(10).map { FamiliaMovieEntity.fromPelicula(it) })
@@ -224,6 +226,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
 
         // Insertar las primeras 10 series de cada categoría en la base de datos
         offlineViewModel.insertSeriesPopulares(series.take(10).map { SeriesPopularesEntity.fromPelicula(it) })
+        offlineViewModel.insertSeriesUltimosLanzamientos(recentSeries.take(10).map { UltimosLanzamientosSeriesEntity.fromPelicula(it) })
         offlineViewModel.insertSeriesAccionAventura(actionAdventureSeries.take(10).map { AccionAventuraSerieEntity.fromPelicula(it) })
         offlineViewModel.insertSeriesAnimacion(animationSeries.take(10).map { AnimacionSerieEntity.fromPelicula(it) })
         offlineViewModel.insertSeriesComedia(comedySeries.take(10).map { ComediaSerieEntity.fromPelicula(it) })
@@ -286,9 +289,11 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
             kidsSeries.isNotEmpty()
 
     LaunchedEffect(peliculasListas, seriesListas) {
-        if (peliculasListas && seriesListas) {
+        println("listas guardadas es: ${!listasGuardadas}")
+        if (peliculasListas && seriesListas && !listasGuardadas) {
             println("Listas completas. Guardando en Room...")
             guardarPeliculasEnRoom()
+            listasGuardadas = true
         }
     }
 
@@ -524,9 +529,6 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
             recentSerieListState.scrollToItem(0)
         }
     }
-
-    println("Online movies: $movies")
-    println("Offline movies: ${peliculasPopularesOffline.map { it.toPelicula() }}")
 
 
     Scaffold(

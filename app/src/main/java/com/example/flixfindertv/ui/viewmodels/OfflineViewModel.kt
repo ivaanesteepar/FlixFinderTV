@@ -247,7 +247,6 @@ class OfflineViewModel(application: Application) : AndroidViewModel(application)
     fun loadPeliculasPopulares() {
         viewModelScope.launch {
             val movies = repository.getAllMoviesPopulares()
-            println("las movies en offline son: $movies")
             _peliculasPopulares.postValue(movies)
         }
     }
