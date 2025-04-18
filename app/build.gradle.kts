@@ -114,12 +114,13 @@ dependencies {
 
     // Dependencias de Room
     implementation("androidx.room:room-ktx:2.6.1")
+    implementation(libs.androidx.ui.test.junit4.android)
     kapt("androidx.room:room-compiler:2.6.1")
 
     // Dependencias de pruebas
     testImplementation(libs.junit)
     testImplementation(libs.mockk)  // MockK para pruebas en Kotlin
-    testImplementation(libs.mockk)
+    testImplementation ("androidx.arch.core:core-testing:2.1.0")
 
     // Herramientas para pruebas de corutinas
     testImplementation(libs.kotlinx.coroutines.test)  // Para pruebas de corutinas
