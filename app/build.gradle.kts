@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.gms.google.services)
     kotlin("kapt")
+    id("jacoco") // <--- Plugin JaCoCo
 }
 
 android {
@@ -21,11 +22,18 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+
     buildFeatures {
-        buildConfig = true // Habilitar la generación de BuildConfig
+        buildConfig = true
+        compose = true
     }
 
     buildTypes {
+        // Importante para JaCoCo: habilitar cobertura en debug
+        debug {
+            enableUnitTestCoverage = true // cobertura para tests unitarios
+            enableAndroidTestCoverage = true // (opcional) cobertura para tests instrumentados
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
@@ -34,25 +42,49 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
     kotlinOptions {
         jvmTarget = "11"
     }
-    buildFeatures {
-        compose = true
-    }
+
     packagingOptions {
         exclude("META-INF/INDEX.LIST")
     }
+}
 
+jacoco {
+    toolVersion = "0.8.10"
+}
 
+tasks.register<JacocoReport>("jacocoTestReport") {
+    dependsOn("testDebugUnitTest")
+
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+
+    val fileFilter = listOf(
+        "**/R.class", "**/R$*.class", "**/BuildConfig.*", "**/Manifest*.*",
+        "**/*Test*.*", "**/*$*$*.*", "**/di/**", "**/Hilt*.*"
+    )
+
+    val debugTree = fileTree("${buildDir}/intermediates/javac/debug/classes") {
+        exclude(fileFilter)
+    }
+
+    classDirectories.setFrom(files(debugTree))
+    sourceDirectories.setFrom(files("src/main/java", "src/main/kotlin"))
+    executionData.setFrom(fileTree(buildDir).include("**/jacoco/testDebugUnitTest.exec"))
 }
 
 dependencies {
-
+    // Dependencias de AndroidX
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -61,13 +93,13 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation (libs.androidx.material.icons.extended)
+    implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.gson)
-    implementation (libs.jsoup.v1153)
-    implementation (libs.squareup.retrofit)
-    implementation (libs.converter.gson)
+    implementation(libs.jsoup.v1153)
+    implementation(libs.squareup.retrofit)
+    implementation(libs.converter.gson)
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.coil.compose)
     implementation(libs.firebase.firestore.ktx)
@@ -75,17 +107,22 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.generativeai)
     implementation(libs.androidx.benchmark.common)
-    implementation (libs.com.amazonaws.aws.android.sdk.s3)
+    implementation(libs.com.amazonaws.aws.android.sdk.s3)
     implementation(libs.firebase.database)
     implementation(libs.androidx.appcompat)
     implementation("com.pierfrancescosoffritti.androidyoutubeplayer:core:11.1.0")
-    kapt("androidx.room:room-compiler:2.6.1")
+
+    // Dependencias de Room
     implementation("androidx.room:room-ktx:2.6.1")
+    kapt("androidx.room:room-compiler:2.6.1")
+
+    // Dependencias de pruebas
     testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.ui.test.junit4)
-    debugImplementation(libs.androidx.ui.tooling)
-    debugImplementation(libs.androidx.ui.test.manifest)
+    testImplementation(libs.mockk)  // MockK para pruebas en Kotlin
+    testImplementation(libs.mockk)
+
+    // Herramientas para pruebas de corutinas
+    testImplementation(libs.kotlinx.coroutines.test)  // Para pruebas de corutinas
 }
+
+

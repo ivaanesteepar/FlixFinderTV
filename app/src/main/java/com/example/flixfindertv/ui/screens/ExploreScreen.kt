@@ -737,8 +737,32 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                         var expandedSearch by remember { mutableStateOf(false) }
                         var selectedTextSearch by rememberSaveable { mutableStateOf("Unordered") }
 
-                        val filteredSearchResults = movieResults.filter {
-                            (filterMovie && !it.esSerie) || (filterSerie && it.esSerie) || (!filterMovie && !filterSerie)
+                        // Variable que tiene contenido que cumple con todos los filtros
+                        val filteredSearchResults = movieResults.filter { movie ->
+                            // Filtro por tipo: película o serie
+                            val matchesType = if (filterMovie || filterSerie) {
+                                (filterMovie && !movie.esSerie) || (filterSerie && movie.esSerie)
+                            } else {
+                                true // Si no se aplica filtro de tipo, permitimos cualquier tipo (película o serie)
+                            }
+
+                            // Filtro por búsqueda de título: si searchQuery está vacío, no aplicamos filtro
+                            val matchesQuery = if (searchQuery.isNullOrEmpty()) {
+                                true // No filtramos por título si la búsqueda está vacía
+                            } else {
+                                (movie.title?.contains(searchQuery, ignoreCase = true) == true) ||
+                                        (movie.name?.contains(searchQuery, ignoreCase = true) == true)
+                            }
+
+                            // Filtro por género: si no hay género seleccionado, no filtramos por género
+                            val matchesGenre = if (selectedGenreId == null) {
+                                true // Si no se ha seleccionado un género, no se filtra por género
+                            } else {
+                                movie.genre_ids.contains(selectedGenreId) // Si se seleccionó un género, lo filtramos
+                            }
+
+                            // Todos los filtros deben ser verdaderos para que se incluya la película
+                            matchesType && matchesQuery && matchesGenre
                         }
 
                         val sortedSearchResults = when (selectedTextSearch) {
@@ -747,7 +771,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                             else -> filteredSearchResults
                         }
 
-                        if (sortedSearchResults.isNotEmpty()) { // ✅ Solo muestra el menú si hay películas
+                        if (sortedSearchResults.isNotEmpty()) { // Solo muestra el menú si hay películas
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()

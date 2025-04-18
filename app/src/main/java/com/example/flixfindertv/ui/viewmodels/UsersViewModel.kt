@@ -8,6 +8,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavController
 import com.example.flixfindertv.models.Peliculas
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -30,6 +31,57 @@ class UsersViewModel : ViewModel() {
     // Estado para almacenar el UID del usuario encontrado
     private val _userIdComment = MutableLiveData<String>()
     val userIdComment: LiveData<String> get() = _userIdComment
+
+    // Agrega un LiveData para manejar el estado de carga y error
+    val errorMessage = mutableStateOf<String?>(null)
+    val isLoading = mutableStateOf(false)
+
+    // Función que maneja el inicio de sesión
+    fun login(email: String, password: String, onSuccess: (String) -> Unit, onFailure: (String) -> Unit) {
+        if (email.isEmpty() || password.isEmpty()) {
+            errorMessage.value = "All fields are required"
+            return
+        }
+
+        isLoading.value = true
+        errorMessage.value = null
+
+        auth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val user = auth.currentUser
+                    if (user != null) {
+                        val userId = user.uid
+                        val userRef = firestore.collection("usuarios").document(userId)
+
+                        userRef.get()
+                            .addOnSuccessListener { document ->
+                                isLoading.value = false
+                                if (document.exists()) {
+                                    val esNuevo = document.getBoolean("esNuevo") ?: false
+                                    if (esNuevo) {
+                                        onSuccess("questions")
+                                    } else {
+                                        onSuccess("home")
+                                    }
+                                } else {
+                                    errorMessage.value = "User data not found"
+                                    onFailure("Error fetching user data")
+                                }
+                            }
+                            .addOnFailureListener {
+                                isLoading.value = false
+                                errorMessage.value = "Error fetching user data"
+                                onFailure("Error fetching user data")
+                            }
+                    }
+                } else {
+                    isLoading.value = false
+                    errorMessage.value = "Oops! Something went wrong. Please check your credentials and try again."
+                    onFailure("Login failed")
+                }
+            }
+    }
 
     // Guardar sesión con el UID del usuario
     fun saveSession(context: Context, isLoggedIn: Boolean, uid: String?) {

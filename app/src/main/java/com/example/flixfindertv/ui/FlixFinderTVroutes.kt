@@ -9,7 +9,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import com.example.flixfindertv.ui.screens.DetailsScreen
 import com.example.flixfindertv.ui.screens.EditProfileScreen
 import com.example.flixfindertv.ui.screens.ExploreScreen
@@ -24,7 +23,6 @@ import com.example.flixfindertv.ui.screens.TriviaScreen
 import com.example.flixfindertv.ui.screens.UserListScreen
 import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.ui.viewmodels.MoviesViewModel
-import com.example.flixfindertv.ui.viewmodels.TriviaViewModel
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 import com.google.firebase.auth.FirebaseAuth
 

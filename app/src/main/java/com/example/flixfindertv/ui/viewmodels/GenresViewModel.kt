@@ -14,7 +14,7 @@ import kotlinx.coroutines.tasks.await
 
 
 class GenresViewModel : ViewModel() {
-    val db = FirebaseFirestore.getInstance()
+    var db = FirebaseFirestore.getInstance()
 
     val nombreGenero1 = mutableStateOf("")
     val nombreGenero2 = mutableStateOf("")

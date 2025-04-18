@@ -38,6 +38,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.example.flixfindertv.R
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
@@ -45,7 +46,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
-fun LoginScreen(navController: NavHostController) {
+fun LoginScreen(navController: NavController) {
     var email by remember { mutableStateOf(TextFieldValue()) }
     var password by remember { mutableStateOf(TextFieldValue()) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -140,47 +141,15 @@ fun LoginScreen(navController: NavHostController) {
 
                 Button(
                     onClick = {
-                        if (email.text.isEmpty() || password.text.isEmpty()) {
-                            errorMessage = "All fields are required"
-                        } else {
-                            isLoading = true
-                            errorMessage = null
-                            auth.signInWithEmailAndPassword(email.text, password.text)
-                                .addOnCompleteListener { task ->
-                                    if (task.isSuccessful) {
-                                        val user = auth.currentUser
-                                        if (user != null) {
-                                            val userId = user.uid
-                                            val db = FirebaseFirestore.getInstance()
-                                            val userRef = db.collection("usuarios").document(userId)
-
-                                            userRef.get()
-                                                .addOnSuccessListener { document ->
-                                                    isLoading = false
-                                                    if (document.exists()) {
-                                                        val esNuevo = document.getBoolean("esNuevo") ?: false
-                                                        if (esNuevo) {
-                                                            navController.navigate("questions") // Ir a la pantalla de preguntas
-                                                        } else {
-                                                            navController.navigate("home") // Ir a la pantalla principal
-                                                        }
-                                                    } else {
-                                                        errorMessage = "User data not found"
-                                                    }
-                                                }
-                                                .addOnFailureListener {
-                                                    isLoading = false
-                                                    errorMessage = "Error fetching user data"
-                                                }
-                                            // Guardar la sesión después del login
-                                            usersViewModel.saveSession(context, true, userId)  // 'true' significa que el usuario está logueado
-                                        }
-                                    } else {
-                                        isLoading = false
-                                        errorMessage = "Oops! Something went wrong. Please check your credentials and try again."
-                                    }
-                                }
-                        }
+                        usersViewModel.login(email.text, password.text,
+                            onSuccess = { screen ->
+                                navController.navigate(screen)
+                                usersViewModel.saveSession(context, true, FirebaseAuth.getInstance().currentUser?.uid ?: "")
+                            },
+                            onFailure = { error ->
+                                // Maneja el error si es necesario
+                            }
+                        )
                     },
                     modifier = Modifier
                         .fillMaxWidth()
