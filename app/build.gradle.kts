@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.gms.google.services)
     kotlin("kapt")
-    id("jacoco") // <--- Plugin JaCoCo
+    id("jacoco")
 }
 
 android {

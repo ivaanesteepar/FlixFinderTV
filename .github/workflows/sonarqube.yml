@@ -44,7 +44,11 @@ jobs:
       - name: Compilar proyecto
         run: ./gradlew build
 
+      - name: Ejecutar tests + generar cobertura
+        run: ./gradlew testDebugUnitTest jacocoTestReport
+
       - name: Ejecutar SonarCloud
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: ./gradlew sonarqube -Dsonar.login=$SONAR_TOKEN
+
