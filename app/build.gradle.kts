@@ -102,12 +102,9 @@ tasks.register<JacocoReport>("jacocoTestReport") {
 
     // Ruta corregida para executionData
     executionData.setFrom(fileTree(buildDir).include(
-        "jacoco/testDebugUnitTest.exec",
         "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec"
     ))
 }
-
-
 
 dependencies {
     // Dependencias de AndroidX
@@ -151,5 +148,3 @@ dependencies {
     // Herramientas para pruebas de corutinas
     testImplementation(libs.kotlinx.coroutines.test)  // Para pruebas de corutinas
 }
-
-
