@@ -64,24 +64,50 @@ jacoco {
 tasks.register<JacocoReport>("jacocoTestReport") {
     dependsOn("testDebugUnitTest")
 
+    group = "Reporting"
+    description = "Generates Jacoco coverage reports for the debug build."
+
     reports {
         xml.required.set(true)
         html.required.set(true)
+        xml.outputLocation.set(file("${buildDir}/reports/jacoco/jacocoTestReport/jacocoTestReport.xml"))
+        html.outputLocation.set(file("${buildDir}/reports/jacoco/jacocoTestReport/html"))
     }
 
     val fileFilter = listOf(
-        "**/R.class", "**/R$*.class", "**/BuildConfig.*", "**/Manifest*.*",
-        "**/*Test*.*", "**/*$*$*.*", "**/di/**", "**/Hilt*.*"
+        "**/R.class",
+        "**/R$*.class",
+        "**/BuildConfig.*",
+        "**/Manifest*.*",
+        "**/*Test*.*",
+        "**/*$*$*.*",
+        "**/di/**",
+        "**/Hilt*.*",
+        "**/*_MembersInjector.class",
+        "**/Dagger*Component*.class"
     )
 
-    val debugTree = fileTree("${buildDir}/intermediates/javac/debug/classes") {
+    // Directorios con clases compiladas (Java + Kotlin)
+    val debugTree = fileTree("${buildDir}/tmp/kotlin-classes/debug") {
         exclude(fileFilter)
     }
 
+    // Fuentes
+    sourceDirectories.setFrom(files(
+        "${project.projectDir}/src/main/java",
+        "${project.projectDir}/src/main/kotlin"
+    ))
+
     classDirectories.setFrom(files(debugTree))
-    sourceDirectories.setFrom(files("src/main/java", "src/main/kotlin"))
-    executionData.setFrom(fileTree(buildDir).include("**/jacoco/testDebugUnitTest.exec"))
+
+    // Ruta corregida para executionData
+    executionData.setFrom(fileTree(buildDir).include(
+        "jacoco/testDebugUnitTest.exec",
+        "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec"
+    ))
 }
+
+
 
 dependencies {
     // Dependencias de AndroidX
