@@ -51,7 +51,6 @@ fun LoginScreen(navController: NavController) {
     var password by remember { mutableStateOf(TextFieldValue()) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
-    val auth = FirebaseAuth.getInstance()
     val usersViewModel: UsersViewModel = viewModel()
     val context = LocalContext.current
 
@@ -141,12 +140,16 @@ fun LoginScreen(navController: NavController) {
 
                 Button(
                     onClick = {
+                        // Iniciar proceso de login
+                        isLoading = true // Activar estado de carga
                         usersViewModel.login(email.text, password.text,
                             onSuccess = { screen ->
+                                isLoading = false // Desactivar estado de carga
                                 navController.navigate(screen)
                                 usersViewModel.saveSession(context, true, FirebaseAuth.getInstance().currentUser?.uid ?: "")
                             },
                             onFailure = { error ->
+                                isLoading = false // Desactivar estado de carga
                                 // Maneja el error si es necesario
                             }
                         )

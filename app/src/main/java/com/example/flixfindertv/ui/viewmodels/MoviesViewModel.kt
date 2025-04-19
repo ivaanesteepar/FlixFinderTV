@@ -130,7 +130,6 @@ class MoviesViewModel : ViewModel() {
         }
     }
 
-
     fun observeMovieDetails(movieId: String) {
         if (movieId.isBlank()) return // Evita errores si el ID es vacío o nulo
 
@@ -612,10 +611,6 @@ class MoviesViewModel : ViewModel() {
             }
         }
     }
-
-
-
-
 
     fun obtenerPeliculasPopulares() {
         if (isLoadingPeliculas.value == true) return

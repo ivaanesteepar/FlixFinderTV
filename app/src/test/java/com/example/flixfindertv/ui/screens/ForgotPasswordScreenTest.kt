@@ -38,7 +38,6 @@ class ForgotPasswordScreenTest {
         every { firebaseAuth.sendPasswordResetEmail(email) } returns task
         every { task.isSuccessful } returns true
 
-        // Acción sobre el método sendPasswordResetEmail
         firebaseAuth.sendPasswordResetEmail(email)
 
         // Verifica si sendPasswordResetEmail fue llamado correctamente
@@ -56,7 +55,6 @@ class ForgotPasswordScreenTest {
         every { task.isSuccessful } returns false
         every { task.exception } returns Exception("Error sending reset email")
 
-        // Ejecutamos el método y verificamos el comportamiento
         firebaseAuth.sendPasswordResetEmail(email)
 
         // Verifica si sendPasswordResetEmail fue llamado correctamente

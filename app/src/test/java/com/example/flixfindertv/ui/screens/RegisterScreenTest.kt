@@ -118,7 +118,6 @@ class RegisterLogicTest {
         }
     }
 
-
     @Test
     fun `test registration error when passwords do not match`() {
         // Datos de prueba

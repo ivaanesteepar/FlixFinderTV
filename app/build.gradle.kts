@@ -144,6 +144,7 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.mockk)  // MockK para pruebas en Kotlin
     testImplementation ("androidx.arch.core:core-testing:2.1.0")
+    testImplementation ("org.robolectric:robolectric:4.9")
 
     // Herramientas para pruebas de corutinas
     testImplementation(libs.kotlinx.coroutines.test)  // Para pruebas de corutinas

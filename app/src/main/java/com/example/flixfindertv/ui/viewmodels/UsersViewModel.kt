@@ -151,8 +151,6 @@ class UsersViewModel : ViewModel() {
         }
     }
 
-
-
     suspend fun getFollowersUsers(uid: String): List<Pair<String, String>>? {
         return try {
             val document = FirebaseFirestore.getInstance()
@@ -240,7 +238,6 @@ class UsersViewModel : ViewModel() {
         }
     }
 
-
     fun unfollowUser(currentUid: String, targetUid: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
         if (currentUid != targetUid) {
             viewModelScope.launch {
@@ -278,7 +275,6 @@ class UsersViewModel : ViewModel() {
             }
         }
     }
-
 
     fun fetchUserId(nombreUsuario: String) {
         val db = FirebaseFirestore.getInstance()
@@ -461,7 +457,6 @@ class UsersViewModel : ViewModel() {
             onFailure(exception)
         }
     }
-
 
 
     // Función para obtener las series favoritas

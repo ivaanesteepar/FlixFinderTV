@@ -273,7 +273,6 @@ class GenresViewModel : ViewModel() {
         }
     }
 
-
     fun obtenerPeliculasYSeriesGenero2(userId: String) {
         if (_isLoadingGenero2.value == true) return
 

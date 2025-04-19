@@ -27,7 +27,7 @@ class ConexionViewModel(application: Application) : AndroidViewModel(application
     }
 
     // Función para monitorear la conexión
-    private suspend fun monitorConnection() {
+    suspend fun monitorConnection() {
         while (true) {
             checkConnection()
             kotlinx.coroutines.delay(5000) // Revisa cada 5 segundos
@@ -35,7 +35,7 @@ class ConexionViewModel(application: Application) : AndroidViewModel(application
     }
 
     // Función para verificar la conexión
-    private suspend fun checkConnection() {
+    suspend fun checkConnection() {
         val connectivityManager = getApplication<Application>().getSystemService(Application.CONNECTIVITY_SERVICE) as ConnectivityManager
         val activeNetwork = connectivityManager.activeNetwork
         val networkCapabilities = connectivityManager.getNetworkCapabilities(activeNetwork)
@@ -50,7 +50,7 @@ class ConexionViewModel(application: Application) : AndroidViewModel(application
     }
 
     // Función para comprobar si hay acceso a Internet
-    private suspend fun isInternetAvailable(): Boolean {
+    suspend fun isInternetAvailable(): Boolean {
         return try {
             withContext(Dispatchers.IO) {
                 val url = URL("https://www.google.com")  // Usar HTTP para mayor compatibilidad
