@@ -76,7 +76,7 @@ class MoviesViewModelTest {
     }
 
     @Test
-    fun `test obtenerPeliculasFamily success`() = runTest {
+    fun `test obtenerPeliculasFamily exito`() = runTest {
         mockkStatic(Log::class)
         every { Log.e(any(), any()) } returns 0
         every { Log.e(any(), any(), any()) } returns 0
@@ -132,7 +132,7 @@ class MoviesViewModelTest {
     }
 
     @Test
-    fun `test obtenerPeliculasFamily con múltiples páginas`() = runTest {
+    fun `test obtenerPeliculasFamily con multiples paginas`() = runTest {
         mockkStatic(Log::class)
         every { Log.e(any(), any()) } returns 0
         every { Log.e(any(), any(), any()) } returns 0

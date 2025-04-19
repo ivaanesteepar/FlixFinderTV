@@ -53,7 +53,7 @@ class ConexionViewModelTest {
     }
 
     @Test
-    fun `checkConnection should update conexionEstablecida when called`() = runTest {
+    fun `checkConnection deberia actualizar conexionEstablecida cuando se llama`() = runTest {
         // Act
         viewModel.checkConnection()
 
@@ -62,7 +62,7 @@ class ConexionViewModelTest {
     }
 
     @Test
-    fun `monitorConnection should call checkConnection periodically`() = runTest {
+    fun `monitorConnection deberia llamar checkConnection periodicamente`() = runTest {
         // Arrange
         val spyViewModel = spyk(viewModel)
         coEvery { spyViewModel.checkConnection() } returns Unit
@@ -84,7 +84,7 @@ class ConexionViewModelTest {
     }
 
     @Test
-    fun `isInternetAvailable should return false when connection fails`() = runTest {
+    fun `isInternetAvailable deberia devolver falso cuando la conexion falle`() = runTest {
         // Arrange
         val spyViewModel = spyk(viewModel)
         coEvery { spyViewModel.isInternetAvailable() } returns false

@@ -18,7 +18,7 @@ class ForgotPasswordScreenTest {
     }
 
     @Test
-    fun `test empty email shows error message`() {
+    fun `test correo vacio muestra mensaje de error`() {
         // Simulamos que el correo está vacío
         val email = ""
 
@@ -29,7 +29,7 @@ class ForgotPasswordScreenTest {
     }
 
     @Test
-    fun `test valid email triggers sendPasswordResetEmail`() {
+    fun `test correo valido activa sendPasswordResetEmail`() {
         // Simulamos un correo válido
         val email = "test@example.com"
         val task: Task<Void> = mockk()
@@ -45,8 +45,8 @@ class ForgotPasswordScreenTest {
     }
 
     @Test
-    fun `test sendPasswordResetEmail failure`() {
-        // Simulamos un correo válido
+    fun `test fallo en sendPasswordResetEmail`() {
+        // Simulamos un correo
         val email = "test@example.com"
         val task: Task<Void> = mockk()
 

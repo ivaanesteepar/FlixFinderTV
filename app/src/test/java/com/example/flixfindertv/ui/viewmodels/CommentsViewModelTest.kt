@@ -1,12 +1,14 @@
 package com.example.flixfindertv.ui.viewmodels
 
 import com.example.flixfindertv.models.Comentarios
+import com.example.flixfindertv.models.Respuestas
 import com.google.android.gms.tasks.OnFailureListener
 import com.google.android.gms.tasks.OnSuccessListener
 import com.google.android.gms.tasks.Task
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.QuerySnapshot
 import io.mockk.*
@@ -46,7 +48,7 @@ class CommentsViewModelTest {
     }
 
     @Test
-    fun `sendComment should successfully add a comment`() = runTest {
+    fun `sendComment deberia agregar un comentario correctamente`() = runTest {
         // 1. Configura jerarquía de Firestore
         val comentariosCollection = mockk<CollectionReference>(relaxed = true)
         val contenidoDocument = mockk<DocumentReference>(relaxed = true)
@@ -106,7 +108,53 @@ class CommentsViewModelTest {
     }
 
     @Test
-    fun `sendComment should handle Firestore operations`() = runTest {
+    fun `sendComment deberia manejar el fallo cuando Firestore no pueda agregar el comentario`() = runTest {
+        // 1. Configura la jerarquía de Firestore
+        val comentariosCollection = mockk<CollectionReference>(relaxed = true)
+        val contenidoDocument = mockk<DocumentReference>(relaxed = true)
+        val subComentariosCollection = mockk<CollectionReference>(relaxed = true)
+        val comentarioDocument = mockk<DocumentReference>(relaxed = true)
+
+        every { firestore.collection("comentarios") } returns comentariosCollection
+        every { comentariosCollection.document(any()) } returns contenidoDocument
+        every { contenidoDocument.collection("comentarios") } returns subComentariosCollection
+        every { subComentariosCollection.document(any()) } returns comentarioDocument
+
+        // 2. Simula error al hacer .set()
+        val mockSetTask = mockk<Task<Void>>(relaxed = true)
+        every { comentarioDocument.set(any()) } returns mockSetTask
+
+        // No se llama al success
+        every { mockSetTask.addOnSuccessListener(any()) } answers {
+            mockSetTask
+        }
+
+        // Se llama al failure
+        every { mockSetTask.addOnFailureListener(any()) } answers {
+            firstArg<OnFailureListener>().onFailure(Exception("Simulated Firestore error"))
+            mockSetTask
+        }
+
+        // 3. Mock del Timestamp fijo
+        val fixedTimestamp = Timestamp(1745054651, 846000000)
+        mockkObject(Timestamp)
+        every { Timestamp.now() } returns fixedTimestamp
+
+        // 4. Ejecuta la función
+        viewModel.sendComment("content1", "user1", 5, "Bad movie", true)
+
+        // 5. Verifica que se agregó el listener de error y no el de éxito
+        verify {
+            mockSetTask.addOnFailureListener(any())
+            mockSetTask.addOnSuccessListener(any())
+        }
+
+        // 6. Limpieza
+        unmockkObject(Timestamp)
+    }
+
+    @Test
+    fun `sendComment deberia manejar las operaciones de Firestore`() = runTest {
         // 1. Configura jerarquía de Firestore
         val comentariosCollection = mockk<CollectionReference>()
         val contenidoDocument = mockk<DocumentReference>()
@@ -183,5 +231,117 @@ class CommentsViewModelTest {
         // 10. Limpieza
         unmockkObject(Timestamp)
     }
+
+    @Test
+    fun `sendComment deberia crear el comentario con la estructura correcta y valores por defecto`() = runTest {
+        // 1. Configura Firestore
+        val comentariosCollection = mockk<CollectionReference>(relaxed = true)
+        val contenidoDocument = mockk<DocumentReference>(relaxed = true)
+        val subComentariosCollection = mockk<CollectionReference>(relaxed = true)
+        val comentarioDocument = mockk<DocumentReference>(relaxed = true)
+
+        every { firestore.collection("comentarios") } returns comentariosCollection
+        every { comentariosCollection.document(any()) } returns contenidoDocument
+        every { contenidoDocument.collection("comentarios") } returns subComentariosCollection
+        every { subComentariosCollection.document(any()) } returns comentarioDocument
+
+        // 2. Mock del Task
+        val mockSetTask = mockk<Task<Void>>(relaxed = true)
+        every { comentarioDocument.set(any()) } returns mockSetTask
+        every { mockSetTask.addOnSuccessListener(any()) } answers {
+            firstArg<OnSuccessListener<Void>>().onSuccess(null)
+            mockSetTask
+        }
+
+        // 3. Timestamp fijo
+        val fixedTimestamp = Timestamp(1745054651, 846000000)
+        mockkObject(Timestamp)
+        every { Timestamp.now() } returns fixedTimestamp
+
+        // 4. Ejecuta la función
+        viewModel.sendComment(
+            idContenido = "pelicula123",
+            usuarioNombre = "usuario456",
+            puntuacion = 4,
+            comentario = "Muy entretenida",
+            reviewed = false
+        )
+
+        // 5. Verifica contenido completo del comentario
+        verify {
+            comentarioDocument.set(match { comentario ->
+                val c = comentario as Comentarios
+                c.id.isNotBlank() &&
+                        c.usuario == "usuario456" &&
+                        c.puntuacion == 4 &&
+                        c.comentario == "Muy entretenida" &&
+                        c.idContenido == "pelicula123" &&
+                        c.fechaPublicacion == fixedTimestamp && !c.revision && c.likes == 0 && c.nombreLikes == emptyList<String>() && c.respuestas == emptyList<Respuestas>()
+            })
+        }
+
+        // 6. Limpieza
+        unmockkObject(Timestamp)
+    }
+
+    @Test
+    fun `sendResponse deberia agregar la respuesta al comentario correctamente`() = runTest {
+        // 1. Configura la jerarquía de Firestore
+        val comentariosCollection = mockk<CollectionReference>(relaxed = true)
+        val contenidoDocument = mockk<DocumentReference>(relaxed = true)
+        val subComentariosCollection = mockk<CollectionReference>(relaxed = true)
+        val comentarioDocument = mockk<DocumentReference>(relaxed = true)
+
+        every { firestore.collection("comentarios") } returns comentariosCollection
+        every { comentariosCollection.document(any()) } returns contenidoDocument
+        every { contenidoDocument.collection("comentarios") } returns subComentariosCollection
+        every { subComentariosCollection.document(any()) } returns comentarioDocument
+
+        // 2. Configura Task de Firestore
+        val task = mockk<Task<Void>>(relaxed = true)
+        every { comentarioDocument.update(any<String>(), any<FieldValue>()) } returns task
+        every { task.addOnSuccessListener(any()) } answers {
+            firstArg<OnSuccessListener<Void>>().onSuccess(null) // Simula la ejecución exitosa
+            task
+        }
+
+        // 3. Define el comentario original y la respuesta
+        val originalComment = Comentarios(
+            id = "5b5491c0-d9fa-466d-82c1-b18350274b61",
+            usuario = "user1",
+            puntuacion = 5,
+            comentario = "Great movie",
+            respuestas = emptyList(),
+            idContenido = "content1",
+            fechaPublicacion = Timestamp.now(),
+            likes = 0,
+            nombreLikes = emptyList(),
+            revision = true
+        )
+
+        println("Comentario original: $originalComment")
+
+        // 4. Ejecuta la función para agregar la respuesta
+        viewModel.sendResponse("content1", originalComment.id, "user2", "I agree!", true)
+
+        // Captura el argumento pasado a 'update'
+        val capturedArgument = slot<Any>()
+        verify {
+            comentarioDocument.update(
+                "respuestas",
+                capture(capturedArgument)
+            )
+        }
+
+        // Verifica que el tipo del argumento capturado sea FieldValue.arrayUnion
+        assert(capturedArgument.captured is FieldValue) { "El argumento no es de tipo FieldValue" }
+
+        // Aquí, capturamos las respuestas actualizadas
+        println("Respuestas capturadas para la actualización: $capturedArgument")
+
+        // Limpiar mocks
+        unmockkObject(Timestamp)
+    }
+
 
 }

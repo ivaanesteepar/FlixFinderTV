@@ -17,9 +17,6 @@ sonarqube {
         // Excluir el directorio de producción de los tests
         property("sonar.test.exclusions", "app/src/main/kotlin/com/example/flixfindertv/**")  // Excluir todo el código de producción
 
-        // Excluir las clases de producción del análisis general
-        property("sonar.exclusions", "app/src/main/kotlin/com/example/flixfindertv/**")  // Excluir todas las clases de producción
-
         // Ruta del informe de cobertura JaCoCo
         property("sonar.jacoco.reportPaths", "${buildDir}/reports/jacoco/jacocoTestReport/jacocoTestReport.xml")
     }

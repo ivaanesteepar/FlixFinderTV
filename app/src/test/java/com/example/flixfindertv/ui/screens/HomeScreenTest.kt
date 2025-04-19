@@ -71,7 +71,7 @@ class HomeScreenTest {
 
     // Prueba que carga películas con conexion
     @Test
-    fun testCargaPeliculas() {
+    fun `test carga peliculas`() {
         // Crea un MutableLiveData que simula el LiveData que será observado
         val liveData = MutableLiveData<List<Peliculas>>()
 
@@ -93,7 +93,7 @@ class HomeScreenTest {
 
     // Prueba que carga películas sin conexion
     @Test
-    fun testCargaPeliculasDesdeRoom() {
+    fun `test carga peliculas desde room`() {
         // Creamos un MutableLiveData que simula el LiveData que será observado
         val liveData = MutableLiveData<List<Genero1MovieEntity>>()
 
@@ -114,7 +114,7 @@ class HomeScreenTest {
         // Simulamos que el MovieDao devuelve las películas de Genero1
         coEvery { mockMovieDao.getAllMoviesGenero1() } returns mockGenero1Movies
 
-        // Llamamos al método que obtiene las películas desde Room a través del repositorio
+        // Llamamos a la funcion que obtiene las películas desde Room a través del repositorio
         runBlocking {
             liveData.postValue(movieRepository.getAllMoviesGenero1())
         }
@@ -125,6 +125,5 @@ class HomeScreenTest {
         // Opcional: Limpiamos el observador para evitar fugas de memoria
         liveData.removeObserver(observer)
     }
-
 
 }

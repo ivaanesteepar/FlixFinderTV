@@ -43,7 +43,7 @@ class RegisterLogicTest {
     }
 
     @Test
-    fun `test user registration success`() = runTest { // Usa runTest para corrutinas
+    fun `test registro de usuario exitoso`() = runTest { // Usa runTest para corrutinas
         // Datos de prueba
         val username = "testUser"
         val email = "test@example.com"
@@ -119,7 +119,7 @@ class RegisterLogicTest {
     }
 
     @Test
-    fun `test registration error when passwords do not match`() {
+    fun `test error de registro cuando las contraseñas no coinciden`() {
         // Datos de prueba
         val username = "testUser"
         val email = "test@example.com"
@@ -135,7 +135,7 @@ class RegisterLogicTest {
     }
 
     @Test
-    fun `test all fields are required`() {
+    fun `test todos los campos son requeridos`() {
         // Datos de prueba
         val username = ""
         val email = "test@example.com"
@@ -151,7 +151,7 @@ class RegisterLogicTest {
     }
 
     @Test
-    fun `test all fields are required with empty email`() {
+    fun `test todos los campos son requeridos con email vacío`() {
         // Datos de prueba
         val username = "testUser"
         val email = ""
@@ -167,7 +167,7 @@ class RegisterLogicTest {
     }
 
     @Test
-    fun `test all fields are required with empty password`() {
+    fun `test todos los campos son requeridos con contraseña vacía`() {
         // Datos de prueba
         val username = "testUser"
         val email = "test@example.com"
@@ -183,7 +183,7 @@ class RegisterLogicTest {
     }
 
     @Test
-    fun `test all fields are required with empty confirmPassword`() {
+    fun `test todos los campos son requeridos con confirmacion de contraseña vacía`() {
         // Datos de prueba
         val username = "testUser"
         val email = "test@example.com"

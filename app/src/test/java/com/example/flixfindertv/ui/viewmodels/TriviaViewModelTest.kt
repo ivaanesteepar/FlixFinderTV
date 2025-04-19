@@ -32,7 +32,7 @@ class TriviaViewModelTest {
     }
 
     @Test
-    fun `generateQuestion should emit UiState Success when Gemini returns a question`() = runTest {
+    fun `generateQuestion deberia emitir UiState Success cuando Gemini devuelve una pregunta`() = runTest {
         // Configurar el mock para GenerativeModel
         mockkConstructor(GenerativeModel::class)
 
@@ -50,7 +50,7 @@ class TriviaViewModelTest {
         // Crear el ViewModel
         val viewModel = TriviaViewModel(context, lifecycleOwner)
 
-        // Llamar al método que genera la pregunta
+        // Llamar a la función que genera la pregunta
         viewModel.generateQuestion()
 
         // Adelantar el tiempo para que las coroutines se ejecuten
@@ -79,7 +79,7 @@ class TriviaViewModelTest {
     }
 
     @Test
-    fun `checkAnswer should emit UiState Success with explanation when answer is checked`() = runTest {
+    fun `checkAnswer deberia emitir UiState Success con explicacion cuando la respuesta es comprobada`() = runTest {
         // Configurar el mock para GenerativeModel
         mockkConstructor(GenerativeModel::class)
 
@@ -101,7 +101,7 @@ class TriviaViewModelTest {
         val fakeQuestion = "¿Cuál es la capital de Francia?\nA) París\nB) Madrid\nC) Roma\nD) Berlín"
         viewModel._uiState.value = UiState.Success(fakeQuestion)
 
-        // Llamar al método checkAnswer con una respuesta
+        // Llamar a la función checkAnswer con una respuesta
         viewModel.checkAnswer("A")
 
         // Adelantar el tiempo para que las coroutines se ejecuten

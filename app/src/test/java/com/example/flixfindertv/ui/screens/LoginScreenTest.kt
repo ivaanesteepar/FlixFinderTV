@@ -36,7 +36,7 @@ class LoginScreenTest {
     }
 
     @Test
-    fun testLoginWithValidCredentials_shouldReturnAuthResult() = runTest {
+    fun `test iniciar sesion con credenciales validas deberia retornar AuthResult`() = runTest {
         val authResult = mockk<AuthResult>()
         val task: Task<AuthResult> = Tasks.forResult(authResult)
 
@@ -49,12 +49,12 @@ class LoginScreenTest {
         // Verifica el resultado de la autenticación
         assertEquals(authResult, result)
 
-        // Verifica que el método fue llamado
+        // Verifica que la funcion fue llamada
         verify { firebaseAuth.signInWithEmailAndPassword(validEmail, validPassword) }
     }
 
     @Test
-    fun testLoginWithInvalidCredentials_shouldThrowException() = runTest {
+    fun `test iniciar sesion con credenciales invalidas deberia lanzar excepcion`() = runTest {
         val invalidEmail = "invalid@example.com"
         val invalidPassword = "wrongpassword"
 
@@ -74,7 +74,7 @@ class LoginScreenTest {
     }
 
     @Test
-    fun testEmptyFields_shouldReturnErrorMessage() {
+    fun `test campos vacios deberian retornar mensaje de error`() {
         val emptyEmail = ""
         val emptyPassword = ""
 
@@ -89,7 +89,7 @@ class LoginScreenTest {
     }
 
     @Test
-    fun `test all fields are required for login`() {
+    fun `test todos los campos son requeridos para iniciar sesion`() {
         val emptyEmail = ""
         val emptyPassword = ""
 
@@ -107,7 +107,7 @@ class LoginScreenTest {
     }
 
     @Test
-    fun `test empty email should return error`() {
+    fun `test correo vacio deberia retornar error`() {
         val emptyEmail = ""
         val password = "password123"
 
@@ -125,7 +125,7 @@ class LoginScreenTest {
     }
 
     @Test
-    fun `test empty password should return error`() {
+    fun `test contrasena vacia deberia retornar error`() {
         val email = "test@example.com"
         val emptyPassword = ""
 

@@ -28,7 +28,7 @@ class ProfileScreenTest {
     }
 
     @Test
-    fun `test logout functionality calls signOut`() {
+    fun `test la funcionalidad de cierre de sesion llama a signOut`() {
         // Actuamos sobre la funcionalidad de logout
         logout()
 
@@ -37,7 +37,7 @@ class ProfileScreenTest {
     }
 
     @Test
-    fun `test navigation to login screen on logout`() {
+    fun `test la navegacion a la pantalla de login al cerrar sesion`() {
         // Actuamos sobre la funcionalidad de logout
         logout()
 
@@ -46,7 +46,7 @@ class ProfileScreenTest {
     }
 
     @Test
-    fun `test favorite movies are displayed correctly`() {
+    fun `test las peliculas favoritas se muestran correctamente`() {
         // Datos de prueba
         val favoriteMovies = listOf(
             Peliculas(id = "1", title = "Movie 1", poster_path = "/path/to/image1", esSerie = false),
@@ -61,7 +61,7 @@ class ProfileScreenTest {
     }
 
     @Test
-    fun `test favorite series are displayed correctly`() {
+    fun `test las series favoritas se muestran correctamente`() {
         // Datos de prueba
         val favoriteSeries = listOf(
             Peliculas(id = "1", title = "Series 1", poster_path = "/path/to/image1", esSerie = true),
@@ -76,7 +76,7 @@ class ProfileScreenTest {
     }
 
     @Test
-    fun `test connection status shows appropriate message when no internet`() {
+    fun `test el estado de conexion muestra el mensaje apropiado cuando no hay internet`() {
         // Simulamos que no hay conexión a Internet
         val connectionStatus = isInternetConnected()
 
