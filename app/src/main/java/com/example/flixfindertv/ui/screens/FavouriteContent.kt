@@ -42,18 +42,18 @@ fun FavouriteContent(navController: NavController, uid:String, esSerie: Boolean)
                 favoriteMovies.value = movies
             },
             onFailure = { exception ->
-                errorMessage.value = "Error al obtener las películas favoritas: ${exception.message}"
+                errorMessage.value = "Error getting favorite movies: ${exception.message}"
             }
         )
 
-        // Obtener las series favoritas
+        // Get favorite series
         userViewModel.getFavoriteSeries(
             uid,
             onSuccess = { series ->
                 favoriteSeries.value = series
             },
             onFailure = { exception ->
-                errorMessage.value = "Error al obtener las series favoritas: ${exception.message}"
+                errorMessage.value = "Error getting favorite series: ${exception.message}"
             }
         )
     }
@@ -171,7 +171,7 @@ fun FavouriteContent(navController: NavController, uid:String, esSerie: Boolean)
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "No tienes series favoritas.",
+                            text = "You have no favorite series",
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.Gray
                         )
@@ -184,7 +184,7 @@ fun FavouriteContent(navController: NavController, uid:String, esSerie: Boolean)
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "No tienes peliculas favoritas.",
+                            text = "You have no favorite movies",
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.Gray
                         )

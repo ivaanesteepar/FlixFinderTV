@@ -81,13 +81,19 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
         mutableCommentsList.value = commentsList
     }
 
+    println("El userId en showcomments es: $userId")
     // Llamamos a obtenerNombreUsuario y getUserAdminStatus cuando el userId cambia
     LaunchedEffect(userId) {
         if (userId != null) {
+            usersViewModel.fetchUserName(userId)
             viewModel.obtenerNombreUsuario(userId) { nombre -> nombreUsuario = nombre }
             usersViewModel.getUserAdminStatus(userId) { isAdmin -> isUserAdmin = isAdmin }
         }
     }
+
+    val nombreActual = usersViewModel.userNameComment.value
+
+    println("el nombre de usuario en showComments es: $nombreUsuario")
 
     Column(modifier = Modifier.fillMaxWidth()) {
         // Verificar si no hay comentarios
@@ -137,17 +143,39 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                 }
 
                 // Obtenemos los nombres de los usuarios que han dado like a este comentario
-                LaunchedEffect(comentario.id) {
-                    val nombreLikes =
-                        viewModel.obtenerNombreLikes(comentario.idContenido, comentario.id)
-                    isLiked =
-                        nombreLikes.contains(nombreUsuario) // Verificamos si el nombre del usuario está en los likes
-                    // Actualizamos el estado de "like" para este comentario
-                    val updatedLikedComments = likedCommentsState.value.toMutableMap().apply {
-                        put(comentario.id, isLiked)
+                LaunchedEffect(comentario.id, nombreUsuario) {
+                    // Esperar hasta que nombreUsuario no sea null
+                    if (nombreUsuario != null) {
+                        val nombreLikes = viewModel.obtenerNombreLikes(comentario.idContenido, comentario.id)
+
+                        // Imprimir los nombres de los usuarios que han dado like
+                        println("Usuarios que han dado like al comentario ${comentario.id}: $nombreLikes")
+
+                        // Imprimir el nombre actual para depuración
+                        println("nombreActual: $nombreUsuario")
+
+                        // Verificamos si el nombre del usuario está en los likes
+                        isLiked = nombreLikes.contains(nombreUsuario)
+
+                        // Imprimir si el usuario actual ha dado like
+                        println("¿El usuario actual ha dado like al comentario? $isLiked")
+
+                        // Actualizamos el estado de "like" para este comentario
+                        val updatedLikedComments = likedCommentsState.value.toMutableMap().apply {
+                            put(comentario.id, isLiked)
+                        }
+                        likedCommentsState.value = updatedLikedComments
+
+                        // Imprimir el estado actualizado de likedCommentsState
+                        println("Estado de likedCommentsState después de actualizar: ${likedCommentsState.value}")
+                    } else {
+                        // Si nombreUsuario es null, no hacemos nada
+                        println("nombreUsuario es null, esperando actualización")
                     }
-                    likedCommentsState.value = updatedLikedComments
                 }
+
+
+
 
                 // Cambiar el color del Card si el comentario tiene revision == true
                 Card(modifier = Modifier.background(Color.White)) {
@@ -379,22 +407,26 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                                                         Toast.LENGTH_LONG
                                                     ).show()
 
-                                                    viewModel.sendResponse(
-                                                        idContenido = comentario.idContenido,
-                                                        comentarioId = comentario.id,
-                                                        usuarioNombre = comentario.usuario,
-                                                        respuesta = comentarioTexto,
-                                                        reviewed = true
-                                                    )
+                                                    if (nombreActual != null) {
+                                                        viewModel.sendResponse(
+                                                            idContenido = comentario.idContenido,
+                                                            comentarioId = comentario.id,
+                                                            usuarioNombre = nombreActual,
+                                                            respuesta = comentarioTexto,
+                                                            reviewed = true
+                                                        )
+                                                    }
                                                 } else {
                                                     // Si no es ofensivo, enviamos la respuesta
-                                                    viewModel.sendResponse(
-                                                        idContenido = comentario.idContenido,
-                                                        comentarioId = comentario.id,
-                                                        usuarioNombre = comentario.usuario,
-                                                        respuesta = comentarioTexto,
-                                                        reviewed = false
-                                                    )
+                                                    if (nombreActual != null) {
+                                                        viewModel.sendResponse(
+                                                            idContenido = comentario.idContenido,
+                                                            comentarioId = comentario.id,
+                                                            usuarioNombre = nombreActual,
+                                                            respuesta = comentarioTexto,
+                                                            reviewed = false
+                                                        )
+                                                    }
                                                     showDialogState.value = showDialogState.value.toMutableMap().apply {
                                                         put(comentario.id, false)
                                                     }

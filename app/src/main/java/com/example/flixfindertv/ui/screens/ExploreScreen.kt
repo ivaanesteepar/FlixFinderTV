@@ -93,7 +93,6 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
     val isRecentSeriesLoading by seriesViewModel.isLoadingRecentSeries.observeAsState(false)
 
     val hayConexion by conexionViewModel.conexionEstablecida.collectAsState()
-    var prevHayConexion by remember { mutableStateOf(hayConexion) }
 
     val actionMovies by viewModel.listaPeliculasAccion.observeAsState(emptyList())
     val romanceMovies by viewModel.listaPeliculasRomance.observeAsState(emptyList())
@@ -170,7 +169,6 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
     val seriesKidsOffline by offlineViewModel.seriesKids.observeAsState(emptyList())
 
 
-
     // BackHandler para manejar el retroceso
     BackHandler {
         activity?.finish()
@@ -211,7 +209,6 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
         offlineViewModel.limpiarSeriesDrama()
         offlineViewModel.limpiarSeriesFamilia()
         offlineViewModel.limpiarSeriesKids()
-
 
         // Insertar las primeras 10 películas de cada categoría en la base de datos
         offlineViewModel.insertPeliculasPopulares(movies.take(10).map { PeliculasPopularesEntity(it) })
@@ -502,33 +499,6 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
         }
     }
 
-    LaunchedEffect(hayConexion) {
-        if (hayConexion != prevHayConexion) {
-            prevHayConexion = hayConexion
-
-            movieListState.scrollToItem(0)
-            recentMovieListState.scrollToItem(0)
-            actionMovieListState.scrollToItem(0)
-            romanceMovieListState.scrollToItem(0)
-            familyMovieListState.scrollToItem(0)
-            comedyMovieListState.scrollToItem(0)
-            thrillerMovieListState.scrollToItem(0)
-            horrorMovieListState.scrollToItem(0)
-            sciencieFictionMovieListState.scrollToItem(0)
-            recentMovieListState.scrollToItem(0)
-
-            seriesListState.scrollToItem(0)
-            recentSerieListState.scrollToItem(0)
-            actionadventureSerieListState.scrollToItem(0)
-            animationSerieListState.scrollToItem(0)
-            comedySerieListState.scrollToItem(0)
-            crimeListState.scrollToItem(0)
-            dramaListState.scrollToItem(0)
-            familySerieListState.scrollToItem(0)
-            kidsSerieListState.scrollToItem(0)
-            recentSerieListState.scrollToItem(0)
-        }
-    }
 
 
     Scaffold(
@@ -614,7 +584,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                         DropdownMenu(
                             expanded = filterExpanded,
                             onDismissRequest = { filterExpanded = false },
-                            modifier = Modifier.fillMaxWidth() // Asegúrate de que el menú ocupa todo el ancho
+                            modifier = Modifier.fillMaxWidth()
                         ) {
                             Box(
                                 modifier = Modifier
@@ -986,7 +956,6 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                             .padding(horizontal = 16.dp)
                     ) {
                         val isLoadingExplore = movies.isEmpty() && peliculasPopularesOffline.isEmpty()
-                        println("LAS PELICULAS OFFLINE EN EXPLORE SON: ${peliculasPopularesOffline.map { it.pelicula }}")
 
                         // Mostrar indicador de carga si no hay películas ni series
                         if (isLoadingExplore) {

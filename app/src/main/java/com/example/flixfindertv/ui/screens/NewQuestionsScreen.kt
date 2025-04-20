@@ -84,8 +84,9 @@ fun NewQuestionsScreen(navController: NavHostController) {
                                         generosSeleccionados = generosSeleccionados + genero
                                         errorMessage = null
                                     } else {
-                                        errorMessage = "Solo puedes seleccionar hasta 2 géneros"
+                                        errorMessage = "You can only select up to 2 genres"
                                     }
+
                                 }
                             )
                         }
@@ -124,10 +125,10 @@ fun NewQuestionsScreen(navController: NavHostController) {
                                     errorMessage = "Error al guardar la selección: ${e.message}"
                                 }
                         } else {
-                            errorMessage = "No se pudo obtener el usuario actual"
+                            errorMessage = "Could not retrieve the current user"
                         }
                     } else {
-                        errorMessage = "Debes seleccionar dos géneros"
+                        errorMessage = "You must select two genres"
                     }
                 },
                 enabled = generosSeleccionados.isNotEmpty()

@@ -158,6 +158,7 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
     }
     val commentsList by commentsViewModel.comments.collectAsState()
 
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -429,16 +430,17 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                         val coroutineScope = rememberCoroutineScope()
                         TextButton(onClick = {
                             if (selectedStars.value == 0) {
-                                errorMessage.value = "Por favor selecciona al menos una estrella."
+                                errorMessage.value = "Please select at least one star."
                             } else if (commentText.value.isBlank()) {
-                                errorMessage.value = "Por favor escribe un comentario."
-                            } else if (userId != null) {
+                                errorMessage.value = "Please write a comment."
+                            }
+                            else if (userId != null) {
                                 coroutineScope.launch {
                                     val isOffensive = validateComment(commentText.value)
                                     if (isOffensive) {
                                         val toast = Toast.makeText(
                                             context,
-                                            "Mensaje ofensivo detectado. Se revisará tu comentario.",
+                                            "Offensive message detected. Your comment will be reviewed.",
                                             Toast.LENGTH_LONG
                                         )
                                         toast.show()
@@ -501,7 +503,7 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                                                     // Si no se puede convertir el String a Float, manejar el error
                                                     Toast.makeText(
                                                         context,
-                                                        "Error al convertir el promedio a número",
+                                                        "Error converting average to number",
                                                         Toast.LENGTH_SHORT
                                                     ).show()
                                                 }
@@ -510,7 +512,7 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                                             // Si no se pudo calcular el nuevo promedio, puedes manejar el error aquí
                                             Toast.makeText(
                                                 context,
-                                                "Error al calcular el promedio de votos",
+                                                "Error calculating the average vote",
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                         }

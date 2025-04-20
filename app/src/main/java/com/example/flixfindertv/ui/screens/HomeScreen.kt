@@ -83,6 +83,8 @@ fun HomeScreen(
     var apiKeyTmdb by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope() // Obtén el CoroutineScope
 
+    println("MI ID ACTUAL ES: $uid")
+
 
     LaunchedEffect(Unit) {
         coroutineScope.launch {
@@ -197,8 +199,8 @@ fun HomeScreen(
     }
 
     LaunchedEffect(hayConexion) {
+        println("hayConexion home: $hayConexion, prevHayConexion home: $prevHayConexion")
         if (hayConexion != prevHayConexion) {
-            // Solo se ejecuta si hay un cambio real en la conexión
             listStateGenero1.scrollToItem(0)
             listStateGenero2.scrollToItem(0)
             listStatePeliculasProximas.scrollToItem(0)

@@ -9,6 +9,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.flixfindertv.models.Peliculas
+import com.example.flixfindertv.models.Usuarios
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
@@ -27,20 +28,83 @@ class UsersViewModel : ViewModel() {
     private val _userIdComment = MutableLiveData<String>()
     val userIdComment: LiveData<String> get() = _userIdComment
 
-    // Agrega un LiveData para manejar el estado de carga y error
-    val errorMessage = mutableStateOf<String?>(null)
-    val isLoading = mutableStateOf(false)
+    private val _userNameComment = MutableLiveData<String>()
+    val userNameComment: LiveData<String> get() = _userNameComment
+
+
+    fun register(email: String, password: String, confirmPassword: String, username: String, onSuccess: (String) -> Unit, onFailure: (String) -> Unit) {
+        // Verificar si los campos están vacíos
+        if (email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty() || username.isEmpty()) {
+            onFailure("All fields are required")
+            return
+        }
+
+        // Verificar si las contraseñas coinciden
+        if (password != confirmPassword) {
+            onFailure("Passwords do not match")
+            return
+        }
+
+        // Verificar si el nombre de usuario ya existe
+        firestore.collection("usuarios")
+            .whereEqualTo("nombre", username)
+            .get()
+            .addOnSuccessListener { result ->
+                if (result.isEmpty) {
+                    // El nombre de usuario no existe, continuar con el registro
+                    auth.createUserWithEmailAndPassword(email, password)
+                        .addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                val user = auth.currentUser
+                                user?.let {
+                                    // Crear nuevo usuario en Firestore
+                                    val newUser = Usuarios(
+                                        uid = user.uid,
+                                        nombre = username,
+                                        email = email,
+                                        fotoPerfil = "",
+                                        peliculasFavoritas = emptyList(),
+                                        seriesFavoritas = emptyList(),
+                                        seguidores = emptyList(),
+                                        siguiendo = emptyList(),
+                                        numComentarios = 0,
+                                        admin = false
+                                    )
+
+                                    firestore.collection("usuarios")
+                                        .document(user.uid)
+                                        .set(newUser)
+                                        .addOnSuccessListener {
+                                            onSuccess("login")
+                                        }
+                                        .addOnFailureListener { exception ->
+                                            onFailure("Error adding user to Firestore: ${exception.message}")
+                                        }
+                                }
+                            } else {
+                                onFailure("Error registering user: ${task.exception?.message}")
+                            }
+                        }
+                } else {
+                    // El nombre de usuario ya está en uso
+                    onFailure("Username already taken")
+                }
+            }
+            .addOnFailureListener { exception ->
+                onFailure("Error checking username availability: ${exception.message}")
+            }
+    }
+
+
 
     // Función que maneja el inicio de sesión
     fun login(email: String, password: String, onSuccess: (String) -> Unit, onFailure: (String) -> Unit) {
         if (email.isEmpty() || password.isEmpty()) {
-            errorMessage.value = "All fields are required"
+            onFailure("All fields are required")
             return
         }
 
-        isLoading.value = true
-        errorMessage.value = null
-
+        // Iniciar el proceso de inicio de sesión
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
@@ -51,7 +115,6 @@ class UsersViewModel : ViewModel() {
 
                         userRef.get()
                             .addOnSuccessListener { document ->
-                                isLoading.value = false
                                 if (document.exists()) {
                                     val esNuevo = document.getBoolean("esNuevo") ?: false
                                     if (esNuevo) {
@@ -60,23 +123,19 @@ class UsersViewModel : ViewModel() {
                                         onSuccess("home")
                                     }
                                 } else {
-                                    errorMessage.value = "User data not found"
-                                    onFailure("Error fetching user data")
+                                    onFailure("User data not found")
                                 }
                             }
                             .addOnFailureListener {
-                                isLoading.value = false
-                                errorMessage.value = "Error fetching user data"
                                 onFailure("Error fetching user data")
                             }
                     }
                 } else {
-                    isLoading.value = false
-                    errorMessage.value = "Oops! Something went wrong. Please check your credentials and try again."
-                    onFailure("Login failed")
+                    onFailure("Oops! Something went wrong. Please check your credentials and try again.")
                 }
             }
     }
+
 
     // Guardar sesión con el UID del usuario
     fun saveSession(context: Context, isLoggedIn: Boolean, uid: String?) {
@@ -298,6 +357,30 @@ class UsersViewModel : ViewModel() {
                 println("Error al obtener el usuario")
             }
     }
+
+    fun fetchUserName(userId: String) {
+        val db = FirebaseFirestore.getInstance()
+        db.collection("usuarios")
+            .whereEqualTo("uid", userId)
+            .limit(1)  // Solo necesitamos un resultado
+            .get()
+            .addOnSuccessListener { documents ->
+                val userName = documents.documents.firstOrNull()?.getString("nombre") ?: "Nombre Desconocido"
+                println("prueba4")
+
+                if (!userName.isNullOrEmpty()) {  // Asegurar que no es nulo ni vacío
+                    _userNameComment.value = userName
+                    println("El nombre que se ha seleccionado es: ${_userNameComment.value}")
+                    println("Entonces el nombre es: ${userNameComment.value}")
+                } else {
+                    println("El campo 'nombre' no está presente o es nulo.")
+                }
+            }
+            .addOnFailureListener {
+                println("Error al obtener el usuario")
+            }
+    }
+
 
 
     suspend fun getUserAdminStatus(userId: String, callback: (Boolean) -> Unit) {

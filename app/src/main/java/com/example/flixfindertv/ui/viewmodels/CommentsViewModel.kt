@@ -549,7 +549,6 @@ class CommentsViewModel : ViewModel() {
     }
 
 
-
     // Función para agregar una nueva respuesta a un comentario
     fun sendResponse(idContenido: String, comentarioId: String, usuarioNombre: String, respuesta: String, reviewed: Boolean) {
         // Crear una nueva instancia de la respuesta

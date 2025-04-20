@@ -150,7 +150,7 @@ fun LoginScreen(navController: NavController) {
                             },
                             onFailure = { error ->
                                 isLoading = false // Desactivar estado de carga
-                                // Maneja el error si es necesario
+                                errorMessage = error
                             }
                         )
                     },

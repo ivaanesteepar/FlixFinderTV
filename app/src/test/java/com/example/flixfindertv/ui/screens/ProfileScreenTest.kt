@@ -97,7 +97,7 @@ class ProfileScreenTest {
         // Simulamos el proceso de logout en la pantalla de perfil
         auth.signOut()
         navController.navigate("login")
-        Toast.makeText(mockk(), "Sesión cerrada", Toast.LENGTH_SHORT).show()
+        Toast.makeText(mockk(), "Session closed", Toast.LENGTH_SHORT).show()
     }
 
     private fun loadFavoriteMovies(): List<Peliculas> {

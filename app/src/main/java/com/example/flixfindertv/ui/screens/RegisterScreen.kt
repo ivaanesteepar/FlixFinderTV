@@ -28,12 +28,15 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.example.flixfindertv.R
 import com.example.flixfindertv.models.Usuarios
+import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.auth.User
 import java.util.Calendar
 
 @Composable
@@ -44,8 +47,7 @@ fun RegisterScreen(navController: NavController) {
     var confirmPassword by remember { mutableStateOf(TextFieldValue()) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
-    val auth = FirebaseAuth.getInstance()
-    val firestore = FirebaseFirestore.getInstance()
+    val usersViewModel: UsersViewModel = viewModel()
 
     Box(
         modifier = Modifier
@@ -167,83 +169,35 @@ fun RegisterScreen(navController: NavController) {
 
                 Button(
                     onClick = {
-                        if (email.text.isEmpty() || password.text.isEmpty() || username.text.isEmpty()) {
-                            errorMessage = "All fields are required"
-                        } else if (password.text != confirmPassword.text) {
-                            errorMessage = "Passwords do not match"
-                        } else {
-                            errorMessage = null
-                            isLoading = true
-
-                            // Verificar si el nombre de usuario ya existe
-                            firestore.collection("usuarios")
-                                .whereEqualTo("nombre", username.text)
-                                .get()
-                                .addOnSuccessListener { result ->
-                                    if (result.isEmpty) {
-                                        // El nombre de usuario no existe, continuar con el registro
-                                        auth.createUserWithEmailAndPassword(
-                                            email.text,
-                                            password.text
-                                        )
-                                            .addOnCompleteListener { task ->
-                                                isLoading = false
-                                                if (task.isSuccessful) {
-                                                    val user = auth.currentUser
-                                                    user?.let {
-                                                        val newUser = Usuarios(
-                                                            uid = user.uid,
-                                                            nombre = username.text,
-                                                            email = email.text,
-                                                            fotoPerfil = "",
-                                                            peliculasFavoritas = emptyList(),
-                                                            seriesFavoritas = emptyList(),
-                                                            seguidores = emptyList(),
-                                                            siguiendo = emptyList(),
-                                                            numComentarios = 0,
-                                                            admin = false
-                                                        )
-
-                                                        firestore.collection("usuarios")
-                                                            .document(user.uid)
-                                                            .set(newUser)
-                                                            .addOnSuccessListener {
-                                                                navController.navigate("login")
-                                                            }
-                                                            .addOnFailureListener {
-                                                                errorMessage =
-                                                                    "Error adding user to Firestore"
-                                                            }
-                                                    }
-                                                } else {
-                                                    errorMessage =
-                                                        "Error: ${task.exception?.message}"
-                                                }
-                                            }
-                                    } else {
-                                        // El nombre de usuario ya está en uso
-                                        errorMessage = "Username already taken"
-                                        isLoading = false
-                                    }
-                                }
-                                .addOnFailureListener { exception ->
-                                    errorMessage =
-                                        "Error checking username availability: ${exception.message}"
-                                    isLoading = false
-                                }
-                        }
+                        // Iniciar proceso de registro
+                        isLoading = true // Activar estado de carga
+                        usersViewModel.register(
+                            email = email.text,
+                            password = password.text,
+                            confirmPassword = confirmPassword.text,
+                            username = username.text,
+                            onSuccess = { screen ->
+                                isLoading = false // Desactivar estado de carga
+                                navController.navigate(screen) // Navegar a la pantalla correspondiente (login)
+                            },
+                            onFailure = { error ->
+                                isLoading = false // Desactivar estado de carga
+                                errorMessage = error // Mostrar el mensaje de error
+                            }
+                        )
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .then(if (isLoading) Modifier.pointerInput(Unit) {} else Modifier),
+                        .then(if (isLoading) Modifier.pointerInput(Unit) {} else Modifier), // Evitar clicks si está cargando
 
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.Blue, // El botón siempre será azul
                         contentColor = Color.White  // El texto siempre será blanco
                     )
                 ) {
-                    Text(text = if (isLoading) "Registering..." else "Register")
+                    Text(text = if (isLoading) "Registering..." else "Register") // Cambiar el texto dependiendo de si está cargando
                 }
+
                 Spacer(modifier = Modifier.height(8.dp))
                 Box (
                     modifier = Modifier.align(Alignment.CenterHorizontally)

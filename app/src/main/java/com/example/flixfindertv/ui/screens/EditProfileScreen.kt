@@ -74,7 +74,11 @@ fun EditProfileScreen(navController: NavHostController) {
         if (isGranted) {
             pickImageLauncher.launch("image/*")
         } else {
-            Toast.makeText(context, "Se necesita el permiso para acceder a las fotos", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                context,
+                "Permission is required to access photos",
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
@@ -104,7 +108,7 @@ fun EditProfileScreen(navController: NavHostController) {
                     profileImageUri = document.getString("fotoPerfil")
                 }
                 .addOnFailureListener {
-                    Toast.makeText(context, "Error al cargar datos", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Error loading data", Toast.LENGTH_SHORT).show()
                 }
         }
     }
@@ -250,7 +254,6 @@ fun EditProfileScreen(navController: NavHostController) {
                     enabled = false // Deshabilitar el campo para que sea solo lectura
                 )
 
-
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Mostrar campo de contraseña solo si el email cambia
@@ -260,7 +263,7 @@ fun EditProfileScreen(navController: NavHostController) {
                     OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
-                        label = { Text("Contraseña actual") },
+                        label = { Text("Current password") },
                         modifier = Modifier.fillMaxWidth(),
                         textStyle = LocalTextStyle.current.copy(color = Color.White), // Texto en blanco
                         colors = OutlinedTextFieldDefaults.colors(
@@ -308,7 +311,7 @@ fun EditProfileScreen(navController: NavHostController) {
                                                             .addOnSuccessListener {
                                                                 Toast.makeText(
                                                                     context,
-                                                                    "Perfil actualizado",
+                                                                    "Profile updated",
                                                                     Toast.LENGTH_SHORT
                                                                 ).show()
                                                                 navController.popBackStack()
@@ -316,14 +319,14 @@ fun EditProfileScreen(navController: NavHostController) {
                                                             .addOnFailureListener {
                                                                 Toast.makeText(
                                                                     context,
-                                                                    "Error al actualizar",
+                                                                    "Error updating",
                                                                     Toast.LENGTH_SHORT
                                                                 ).show()
                                                             }
                                                     } else {
                                                         Toast.makeText(
                                                             context,
-                                                            "Error al subir la imagen",
+                                                            "Error uploading the image",
                                                             Toast.LENGTH_SHORT
                                                         ).show()
                                                     }
@@ -333,7 +336,7 @@ fun EditProfileScreen(navController: NavHostController) {
                                         } catch (e: Exception) {
                                             Toast.makeText(
                                                 context,
-                                                "Error al procesar la imagen",
+                                                "Error processing the image",
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                         }
@@ -347,7 +350,7 @@ fun EditProfileScreen(navController: NavHostController) {
                                         .addOnSuccessListener {
                                             Toast.makeText(
                                                 context,
-                                                "Perfil actualizado",
+                                                "Profile updated",
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                             navController.popBackStack()
@@ -355,7 +358,7 @@ fun EditProfileScreen(navController: NavHostController) {
                                         .addOnFailureListener {
                                             Toast.makeText(
                                                 context,
-                                                "Error al actualizar",
+                                                "Error updating",
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                         }

@@ -104,7 +104,7 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                     if (exception != null) {
                         Toast.makeText(
                             context,
-                            "Error al obtener datos: ${exception.message}",
+                            "Error retrieving data: ${exception.message}",
                             Toast.LENGTH_SHORT
                         ).show()
                         return@addSnapshotListener
@@ -331,7 +331,7 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                                                 // Acción cuando se deja de seguir exitosamente
                                                 Toast.makeText(
                                                     context,
-                                                    "Has dejado de seguir a este usuario",
+                                                    "You have unfollowed this user",
                                                     Toast.LENGTH_SHORT
                                                 ).show()
                                                 isFollowing.value =
@@ -353,7 +353,7 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                                                 // Acción cuando se sigue exitosamente al usuario
                                                 Toast.makeText(
                                                     context,
-                                                    "¡Ahora sigues a este usuario!",
+                                                    "You are now following this user!",
                                                     Toast.LENGTH_SHORT
                                                 ).show()
                                                 isFollowing.value =
@@ -383,8 +383,8 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                             )
                         ) {
                             Text(
-                                text = if (isFollowing.value) "Siguiendo" else "Seguir", // Cambia el texto según el estado
-                                color = Color.White // Cambia el color del texto
+                                text = if (isFollowing.value) "Following" else "Follow", // Change text based on the state
+                                color = Color.White // Change text color
                             )
                         }
                     }
@@ -608,11 +608,12 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                     Spacer(modifier = Modifier.height(40.dp))
                     if (currentUser == null) {
                         Text(
-                            text = "Debes iniciar sesión para acceder a esta sección.",
+                            text = "You must log in to access this section.",
                             style = MaterialTheme.typography.bodyLarge,
                             color = Color.Red
                         )
-                    } else {
+                    }
+                    else {
                         if (!isComment) {
                             Button(
                                 onClick = {
@@ -624,10 +625,10 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                                         context,
                                         false,
                                         uid
-                                    )  // 'false' indica que el usuario ya no está logueado
+                                    )  // false indica que el usuario ya no está logueado
 
                                     // Mostrar un mensaje de sesión cerrada
-                                    Toast.makeText(context, "Sesión cerrada", Toast.LENGTH_SHORT)
+                                    Toast.makeText(context, "Session closed", Toast.LENGTH_SHORT)
                                         .show()
 
                                     // Navegar a la pantalla de login

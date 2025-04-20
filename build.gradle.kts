@@ -9,18 +9,25 @@ plugins {
 sonarqube {
     properties {
         // Fuentes de producción
-        property("sonar.sources", "app/src/main/kotlin")
+        property("sonar.sources", "src/main/kotlin")
 
-        // Solo archivos de prueba
-        property("sonar.tests", "app/src/test/kotlin, app/src/test/java")
+        // Archivos de prueba (mejor separados por coma sin espacios)
+        property("sonar.tests", "src/test/kotlin,src/test/java")
 
-        // Excluir el directorio de producción de los tests
-        property("sonar.test.exclusions", "app/src/main/kotlin/com/example/flixfindertv/**")  // Excluir todo el código de producción
+        // ⚠️ TOKEN DE AUTENTICACIÓN - solo si es un entorno local seguro (¡no subas este valor a GitHub!)
+        property("sonar.token", "18450ef60b74b77383c26813c611b29606b8ef3f")
 
-        // Ruta del informe de cobertura JaCoCo
-        property("sonar.jacoco.reportPaths", "${buildDir}/reports/jacoco/jacocoTestReport/jacocoTestReport.xml")
+        // ⚠️ Claves necesarias para SonarCloud
+        property("sonar.projectKey", "ivaanesteepar_FlixFinderTV")
+        property("sonar.organization", "ivaanesteepar")
+        property("sonar.host.url", "https://sonarcloud.io")
+
+        // Informe de cobertura
+        property("sonar.coverage.jacoco.xmlReportPaths", "app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml")
+
     }
 }
+
 
 
 
