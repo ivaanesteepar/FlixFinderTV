@@ -80,10 +80,7 @@ fun MovieDetailsContent(
         String.format("%.1f", cappedVoteAvg)
     }
 
-
     val hayConexion by conexionViewModel.conexionEstablecida.collectAsState()
-
-    var translatedDescription by remember { mutableStateOf("") }
 
     val color = when {
         voteAverage < 5.0 -> Color(0xFFFF6F61) // Rojo
@@ -104,7 +101,7 @@ fun MovieDetailsContent(
                 .padding(end = 8.dp)
         ) {
             Image(
-                painter = if (hayConexion && movieCoverUrl.isNotEmpty()) {
+                painter = if (!movieCoverUrl.isNullOrEmpty()) {
                     rememberAsyncImagePainter(movieCoverUrl)
                 } else {
                     painterResource(id = R.drawable.no_poster_image)
@@ -219,19 +216,14 @@ fun MovieDetailsContent(
         color = Color.White
     )
     Spacer(modifier = Modifier.height(16.dp))
-    // Mostrar descripción o frase por defecto si está vacía
-    val descriptionToShow = when {
-        translatedDescription.isNotEmpty() -> translatedDescription
-        !movieDescription.isNullOrEmpty() -> movieDescription
-        else -> "No description available"
-    }
 
     Text(
-        text = descriptionToShow,
+        text = movieDescription ?: "Descripción no disponible",
         style = MaterialTheme.typography.bodyMedium,
         color = if (movieDescription.isNullOrEmpty()) Color.Gray else Color.White,
         modifier = Modifier.padding(start = 16.dp, end = 16.dp)
     )
+
     Spacer(modifier = Modifier.height(36.dp))
     Text(
         text = "Direction",
@@ -253,7 +245,7 @@ fun MovieDetailsContent(
                     .height(160.dp)
             ) {
                 Image(
-                    painter = if (hayConexion && !directorPhoto.isNullOrEmpty()) {
+                    painter = if (!directorPhoto.isNullOrEmpty()) {
                         rememberAsyncImagePainter(directorPhoto)
                     } else {
                         painterResource(id = R.drawable.no_poster_image) // Imagen predeterminada

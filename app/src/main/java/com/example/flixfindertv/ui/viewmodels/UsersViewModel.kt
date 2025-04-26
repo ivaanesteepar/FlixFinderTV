@@ -1,21 +1,31 @@
 package com.example.flixfindertv.ui.viewmodels
 
+import android.app.Application
 import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.flixfindertv.models.Peliculas
 import com.example.flixfindertv.models.Usuarios
+import com.example.flixfindertv.room.dao.MovieDao
+import com.example.flixfindertv.room.database.AppDatabase
+import com.example.flixfindertv.room.entities.FavoritoEntity
+import com.example.flixfindertv.room.repository.MovieRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 
-class UsersViewModel : ViewModel() {
+class UsersViewModel(application: Application) : AndroidViewModel(application) {
 
     private val firestore = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance() // Obtén la instancia de FirebaseAuth para obtener el usuario actual
@@ -30,6 +40,13 @@ class UsersViewModel : ViewModel() {
 
     private val _userNameComment = MutableLiveData<String>()
     val userNameComment: LiveData<String> get() = _userNameComment
+
+    private val movieDao = AppDatabase.getDatabase(application).movieDao()
+    private val movieRepository = MovieRepository(movieDao)
+
+    val favouriteMovies = mutableStateOf<List<Peliculas>>(emptyList()) // MutableState<List<Peliculas>>
+    val favouriteSeries = mutableStateOf<List<Peliculas>>(emptyList()) // MutableState<List<Peliculas>>
+
 
 
     fun register(email: String, password: String, confirmPassword: String, username: String, onSuccess: (String) -> Unit, onFailure: (String) -> Unit) {
@@ -441,16 +458,20 @@ class UsersViewModel : ViewModel() {
         }
     }
 
-    fun saveToFavorites(id: String, title: String, posterUrl: String, isSerie: Boolean) {
+    fun saveToFavorites(
+        context: Context,
+        id: String,
+        title: String,
+        posterUrl: String,
+        isSerie: Boolean
+    ) {
         val currentUser = auth.currentUser
         if (currentUser != null) {
             val userId = currentUser.uid
             val favoritesCollection = firestore.collection("usuarios").document(userId)
 
-            // Definir el campo a actualizar según si es serie o película
             val fieldToUpdate = if (isSerie) "seriesFavoritas" else "peliculasFavoritas"
 
-            // Crear los datos de la película o serie en formato Map
             val movieData = mapOf(
                 "id" to id,
                 "title" to title,
@@ -460,21 +481,25 @@ class UsersViewModel : ViewModel() {
 
             favoritesCollection.get().addOnSuccessListener { document ->
                 if (document.exists()) {
-                    // Obtener la lista actual de favoritos (convertimos a lista de mapas)
                     val existingFavorites = document.get(fieldToUpdate) as? List<Map<String, Any>> ?: emptyList()
 
-                    // Verificar si ya existe en la lista para evitar duplicados
-                    if (existingFavorites.none { it["id"] == id }) {
-                        // Crear nueva lista con el favorito añadido
-                        val updatedFavorites = existingFavorites + movieData
+                    if (existingFavorites.any { it["id"] == id }) return@addOnSuccessListener
 
-                        // Actualizar la lista en Firestore
-                        favoritesCollection.update(fieldToUpdate, updatedFavorites).addOnSuccessListener {
-                            _isFavorite.value = true
-                        }
+                    if (existingFavorites.size >= 20) {
+                        Toast.makeText(
+                            context,
+                            "You can only save up to 20 favorite ${if (isSerie) "TV shows" else "movies"}.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        return@addOnSuccessListener
+                    }
+
+                    val updatedFavorites = existingFavorites + movieData
+
+                    favoritesCollection.update(fieldToUpdate, updatedFavorites).addOnSuccessListener {
+                        _isFavorite.value = true
                     }
                 } else {
-                    // Si no existen favoritos, crear una nueva lista con la película o serie
                     favoritesCollection.set(mapOf(fieldToUpdate to listOf(movieData))).addOnSuccessListener {
                         _isFavorite.value = true
                     }
@@ -482,6 +507,45 @@ class UsersViewModel : ViewModel() {
             }
         }
     }
+
+    fun saveToLocalFavorites(context: Context, pelicula: Peliculas) {
+        CoroutineScope(Dispatchers.IO).launch {
+            // Aquí llamas al repositorio para obtener las películas/series favoritas
+            val currentFavorites = if (pelicula.esSerie) {
+                movieRepository.getSeriesFavoritas()  // Llamas al repositorio
+            } else {
+                movieRepository.getPeliculasFavoritas()  // Llamas al repositorio
+            }
+
+            if (currentFavorites.any { it.pelicula.id == pelicula.id }) return@launch
+
+            if (currentFavorites.size >= 20) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        context,
+                        "Solo puedes guardar hasta 20 ${if (pelicula.esSerie) "series" else "películas"} favoritas localmente.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                return@launch
+            }
+
+            val favorito = FavoritoEntity(idMovieEntity = pelicula.id, pelicula = pelicula)
+            movieRepository.insertFavorito(favorito)  // Llamas al repositorio para insertar
+        }
+    }
+
+    fun removeFromLocalFavorites(
+        pelicula: Peliculas
+    ) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val favorito = movieRepository.getFavoritoById(pelicula.id)
+            if (favorito != null) {
+                movieRepository.deleteFavorito(favorito)
+            }
+        }
+    }
+
 
     // Función para eliminar una película o serie de los favoritos
     fun removeFromFavorites(id: String, isSerie: Boolean) {
@@ -573,5 +637,42 @@ class UsersViewModel : ViewModel() {
             onFailure(exception)
         }
     }
+
+    // Función para obtener las películas favoritas desde Room
+    fun getPeliculasFavoritasDesdeRoom() {
+        viewModelScope.launch {
+            // Obtener las películas favoritas desde Room
+            val favoritos = movieRepository.getPeliculasFavoritas()
+
+            // Mapear la lista de FavoritoEntity a una lista de Peliculas
+            val peliculas = favoritos.map { favorito ->
+                favorito.pelicula // Accedemos directamente a la propiedad 'pelicula' de FavoritoEntity
+            }
+
+            // Actualizar el estado con la lista de películas favoritas
+            favouriteMovies.value = peliculas // Usamos .value para modificar el estado de la UI
+        }
+    }
+
+
+    // Función para obtener las series favoritas desde Room
+    fun getSeriesFavoritasDesdeRoom() {
+        viewModelScope.launch {
+            // Obtener las series favoritas desde Room
+            val favoritos = movieRepository.getSeriesFavoritas()
+
+            // Mapear la lista de FavoritoEntity a una lista de Peliculas (para series)
+            val series = favoritos.map { favorito ->
+                favorito.pelicula // Accede directamente a la propiedad 'pelicula' de FavoritoEntity
+            }
+
+            // Actualizar el estado de la UI con la lista de series favoritas
+            favouriteSeries.value = series
+        }
+    }
+
+    fun getAllMoviesFromRoom(){
+    }
+
 
 }

@@ -9,27 +9,28 @@ class MovieRepository(private val movieDao: MovieDao) {
     suspend fun insertMoviesGenero1(movies: List<Genero1MovieEntity>) = movieDao.insertMoviesGenero1(movies)
     suspend fun insertMoviesGenero2(movies: List<Genero2MovieEntity>) = movieDao.insertMoviesGenero2(movies)
     suspend fun insertMoviesProximas(movies: List<ProximasMovieEntity>) = movieDao.insertMoviesProximas(movies)
-    suspend fun insertMoviesPopulares(movies: List<PeliculasPopularesEntity>) = movieDao.insertMoviesPopulares(movies)
-    suspend fun insertMoviesUltimosLanzamientos(movies: List<UltimosLanzamientosMovieEntity>) = movieDao.insertMoviesUltimosLanzamientos(movies)
-    suspend fun insertMoviesAccion(movies: List<AccionMovieEntity>) = movieDao.insertMoviesAccion(movies)
-    suspend fun insertMoviesRomance(movies: List<RomanceMovieEntity>) = movieDao.insertMoviesRomance(movies)
-    suspend fun insertMoviesFamilia(movies: List<FamiliaMovieEntity>) = movieDao.insertMoviesFamilia(movies)
-    suspend fun insertMoviesComedia(movies: List<ComediaMovieEntity>) = movieDao.insertMoviesComedia(movies)
-    suspend fun insertMoviesThriller(movies: List<ThrillerMovieEntity>) = movieDao.insertMoviesThriller(movies)
-    suspend fun insertMoviesHorror(movies: List<HorrorMovieEntity>) = movieDao.insertMoviesHorror(movies)
-    suspend fun insertMoviesCienciaFiccion(movies: List<CienciaFiccionMovieEntity>) = movieDao.insertMoviesCienciaFiccion(movies)
+    suspend fun insertMoviesPopulares(movies: List<PeliculasEntity>) = movieDao.insertMoviesPopulares(movies)
+    suspend fun insertMoviesUltimosLanzamientos(movies: List<PeliculasEntity>) = movieDao.insertMoviesUltimosLanzamientos(movies)
+    suspend fun insertMoviesAccion(movies: List<PeliculasEntity>) = movieDao.insertMoviesAccion(movies)
+    suspend fun insertMoviesRomance(movies: List<PeliculasEntity>) = movieDao.insertMoviesRomance(movies)
+    suspend fun insertMoviesFamilia(movies: List<PeliculasEntity>) = movieDao.insertMoviesFamilia(movies)
+    suspend fun insertMoviesComedia(movies: List<PeliculasEntity>) = movieDao.insertMoviesComedia(movies)
+    suspend fun insertMoviesThriller(movies: List<PeliculasEntity>) = movieDao.insertMoviesThriller(movies)
+    suspend fun insertMoviesHorror(movies: List<PeliculasEntity>) = movieDao.insertMoviesHorror(movies)
+    suspend fun insertMoviesCienciaFiccion(movies: List<PeliculasEntity>) = movieDao.insertMoviesCienciaFiccion(movies)
 
-    suspend fun insertSeriesPopulares(movies: List<SeriesPopularesEntity>) = movieDao.insertSeriesPopulares(movies)
-    suspend fun insertSeriesUltimosLanzamientos(movies: List<UltimosLanzamientosSeriesEntity>) = movieDao.insertSeriesUltimosLanzamientos(movies)
-    suspend fun insertSeriesAccionAventura(movies: List<AccionAventuraSerieEntity>) = movieDao.insertSeriesAccionAventura(movies)
-    suspend fun insertSeriesAnimacion(movies: List<AnimacionSerieEntity>) = movieDao.insertSeriesAnimacion(movies)
-    suspend fun insertSeriesComedia(movies: List<ComediaSerieEntity>) = movieDao.insertSeriesComedia(movies)
-    suspend fun insertSeriesCrimen(movies: List<CrimenSerieEntity>) = movieDao.insertSeriesCrimen(movies)
-    suspend fun insertSeriesDrama(movies: List<DramaSerieEntity>) = movieDao.insertSeriesDrama(movies)
-    suspend fun insertSeriesFamilia(movies: List<FamiliaSerieEntity>) = movieDao.insertSeriesFamilia(movies)
-    suspend fun insertSeriesKids(movies: List<KidsSerieEntity>) = movieDao.insertSeriesKids(movies)
+    suspend fun insertSeriesPopulares(movies: List<PeliculasEntity>) = movieDao.insertSeriesPopulares(movies)
+    suspend fun insertSeriesUltimosLanzamientos(movies: List<PeliculasEntity>) = movieDao.insertSeriesUltimosLanzamientos(movies)
+    suspend fun insertSeriesAccionAventura(movies: List<PeliculasEntity>) = movieDao.insertSeriesAccionAventura(movies)
+    suspend fun insertSeriesAnimacion(movies: List<PeliculasEntity>) = movieDao.insertSeriesAnimacion(movies)
+    suspend fun insertSeriesComedia(movies: List<PeliculasEntity>) = movieDao.insertSeriesComedia(movies)
+    suspend fun insertSeriesCrimen(movies: List<PeliculasEntity>) = movieDao.insertSeriesCrimen(movies)
+    suspend fun insertSeriesDrama(movies: List<PeliculasEntity>) = movieDao.insertSeriesDrama(movies)
+    suspend fun insertSeriesFamilia(movies: List<PeliculasEntity>) = movieDao.insertSeriesFamilia(movies)
+    suspend fun insertSeriesKids(movies: List<PeliculasEntity>) = movieDao.insertSeriesKids(movies)
 
     // ------------------------ GETS ------------------------
+    suspend fun getAllMovies() = movieDao.getAllMovies()
     suspend fun getAllMoviesGenero1() = movieDao.getAllMoviesGenero1()
     suspend fun getAllMoviesGenero2() = movieDao.getAllMoviesGenero2()
     suspend fun getAllMoviesProximas() = movieDao.getAllMoviesProximas()
@@ -57,24 +58,33 @@ class MovieRepository(private val movieDao: MovieDao) {
     suspend fun deleteAllMoviesGenero1() = movieDao.deleteAllMoviesGenero1()
     suspend fun deleteAllMoviesGenero2() = movieDao.deleteAllMoviesGenero2()
     suspend fun deleteAllMoviesProximas() = movieDao.deleteAllMoviesProximas()
-    suspend fun deleteAllMoviesPopulares() = movieDao.deleteAllMoviesPopulares()
-    suspend fun deleteAllMoviesUltimosLanzamientos() = movieDao.deleteAllMoviesUltimosLanzamientos()
-    suspend fun deleteAllMoviesAccion() = movieDao.deleteAllMoviesAccion()
-    suspend fun deleteAllMoviesRomance() = movieDao.deleteAllMoviesRomance()
-    suspend fun deleteAllMoviesFamilia() = movieDao.deleteAllMoviesFamilia()
-    suspend fun deleteAllMoviesComedia() = movieDao.deleteAllMoviesComedia()
-    suspend fun deleteAllMoviesThriller() = movieDao.deleteAllMoviesThriller()
-    suspend fun deleteAllMoviesHorror() = movieDao.deleteAllMoviesHorror()
-    suspend fun deleteAllMoviesCienciaFiccion() = movieDao.deleteAllMoviesCienciaFiccion()
+    suspend fun deleteAllMovies() = movieDao.deleteAllMovies()
+    suspend fun deleteAllSeries() = movieDao.deleteAllSeries()
 
-    suspend fun deleteAllSeriesPopulares() = movieDao.deleteAllSeriesPopulares()
-    suspend fun deleteAllSeriesUltimosLanzamientos() = movieDao.deleteAllSeriesUltimosLanzamientos()
-    suspend fun deleteAllSeriesAccionAventura() = movieDao.deleteAllSeriesAccionAventura()
-    suspend fun deleteAllSeriesAnimacion() = movieDao.deleteAllSeriesAnimacion()
-    suspend fun deleteAllSeriesComedia() = movieDao.deleteAllSeriesComedia()
-    suspend fun deleteAllSeriesCrimen() = movieDao.deleteAllSeriesCrimen()
-    suspend fun deleteAllSeriesDrama() = movieDao.deleteAllSeriesDrama()
-    suspend fun deleteAllSeriesFamilia() = movieDao.deleteAllSeriesFamilia()
-    suspend fun deleteAllSeriesKids() = movieDao.deleteAllSeriesKids()
+
+    // FAVORITOS
+    suspend fun getSeriesFavoritas(): List<FavoritoEntity> {
+        return movieDao.getSeriesFavoritas()
+    }
+
+    // Obtener las películas favoritas
+    suspend fun getPeliculasFavoritas(): List<FavoritoEntity> {
+        return movieDao.getPeliculasFavoritas()
+    }
+
+    // Insertar una película o serie en los favoritos
+    suspend fun insertFavorito(favorito: FavoritoEntity) {
+        movieDao.insertFavorito(favorito)
+    }
+
+    // Eliminar una película o serie de los favoritos
+    suspend fun deleteFavorito(favorito: FavoritoEntity) {
+        movieDao.deleteFavorito(favorito)
+    }
+
+    // Obtener un favorito por ID
+    suspend fun getFavoritoById(id: String): FavoritoEntity? {
+        return movieDao.getFavoritoById(id)
+    }
 
 }

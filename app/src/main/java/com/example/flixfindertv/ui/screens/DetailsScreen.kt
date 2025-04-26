@@ -125,7 +125,7 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                         ?.let { path -> "https://image.tmdb.org/t/p/w500$path" } // Ahora puede aceptar null
 
 
-                    movieCoverUrl = it.poster_path.takeIf { path -> path.isNotEmpty() }
+                    movieCoverUrl = it.poster_path?.takeIf { path -> path.isNotEmpty() }
                         ?.let { path -> "https://image.tmdb.org/t/p/w500$path" } ?: ""
 
 
@@ -158,6 +158,7 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
     }
     val commentsList by commentsViewModel.comments.collectAsState()
 
+    println("el banner es: $movieBannerUrl")
 
     Box(
         modifier = Modifier
@@ -177,7 +178,7 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                     .height(250.dp)
             ) {
                 Image(
-                    painter = if (hayConexion && !movieBannerUrl.isNullOrEmpty()) {
+                    painter = if (!movieBannerUrl.isNullOrEmpty()) {
                         rememberAsyncImagePainter(model = movieBannerUrl)
                     } else {
                         painterResource(id = R.drawable.banner_placeholder)
@@ -194,15 +195,18 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                             if (!isCurrentlyFavorite) {
                                 // Si no está en favoritos, añadimos a favoritos
                                 usersViewModel.saveToFavorites(
+                                    context,
                                     id,
                                     movieTitle,
                                     movieCoverUrl,
                                     esSerie
                                 )
+                                movie?.let { usersViewModel.saveToLocalFavorites(context, it) }
                                 usersViewModel.updateFavoriteGenre(movieGenre)
                             } else {
                                 // Si ya está en favoritos, lo eliminamos de favoritos
                                 usersViewModel.removeFromFavorites(id, esSerie)
+                                movie?.let { usersViewModel.removeFromLocalFavorites(it) }
                             }
                             // Asegurarnos de que el estado del corazón se actualice inmediatamente
                             usersViewModel.checkIfFavorite(id, esSerie)

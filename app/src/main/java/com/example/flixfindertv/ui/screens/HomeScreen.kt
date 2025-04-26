@@ -117,9 +117,9 @@ fun HomeScreen(
             prevGenero1.value = nuevoGenero // Actualizamos el estado previo
             if (!nuevoGenero.isNullOrEmpty()) {
                 genresViewModel.limpiarPeliculasGenero1()
-                listStateGenero1.scrollToItem(0)
                 if (uid != null) {
                     genresViewModel.obtenerPeliculasYSeriesGenero1(uid)
+                    listStateGenero1.scrollToItem(0)
                 }
             }
         }
@@ -131,9 +131,9 @@ fun HomeScreen(
             prevGenero2.value = nuevoGenero // Actualizamos el estado previo
             if (!nuevoGenero.isNullOrEmpty()) {
                 genresViewModel.limpiarPeliculasGenero2()
-                listStateGenero2.scrollToItem(0)
                 if (uid != null) {
                     genresViewModel.obtenerPeliculasYSeriesGenero2(uid)
+                    listStateGenero1.scrollToItem(0)
                 }
             }
         }

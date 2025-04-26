@@ -10,7 +10,7 @@ data class Peliculas(
     val overview: String = "",
     val release_date: String? = null,
     val release_date_series: String? = null,
-    val poster_path: String = "",
+    val poster_path: String? = null,
     val vote_average: String = "0.0",
     val vote_count: String = "0",
     val genre_ids: List<Int> = emptyList(),

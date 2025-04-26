@@ -53,7 +53,7 @@ fun ContentListSearch (movie: Peliculas, navController: NavHostController) {
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            val imagePainter = if (hayConexion && movie.poster_path != null) {
+            val imagePainter = if (movie.poster_path != null) {
                 rememberAsyncImagePainter("https://image.tmdb.org/t/p/w500${movie.poster_path}")
             } else {
                 rememberAsyncImagePainter(R.drawable.no_poster_image)  // Imagen local si no hay poster_path

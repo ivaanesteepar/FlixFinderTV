@@ -168,6 +168,12 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
     val seriesFamiliaOffline by offlineViewModel.seriesFamilia.observeAsState(emptyList())
     val seriesKidsOffline by offlineViewModel.seriesKids.observeAsState(emptyList())
 
+    val peliculas = remember { mutableStateOf<List<PeliculasEntity>>(emptyList()) }
+
+    LaunchedEffect(Unit) {
+        peliculas.value = offlineViewModel.getAllMovies()
+    }
+
 
     // BackHandler para manejar el retroceso
     BackHandler {
@@ -190,47 +196,30 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
 
     fun guardarPeliculasEnRoom() {
         // Limpiar las tablas antes de insertar nuevas películas
-        offlineViewModel.limpiarPeliculasPopulares()
-        offlineViewModel.limpiarPeliculasUltimosLanzamientos()
-        offlineViewModel.limpiarPeliculasAccion()
-        offlineViewModel.limpiarPeliculasRomance()
-        offlineViewModel.limpiarPeliculasFamilia()
-        offlineViewModel.limpiarPeliculasComedia()
-        offlineViewModel.limpiarPeliculasThriller()
-        offlineViewModel.limpiarPeliculasHorror()
-        offlineViewModel.limpiarPeliculasCienciaFiccion()
-
-        offlineViewModel.limpiarSeriesPopulares()
-        offlineViewModel.limpiarSeriesUltimosLanzamientos()
-        offlineViewModel.limpiarSeriesAccionAventura()
-        offlineViewModel.limpiarSeriesAnimacion()
-        offlineViewModel.limpiarSeriesComedia()
-        offlineViewModel.limpiarSeriesCrimen()
-        offlineViewModel.limpiarSeriesDrama()
-        offlineViewModel.limpiarSeriesFamilia()
-        offlineViewModel.limpiarSeriesKids()
+        offlineViewModel.limpiarPeliculas()
+        offlineViewModel.limpiarSeries()
 
         // Insertar las primeras 10 películas de cada categoría en la base de datos
-        offlineViewModel.insertPeliculasPopulares(movies.take(10).map { PeliculasPopularesEntity(it) })
-        offlineViewModel.insertPeliculasUltimosLanzamientos(recentMovies.take(10).map { UltimosLanzamientosMovieEntity(it) })
-        offlineViewModel.insertPeliculasAccion(actionMovies.take(10).map { AccionMovieEntity(it) })
-        offlineViewModel.insertPeliculasRomance(romanceMovies.take(10).map { RomanceMovieEntity(it) })
-        offlineViewModel.insertPeliculasFamilia(familyMovies.take(10).map { FamiliaMovieEntity(it) })
-        offlineViewModel.insertPeliculasComedia(comedyMovies.take(10).map { ComediaMovieEntity(it) })
-        offlineViewModel.insertPeliculasThriller(thrillerMovies.take(10).map { ThrillerMovieEntity(it) })
-        offlineViewModel.insertPeliculasHorror(horrorMovies.take(10).map { HorrorMovieEntity(it) })
-        offlineViewModel.insertPeliculasCienciaFiccion(scienceFictionMovies.take(10).map { CienciaFiccionMovieEntity(it) })
+        offlineViewModel.insertPeliculasPopulares(movies.take(10))
+        offlineViewModel.insertPeliculasUltimosLanzamientos(movies.take(10))
+        offlineViewModel.insertPeliculasAccion(actionMovies.take(10))
+        offlineViewModel.insertPeliculasRomance(romanceMovies.take(10))
+        offlineViewModel.insertPeliculasFamilia(familyMovies.take(10))
+        offlineViewModel.insertPeliculasComedia(comedyMovies.take(10))
+        offlineViewModel.insertPeliculasThriller(thrillerMovies.take(10))
+        offlineViewModel.insertPeliculasHorror(horrorMovies.take(10))
+        offlineViewModel.insertPeliculasCienciaFiccion(scienceFictionMovies.take(10))
 
         // Insertar las primeras 10 series de cada categoría en la base de datos
-        offlineViewModel.insertSeriesPopulares(series.take(10).map { SeriesPopularesEntity(it) })
-        offlineViewModel.insertSeriesUltimosLanzamientos(recentSeries.take(10).map { UltimosLanzamientosSeriesEntity(it) })
-        offlineViewModel.insertSeriesAccionAventura(actionAdventureSeries.take(10).map { AccionAventuraSerieEntity(it) })
-        offlineViewModel.insertSeriesAnimacion(animationSeries.take(10).map { AnimacionSerieEntity(it) })
-        offlineViewModel.insertSeriesComedia(comedySeries.take(10).map { ComediaSerieEntity(it) })
-        offlineViewModel.insertSeriesCrimen(crimeSeries.take(10).map { CrimenSerieEntity(it) })
-        offlineViewModel.insertSeriesDrama(dramaSeries.take(10).map { DramaSerieEntity(it) })
-        offlineViewModel.insertSeriesFamilia(familySeries.take(10).map { FamiliaSerieEntity(it) })
-        offlineViewModel.insertSeriesKids(kidsSeries.take(10).map { KidsSerieEntity(it) })
+        offlineViewModel.insertSeriesPopulares(series.take(10))
+        offlineViewModel.insertSeriesUltimosLanzamientos(recentSeries.take(10))
+        offlineViewModel.insertSeriesAccionAventura(actionAdventureSeries.take(10))
+        offlineViewModel.insertSeriesAnimacion(animationSeries.take(10))
+        offlineViewModel.insertSeriesComedia(comedySeries.take(10))
+        offlineViewModel.insertSeriesCrimen(crimeSeries.take(10))
+        offlineViewModel.insertSeriesDrama(dramaSeries.take(10))
+        offlineViewModel.insertSeriesFamilia(familySeries.take(10))
+        offlineViewModel.insertSeriesKids(kidsSeries.take(10))
 
     }
 
@@ -705,106 +694,112 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                     ) {
                         // Variables de estado para el menú desplegable
                         var expandedSearch by remember { mutableStateOf(false) }
-                        var selectedTextSearch by rememberSaveable { mutableStateOf("Unordered") }
+                        val selectedTextSearch by rememberSaveable { mutableStateOf("Unordered") }
 
-                        // Variable que tiene contenido que cumple con todos los filtros
-                        val filteredSearchResults = movieResults.filter { movie ->
-                            // Filtro por tipo: película o serie
-                            val matchesType = if (filterMovie || filterSerie) {
-                                (filterMovie && !movie.esSerie) || (filterSerie && movie.esSerie)
-                            } else {
-                                true // Si no se aplica filtro de tipo, permitimos cualquier tipo (película o serie)
+                        if (!hayConexion) {  // Verifica si no hay conexión
+                            val filteredRoomMovies = peliculas.value.filter { movieEntity ->
+                                val movie = movieEntity.pelicula  // Accedemos al Peliculas dentro de PeliculasEntity
+
+                                val matchesType = if (filterMovie || filterSerie) {
+                                    (filterMovie && !movie.esSerie) || (filterSerie && movie.esSerie)
+                                } else {
+                                    true
+                                }
+
+                                val matchesQuery = if (searchQuery.isNullOrEmpty()) {
+                                    true
+                                } else {
+                                    (movie.title?.contains(searchQuery, ignoreCase = true) == true) ||
+                                            (movie.name?.contains(searchQuery, ignoreCase = true) == true)
+                                }
+
+                                val matchesGenre = if (selectedGenreId == null) {
+                                    true
+                                } else {
+                                    movie.genre_ids.contains(selectedGenreId)
+                                }
+
+                                matchesType && matchesQuery && matchesGenre
                             }
 
-                            // Filtro por búsqueda de título: si searchQuery está vacío, no aplicamos filtro
-                            val matchesQuery = if (searchQuery.isNullOrEmpty()) {
-                                true // No filtramos por título si la búsqueda está vacía
-                            } else {
-                                (movie.title?.contains(searchQuery, ignoreCase = true) == true) ||
-                                        (movie.name?.contains(searchQuery, ignoreCase = true) == true)
+                            val sortedRoomMovies = when (selectedTextSearch) {
+                                "Ascending" -> filteredRoomMovies.sortedBy { it.pelicula.popularity }
+                                "Descending" -> filteredRoomMovies.sortedByDescending { it.pelicula.popularity }
+                                else -> filteredRoomMovies
                             }
 
-                            // Filtro por género: si no hay género seleccionado, no filtramos por género
-                            val matchesGenre = if (selectedGenreId == null) {
-                                true // Si no se ha seleccionado un género, no se filtra por género
+                            // Mostrar mensaje si no se encuentran resultados y no se está buscando
+                            if (sortedRoomMovies.isEmpty() && !isSearching) {
+                                Text(
+                                    text = "No results found",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color.White,
+                                    modifier = Modifier.align(Alignment.Center)
+                                )
                             } else {
-                                movie.genre_ids.contains(selectedGenreId) // Si se seleccionó un género, lo filtramos
-                            }
-
-                            // Todos los filtros deben ser verdaderos para que se incluya la película
-                            matchesType && matchesQuery && matchesGenre
-                        }
-
-                        val sortedSearchResults = when (selectedTextSearch) {
-                            "Ascending" -> filteredSearchResults.sortedBy { it.popularity }
-                            "Descending" -> filteredSearchResults.sortedByDescending { it.popularity }
-                            else -> filteredSearchResults
-                        }
-
-                        if (sortedSearchResults.isNotEmpty()) { // Solo muestra el menú si hay películas
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp)
-                                    .align(Alignment.TopCenter)
-                            ) {
-                                ExposedDropdownMenuBox(
-                                    expanded = expandedSearch,
-                                    onExpandedChange = { expandedSearch = !expandedSearch }
+                                LazyColumn(
+                                    modifier = Modifier.padding(top = 120.dp)
                                 ) {
-                                    OutlinedTextField(
-                                        value = selectedTextSearch,
-                                        onValueChange = {},
-                                        readOnly = true,
-                                        label = {
-                                            Text(
-                                                "Sort by popularity",
-                                                color = Color.White // Texto del label en blanco
-                                            )
-                                        },
-                                        textStyle = LocalTextStyle.current.copy(color = Color.White),
-                                        shape = MaterialTheme.shapes.large,
-                                        colors = TextFieldDefaults.outlinedTextFieldColors(
-                                            focusedBorderColor = Color.White,    // Borde blanco cuando está enfocado
-                                            unfocusedBorderColor = Color.White,  // Borde blanco cuando no está enfocado
-                                        ),
-                                        trailingIcon = {
-                                            Icon(
-                                                imageVector = Icons.Default.ArrowDropDown,
-                                                tint = Color.White,
-                                                contentDescription = "Expandir"
-                                            )
-                                        },
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .menuAnchor()
-                                    )
-                                    ExposedDropdownMenu(
-                                        expanded = expandedSearch,
-                                        onDismissRequest = { expandedSearch = false }
-                                    ) {
-                                        options.forEach { option ->
-                                            DropdownMenuItem(
-                                                text = { Text(option) },
-                                                onClick = {
-                                                    selectedTextSearch = option
-                                                    expandedSearch = false
-                                                }
-                                            )
-                                        }
+                                    items(sortedRoomMovies) { movieEntity ->
+                                        ContentListSearch(movie = movieEntity.pelicula, navController = navController)
+                                    }
+                                }
+                            }
+                        } else {
+                            // Si hay conexión, realiza la búsqueda
+                            val filteredSearchResults = movieResults.filter { movie ->
+                                // Filtro por tipo: película o serie
+                                val matchesType = if (filterMovie || filterSerie) {
+                                    (filterMovie && !movie.esSerie) || (filterSerie && movie.esSerie)
+                                } else {
+                                    true // Si no se aplica filtro de tipo, permitimos cualquier tipo (película o serie)
+                                }
+
+                                // Filtro por búsqueda de título: si searchQuery está vacío, no aplicamos filtro
+                                val matchesQuery = if (searchQuery.isNullOrEmpty()) {
+                                    true // No filtramos por título si la búsqueda está vacía
+                                } else {
+                                    (movie.title?.contains(searchQuery, ignoreCase = true) == true) ||
+                                            (movie.name?.contains(searchQuery, ignoreCase = true) == true)
+                                }
+
+                                // Filtro por género: si no hay género seleccionado, no filtramos por género
+                                val matchesGenre = if (selectedGenreId == null) {
+                                    true // Si no se ha seleccionado un género, no se filtra por género
+                                } else {
+                                    movie.genre_ids.contains(selectedGenreId) // Si se seleccionó un género, lo filtramos
+                                }
+
+                                matchesType && matchesQuery && matchesGenre
+                            }
+
+                            val sortedSearchResults = when (selectedTextSearch) {
+                                "Ascending" -> filteredSearchResults.sortedBy { it.popularity }
+                                "Descending" -> filteredSearchResults.sortedByDescending { it.popularity }
+                                else -> filteredSearchResults
+                            }
+
+                            // Mostrar mensaje si no se encuentran resultados y no se está buscando
+                            if (sortedSearchResults.isEmpty() && !isSearching) {
+                                Text(
+                                    text = "No results found",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color.White,
+                                    modifier = Modifier.align(Alignment.Center)
+                                )
+                            } else {
+                                LazyColumn(
+                                    modifier = Modifier.padding(top = 120.dp),
+                                ) {
+                                    items(sortedSearchResults) { movie ->
+                                        ContentListSearch(movie = movie, navController = navController)
                                     }
                                 }
                             }
                         }
-                        LazyColumn(
-                            modifier = Modifier.padding(top = 120.dp),
-                        ) {
-                            items(sortedSearchResults) { movie ->
-                                ContentListSearch(movie = movie, navController = navController)
-                            }
-                        }
                     }
-                } else if (selectedGenreId != null) {
+                }
+                else if (selectedGenreId != null) {
                     Box(
                         modifier = Modifier.fillMaxSize()
                     ) {
@@ -880,9 +875,9 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
 
                         if (sortedItems.isEmpty()) {
                             val noResultsText = when {
-                                filterMovie -> "No movies of this genre were found."
-                                filterSerie -> "No TV shows of this genre were found."
-                                else -> "No results were found."
+                                filterMovie -> "No movies of this genre were found"
+                                filterSerie -> "No TV shows of this genre were found"
+                                else -> "No results were found"
                             }
                             Box(
                                 modifier = Modifier.fillMaxSize()

@@ -12,6 +12,10 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -19,11 +23,14 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.flixfindertv.R
 import com.example.flixfindertv.models.Peliculas
 import com.example.flixfindertv.ui.screens.contieneCaracteresNoLatinos
+import com.example.flixfindertv.ui.viewmodels.GenresViewModel
+import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 
 @Composable
 fun ContentListExplore(
@@ -31,8 +38,17 @@ fun ContentListExplore(
     navController: NavController,
     listState: LazyListState,
 ) {
+    val genresViewModel: GenresViewModel = viewModel()
+    val usersViewModel: UsersViewModel = viewModel()
+    var movieGenre by remember { mutableStateOf("") }
 
-    println("movies en content list explore: $movies")
+    // Extraer todos los `genre_ids` de la lista de películas
+    val allGenreIds = movies.flatMap { it.genre_ids }
+
+    // Obtener los nombres de los géneros correspondientes
+    genresViewModel.fetchGenreNames(allGenreIds) { genres ->
+        movieGenre = genres.joinToString(", ")
+    }
 
     LazyRow(
         modifier = Modifier
@@ -50,8 +66,8 @@ fun ContentListExplore(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            println("Se seleccionó la película en el índice: $index con id: ${movie.id} y es serie: ${movie.esSerie ?: false}")
                             navController.navigate("detalles/${movie.id}/${movie.esSerie}")
+                            usersViewModel.updateFavoriteGenre(movieGenre)
                         },
                     elevation = CardDefaults.cardElevation(4.dp)
                 ) {

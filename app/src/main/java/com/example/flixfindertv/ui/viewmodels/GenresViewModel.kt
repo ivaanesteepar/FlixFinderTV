@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.flixfindertv.models.Generos
 import com.example.flixfindertv.models.Peliculas
+import com.example.flixfindertv.room.entities.PeliculasEntity
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
@@ -73,6 +74,23 @@ class GenresViewModel : ViewModel() {
                         onResult(genreNames)
                     }
                 }
+        }
+    }
+
+    fun createPeliculaEntityWithGeneros(pelicula: Peliculas, onResult: (PeliculasEntity) -> Unit) {
+        fetchGenreNames(pelicula.genre_ids) { genreNames ->
+            // Unir los nombres de los géneros en una cadena separada por comas
+            val genero = genreNames.joinToString(", ")
+
+            // Crear la entidad PeliculasEntity con el campo genero actualizado
+            val peliculaEntity = PeliculasEntity(
+                pelicula = pelicula,
+                idMovieEntity = pelicula.id,
+                genero = genero
+            )
+
+            // Llamamos al resultado con la nueva entidad
+            onResult(peliculaEntity)
         }
     }
 

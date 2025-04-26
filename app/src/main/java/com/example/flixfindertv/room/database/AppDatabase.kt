@@ -14,26 +14,10 @@ import com.example.flixfindertv.room.dao.MovieDao
         Genero1MovieEntity::class,
         Genero2MovieEntity::class,
         ProximasMovieEntity::class,
-        PeliculasPopularesEntity::class,
-        UltimosLanzamientosMovieEntity::class,
-        AccionMovieEntity::class,
-        RomanceMovieEntity::class,
-        FamiliaMovieEntity::class,
-        ComediaMovieEntity::class,
-        ThrillerMovieEntity::class,
-        HorrorMovieEntity::class,
-        CienciaFiccionMovieEntity::class,
-        SeriesPopularesEntity::class,
-        UltimosLanzamientosSeriesEntity::class,
-        AccionAventuraSerieEntity::class,
-        AnimacionSerieEntity::class,
-        ComediaSerieEntity::class,
-        CrimenSerieEntity::class,
-        DramaSerieEntity::class,
-        FamiliaSerieEntity::class,
-        KidsSerieEntity::class
+        FavoritoEntity::class,
+        PeliculasEntity::class
     ],
-    version = 16
+    version = 24
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {

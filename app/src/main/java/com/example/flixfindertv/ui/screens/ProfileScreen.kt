@@ -81,6 +81,8 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
     val currentUser = auth.currentUser
     val activity = context as? Activity
     val isFollowing = remember { mutableStateOf(false) }
+    var favoriteMoviesOffline by remember { mutableStateOf<List<Peliculas>>(emptyList()) }
+    var favoriteSeriesOffline by remember { mutableStateOf<List<Peliculas>>(emptyList()) }
 
     // BackHandler para manejar el retroceso
     BackHandler {
@@ -151,7 +153,13 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
             }, onFailure = { exception ->
                 Toast.makeText(context, "Error: ${exception.message}", Toast.LENGTH_SHORT).show()
             })
+
+            usersViewModel.getPeliculasFavoritasDesdeRoom()
+            usersViewModel.getSeriesFavoritasDesdeRoom()
         }
+
+        favoriteMoviesOffline = usersViewModel.favouriteMovies.value
+        favoriteSeriesOffline = usersViewModel.favouriteSeries.value
 
         // Scaffold para envolver el contenido y añadir el BottomNavigationBar
         Scaffold(
@@ -369,8 +377,7 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                                             }
                                         )
                                     }
-                                }
-                                else{
+                                } else {
                                     Toast.makeText(
                                         context,
                                         "You need an internet connection to follow/unfollow an user",
@@ -397,126 +404,20 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                             color = Color.White
                         )
                         Spacer(modifier = Modifier.height(15.dp))
-                        if (hayConexion) {
-                            Column(modifier = Modifier.fillMaxWidth()) {
-                                if (favoriteMovies.isNotEmpty()) {
-                                    Row(
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
-                                        // Limitar a las 3 primeras películas
-                                        favoriteMovies.take(3).forEach { movie ->
-                                            Column(
-                                                horizontalAlignment = Alignment.CenterHorizontally,
-                                                modifier = Modifier.width(120.dp)
-                                            ) {
-                                                Card(
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .clickable {
-                                                            // Navegar a la pantalla de detalles de la película
-                                                            navController.navigate("detalles/${movie.id}/false") {
-                                                                launchSingleTop = true
-                                                            }
-                                                        },
-                                                    elevation = CardDefaults.cardElevation(4.dp)
-                                                ) {
-                                                    Column {
-                                                        Box(
-                                                            modifier = Modifier
-                                                                .fillMaxWidth()
-                                                                .height(160.dp)
-                                                        ) {
-                                                            val imageUrl =
-                                                                "https://image.tmdb.org/t/p/w500${movie.poster_path}"
-                                                            Image(
-                                                                painter = rememberAsyncImagePainter(
-                                                                    imageUrl
-                                                                ),
-                                                                contentDescription = "Imagen de la película",
-                                                                modifier = Modifier.fillMaxSize(),
-                                                                contentScale = ContentScale.Crop
-                                                            )
-                                                        }
-                                                        Box(
-                                                            modifier = Modifier
-                                                                .fillMaxWidth()
-                                                                .background(
-                                                                    if (movie.esSerie) Color(
-                                                                        0xFF4DB6AC
-                                                                    )
-                                                                    else Color(0xFF42A5F5)
-                                                                )
-                                                                .padding(4.dp)
-                                                        ) {
-                                                            Text(
-                                                                text = movie.titulo,
-                                                                style = MaterialTheme.typography.bodyMedium.copy(
-                                                                    color = Color.White
-                                                                ),
-                                                                maxLines = 1,
-                                                                overflow = TextOverflow.Ellipsis,
-                                                                modifier = Modifier.padding(
-                                                                    horizontal = 8.dp
-                                                                )
-                                                            )
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                } else {
-                                    Text(
-                                        text = if (uid == currentUid) "You don't have favourite movies." else "He has no favourite movies",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = Color.White
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(20.dp))
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.End // Alinea "View More" a la derecha
-                            ) {
-                                Text(
-                                    text = "View More",
-                                    style = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
-                                    modifier = Modifier.clickable {
-                                        navController.navigate("favourite_movies/$uid/false") {
-                                            popUpTo("favourite_movies") {
-                                                inclusive = true
-                                            } // Elimina la pantalla de la pila
-                                            launchSingleTop = true // Evita duplicaciones
-                                        }
-                                    }
-                                )
-                            }
-                        }
-                        else{
-                            Text(
-                                text = "To view the favourite movies, you need an internet connection",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = Color.Gray
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(40.dp))
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            text = "Favourite TV shows",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = Color.White
-                        )
-                        Spacer(modifier = Modifier.height(15.dp))
-                        if (hayConexion) {
-                            if (favoriteSeries.isNotEmpty()) {
+                        val moviesToShow =
+                            if (hayConexion) favoriteMovies else favoriteMoviesOffline
+                        val moviesNotEmpty = moviesToShow.isNotEmpty()
+                        val noFavoritesMessageMovies =
+                            if (uid == currentUid) "You don't have favourite movies." else "He has no favourite movies"
+
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            if (moviesNotEmpty) {
                                 Row(
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    // Limitar a las 3 primeras series
-                                    favoriteSeries.take(3).forEach { series ->
+                                    // Limitar a las 3 primeras películas
+                                    moviesToShow.take(3).forEach { movie ->
                                         Column(
                                             horizontalAlignment = Alignment.CenterHorizontally,
                                             modifier = Modifier.width(120.dp)
@@ -525,7 +426,104 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                                                 modifier = Modifier
                                                     .fillMaxWidth()
                                                     .clickable {
-                                                        // Navegar a la pantalla de detalles de la serie
+                                                        navController.navigate("detalles/${movie.id}/false") {
+                                                            launchSingleTop = true
+                                                        }
+                                                    },
+                                                elevation = CardDefaults.cardElevation(4.dp)
+                                            ) {
+                                                Column {
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .fillMaxWidth()
+                                                            .height(160.dp)
+                                                    ) {
+                                                        Image(
+                                                            painter = rememberAsyncImagePainter("https://image.tmdb.org/t/p/w500${movie.poster_path}"),
+                                                            contentDescription = "Imagen de la película",
+                                                            modifier = Modifier.fillMaxSize(),
+                                                            contentScale = ContentScale.Crop
+                                                        )
+                                                    }
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .fillMaxWidth()
+                                                            .background(
+                                                                if (movie.esSerie) Color(
+                                                                    0xFF4DB6AC
+                                                                ) else Color(0xFF42A5F5)
+                                                            )
+                                                            .padding(4.dp)
+                                                    ) {
+                                                        Text(
+                                                            text = movie.titulo,
+                                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                                color = Color.White
+                                                            ),
+                                                            maxLines = 1,
+                                                            overflow = TextOverflow.Ellipsis,
+                                                            modifier = Modifier.padding(horizontal = 8.dp)
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            } else {
+                                Text(
+                                    text = noFavoritesMessageMovies,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color.Gray
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(20.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            Text(
+                                text = "View More",
+                                style = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
+                                modifier = Modifier.clickable {
+                                    navController.navigate("favourite_movies/$uid/false") {
+                                        popUpTo("favourite_movies") { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                }
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(40.dp))
+                        Text(
+                            text = "Favourite TV shows",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = Color.White
+                        )
+                        Spacer(modifier = Modifier.height(15.dp))
+                        val seriesToShow =
+                            if (hayConexion) favoriteSeries else favoriteSeriesOffline
+                        val seriesNotEmpty = seriesToShow.isNotEmpty()
+                        val noFavoritesMessageSeries =
+                            if (uid == currentUid) "You don't have favourite movies." else "He has no favourite movies"
+
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            if (seriesNotEmpty) {
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    seriesToShow.take(3).forEach { series ->
+                                        Column(
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            modifier = Modifier.width(120.dp)
+                                        ) {
+                                            Card(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .clickable {
                                                         navController.navigate("detalles/${series.id}/true") {
                                                             launchSingleTop = true
                                                         }
@@ -538,12 +536,8 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                                                             .fillMaxWidth()
                                                             .height(160.dp)
                                                     ) {
-                                                        val imageUrl =
-                                                            "https://image.tmdb.org/t/p/w500${series.poster_path}"
                                                         Image(
-                                                            painter = rememberAsyncImagePainter(
-                                                                imageUrl
-                                                            ),
+                                                            painter = rememberAsyncImagePainter("https://image.tmdb.org/t/p/w500${series.poster_path}"),
                                                             contentDescription = "Imagen de la serie",
                                                             modifier = Modifier.fillMaxSize(),
                                                             contentScale = ContentScale.Crop
@@ -572,90 +566,81 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                                 }
                             } else {
                                 Text(
-                                    text = if (uid == currentUid) "You don't have favourite TV shows" else "He has no favourite TV shows",
+                                    text = noFavoritesMessageSeries,
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = Color.White
+                                    color = Color.Gray
                                 )
                             }
+
                             Spacer(modifier = Modifier.height(20.dp))
+
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.End // Alinea "View More" a la derecha
+                                horizontalArrangement = Arrangement.End
                             ) {
                                 Text(
                                     text = "View More",
                                     style = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
                                     modifier = Modifier.clickable {
                                         navController.navigate("favourite_movies/$uid/true") {
-                                            popUpTo("favourite_movies") {
-                                                inclusive = true
-                                            } // Elimina la pantalla de la pila
-                                            launchSingleTop = true // Evita duplicaciones
+                                            popUpTo("favourite_movies") { inclusive = true }
+                                            launchSingleTop = true
                                         }
                                     }
                                 )
                             }
                         }
-                        else{
+
+
+                        Spacer(modifier = Modifier.height(40.dp))
+                        if (currentUser == null) {
                             Text(
-                                text = "To view the favourite TV shows, you need an internet connection",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = Color.Gray
+                                text = "You must log in to access this section.",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = Color.Red
                             )
-                        }
-                    }
+                        } else {
+                            if (!isComment) {
+                                Button(
+                                    onClick = {
+                                        // Cerrar sesión de Firebase
+                                        auth.signOut()
 
-                    Spacer(modifier = Modifier.height(40.dp))
-                    if (currentUser == null) {
-                        Text(
-                            text = "You must log in to access this section.",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = Color.Red
-                        )
-                    }
-                    else {
-                        if (!isComment) {
-                            Button(
-                                onClick = {
-                                    // Cerrar sesión de Firebase
-                                    auth.signOut()
+                                        // Eliminar la sesión guardada en SharedPreferences
+                                        usersViewModel.saveSession(
+                                            context,
+                                            false,
+                                            uid
+                                        )  // false indica que el usuario ya no está logueado
 
-                                    // Eliminar la sesión guardada en SharedPreferences
-                                    usersViewModel.saveSession(
-                                        context,
-                                        false,
-                                        uid
-                                    )  // false indica que el usuario ya no está logueado
+                                        // Mostrar un mensaje de sesión cerrada
+                                        Toast.makeText(
+                                            context,
+                                            "Session closed",
+                                            Toast.LENGTH_SHORT
+                                        )
+                                            .show()
 
-                                    // Mostrar un mensaje de sesión cerrada
-                                    Toast.makeText(context, "Session closed", Toast.LENGTH_SHORT)
-                                        .show()
-
-                                    // Navegar a la pantalla de login
-                                    navController.navigate("login")
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
-                            ) {
-                                Text(
-                                    text = "Log out",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = Color.White
-                                )
+                                        // Navegar a la pantalla de login
+                                        navController.navigate("login")
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                                ) {
+                                    Text(
+                                        text = "Log out",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = Color.White
+                                    )
+                                }
                             }
-                        }
 
+                        }
                     }
                 }
             }
         }
-    } else {
-        Text(
-            text = "No estás autenticado. Por favor, inicia sesión.",
-            style = MaterialTheme.typography.bodyLarge,
-            color = Color.Red
-        )
     }
 }

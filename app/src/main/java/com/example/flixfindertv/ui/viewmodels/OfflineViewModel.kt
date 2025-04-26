@@ -7,10 +7,16 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.flixfindertv.models.Peliculas
 import com.example.flixfindertv.room.database.AppDatabase
 import com.example.flixfindertv.room.entities.*
 import com.example.flixfindertv.room.repository.MovieRepository
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
 
 class OfflineViewModelFactory(private val application: Application) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -24,6 +30,7 @@ class OfflineViewModelFactory(private val application: Application) : ViewModelP
 class OfflineViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository: MovieRepository
+    val genresViewModel: GenresViewModel
 
     private var _listaPeliculasGenero1 = MutableLiveData<List<Genero1MovieEntity>>(emptyList())
     val listaPeliculasGenero1: LiveData<List<Genero1MovieEntity>> = _listaPeliculasGenero1
@@ -34,61 +41,63 @@ class OfflineViewModel(application: Application) : AndroidViewModel(application)
     private var _listaPeliculasProximas = MutableLiveData<List<ProximasMovieEntity>>(emptyList())
     val listaPeliculasProximas: LiveData<List<ProximasMovieEntity>> = _listaPeliculasProximas
 
-    private val _peliculasPopulares = MutableLiveData<List<PeliculasPopularesEntity>>(emptyList())
-    val peliculasPopulares: LiveData<List<PeliculasPopularesEntity>> = _peliculasPopulares
+    private val _peliculasPopulares = MutableLiveData<List<PeliculasEntity>>(emptyList())
+    val peliculasPopulares: LiveData<List<PeliculasEntity>> = _peliculasPopulares
 
-    private val _peliculasUltimosLanzamientos = MutableLiveData<List<UltimosLanzamientosMovieEntity>>(emptyList())
-    val peliculasUltimosLanzamientos: LiveData<List<UltimosLanzamientosMovieEntity>> = _peliculasUltimosLanzamientos
+    private val _peliculasUltimosLanzamientos = MutableLiveData<List<PeliculasEntity>>(emptyList())
+    val peliculasUltimosLanzamientos: LiveData<List<PeliculasEntity>> = _peliculasUltimosLanzamientos
 
-    private val _peliculasAccion = MutableLiveData<List<AccionMovieEntity>>(emptyList())
-    val peliculasAccion: LiveData<List<AccionMovieEntity>> = _peliculasAccion
+    private val _peliculasAccion = MutableLiveData<List<PeliculasEntity>>(emptyList())
+    val peliculasAccion: LiveData<List<PeliculasEntity>> = _peliculasAccion
 
-    private val _peliculasRomance = MutableLiveData<List<RomanceMovieEntity>>(emptyList())
-    val peliculasRomance: LiveData<List<RomanceMovieEntity>> = _peliculasRomance
+    private val _peliculasRomance = MutableLiveData<List<PeliculasEntity>>(emptyList())
+    val peliculasRomance: LiveData<List<PeliculasEntity>> = _peliculasRomance
 
-    private val _peliculasFamilia = MutableLiveData<List<FamiliaMovieEntity>>(emptyList())
-    val peliculasFamilia: LiveData<List<FamiliaMovieEntity>> = _peliculasFamilia
+    private val _peliculasFamilia = MutableLiveData<List<PeliculasEntity>>(emptyList())
+    val peliculasFamilia: LiveData<List<PeliculasEntity>> = _peliculasFamilia
 
-    private val _peliculasComedia = MutableLiveData<List<ComediaMovieEntity>>(emptyList())
-    val peliculasComedia: LiveData<List<ComediaMovieEntity>> = _peliculasComedia
+    private val _peliculasComedia = MutableLiveData<List<PeliculasEntity>>(emptyList())
+    val peliculasComedia: LiveData<List<PeliculasEntity>> = _peliculasComedia
 
-    private val _peliculasThriller = MutableLiveData<List<ThrillerMovieEntity>>(emptyList())
-    val peliculasThriller: LiveData<List<ThrillerMovieEntity>> = _peliculasThriller
+    private val _peliculasThriller = MutableLiveData<List<PeliculasEntity>>(emptyList())
+    val peliculasThriller: LiveData<List<PeliculasEntity>> = _peliculasThriller
 
-    private val _peliculasHorror = MutableLiveData<List<HorrorMovieEntity>>(emptyList())
-    val peliculasHorror: LiveData<List<HorrorMovieEntity>> = _peliculasHorror
+    private val _peliculasHorror = MutableLiveData<List<PeliculasEntity>>(emptyList())
+    val peliculasHorror: LiveData<List<PeliculasEntity>> = _peliculasHorror
 
-    private val _peliculasCienciaFiccion = MutableLiveData<List<CienciaFiccionMovieEntity>>(emptyList())
-    val peliculasCienciaFiccion: LiveData<List<CienciaFiccionMovieEntity>> = _peliculasCienciaFiccion
+    private val _peliculasCienciaFiccion = MutableLiveData<List<PeliculasEntity>>(emptyList())
+    val peliculasCienciaFiccion: LiveData<List<PeliculasEntity>> = _peliculasCienciaFiccion
 
-    private val _seriesPopulares = MutableLiveData<List<SeriesPopularesEntity>>(emptyList())
-    val seriesPopulares: LiveData<List<SeriesPopularesEntity>> = _seriesPopulares
+    private val _seriesPopulares = MutableLiveData<List<PeliculasEntity>>(emptyList())
+    val seriesPopulares: LiveData<List<PeliculasEntity>> = _seriesPopulares
 
-    private val _seriesUltimosLanzamientos = MutableLiveData<List<UltimosLanzamientosSeriesEntity>>(emptyList())
-    val seriesUltimosLanzamientos: LiveData<List<UltimosLanzamientosSeriesEntity>> = _seriesUltimosLanzamientos
+    private val _seriesUltimosLanzamientos = MutableLiveData<List<PeliculasEntity>>(emptyList())
+    val seriesUltimosLanzamientos: LiveData<List<PeliculasEntity>> = _seriesUltimosLanzamientos
 
-    private val _seriesAccionAventura = MutableLiveData<List<AccionAventuraSerieEntity>>(emptyList())
-    val seriesAccionAventura: LiveData<List<AccionAventuraSerieEntity>> = _seriesAccionAventura
+    private val _seriesAccionAventura = MutableLiveData<List<PeliculasEntity>>(emptyList())
+    val seriesAccionAventura: LiveData<List<PeliculasEntity>> = _seriesAccionAventura
 
-    private val _seriesAnimacion = MutableLiveData<List<AnimacionSerieEntity>>(emptyList())
-    val seriesAnimacion: LiveData<List<AnimacionSerieEntity>> = _seriesAnimacion
+    private val _seriesAnimacion = MutableLiveData<List<PeliculasEntity>>(emptyList())
+    val seriesAnimacion: LiveData<List<PeliculasEntity>> = _seriesAnimacion
 
-    private val _seriesComedia = MutableLiveData<List<ComediaSerieEntity>>(emptyList())
-    val seriesComedia: LiveData<List<ComediaSerieEntity>> = _seriesComedia
+    private val _seriesComedia = MutableLiveData<List<PeliculasEntity>>(emptyList())
+    val seriesComedia: LiveData<List<PeliculasEntity>> = _seriesComedia
 
-    private val _seriesCrimen = MutableLiveData<List<CrimenSerieEntity>>(emptyList())
-    val seriesCrimen: LiveData<List<CrimenSerieEntity>> = _seriesCrimen
+    private val _seriesCrimen = MutableLiveData<List<PeliculasEntity>>(emptyList())
+    val seriesCrimen: LiveData<List<PeliculasEntity>> = _seriesCrimen
 
-    private val _seriesDrama = MutableLiveData<List<DramaSerieEntity>>(emptyList())
-    val seriesDrama: LiveData<List<DramaSerieEntity>> = _seriesDrama
+    private val _seriesDrama = MutableLiveData<List<PeliculasEntity>>(emptyList())
+    val seriesDrama: LiveData<List<PeliculasEntity>> = _seriesDrama
 
-    private val _seriesFamilia = MutableLiveData<List<FamiliaSerieEntity>>(emptyList())
-    val seriesFamilia: LiveData<List<FamiliaSerieEntity>> = _seriesFamilia
+    private val _seriesFamilia = MutableLiveData<List<PeliculasEntity>>(emptyList())
+    val seriesFamilia: LiveData<List<PeliculasEntity>> = _seriesFamilia
 
-    private val _seriesKids = MutableLiveData<List<KidsSerieEntity>>(emptyList())
-    val seriesKids: LiveData<List<KidsSerieEntity>> = _seriesKids
+    private val _seriesKids = MutableLiveData<List<PeliculasEntity>>(emptyList())
+    val seriesKids: LiveData<List<PeliculasEntity>> = _seriesKids
 
     init {
+        genresViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(application)
+            .create(GenresViewModel::class.java)
         // Acceder al contexto de la aplicación
         val context = application.applicationContext
         // Inicializar el DAO usando el contexto
@@ -96,6 +105,11 @@ class OfflineViewModel(application: Application) : AndroidViewModel(application)
         // Crear el repositorio con el DAO
         repository = MovieRepository(dao)
     }
+
+    suspend fun getAllMovies(): List<PeliculasEntity> {
+        return repository.getAllMovies()
+    }
+
 
     fun limpiarPeliculasGenero1() {
         viewModelScope.launch {
@@ -115,111 +129,15 @@ class OfflineViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    fun limpiarPeliculasPopulares() {
+    fun limpiarPeliculas() {
         viewModelScope.launch {
-            repository.deleteAllMoviesPopulares()
+            repository.deleteAllMovies()
         }
     }
 
-    fun limpiarPeliculasUltimosLanzamientos() {
+    fun limpiarSeries() {
         viewModelScope.launch {
-            repository.deleteAllMoviesUltimosLanzamientos()
-        }
-    }
-
-    fun limpiarPeliculasAccion() {
-        viewModelScope.launch {
-            repository.deleteAllMoviesAccion()
-        }
-    }
-
-    fun limpiarPeliculasRomance() {
-        viewModelScope.launch {
-            repository.deleteAllMoviesRomance()
-        }
-    }
-
-    fun limpiarPeliculasFamilia() {
-        viewModelScope.launch {
-            repository.deleteAllMoviesFamilia()
-        }
-    }
-
-    fun limpiarPeliculasComedia() {
-        viewModelScope.launch {
-            repository.deleteAllMoviesComedia()
-        }
-    }
-
-    fun limpiarPeliculasThriller() {
-        viewModelScope.launch {
-            repository.deleteAllMoviesThriller()
-        }
-    }
-
-    fun limpiarPeliculasHorror() {
-        viewModelScope.launch {
-            repository.deleteAllMoviesHorror()
-        }
-    }
-
-    fun limpiarPeliculasCienciaFiccion() {
-        viewModelScope.launch {
-            repository.deleteAllMoviesCienciaFiccion()
-        }
-    }
-
-    fun limpiarSeriesPopulares() {
-        viewModelScope.launch {
-            repository.deleteAllSeriesPopulares()
-        }
-    }
-
-    fun limpiarSeriesUltimosLanzamientos() {
-        viewModelScope.launch {
-            repository.deleteAllSeriesUltimosLanzamientos()
-        }
-    }
-
-    fun limpiarSeriesAccionAventura() {
-        viewModelScope.launch {
-            repository.deleteAllSeriesAccionAventura()
-        }
-    }
-
-    fun limpiarSeriesAnimacion() {
-        viewModelScope.launch {
-            repository.deleteAllSeriesAnimacion()
-        }
-    }
-
-    fun limpiarSeriesComedia() {
-        viewModelScope.launch {
-            repository.deleteAllSeriesComedia()
-        }
-    }
-
-    fun limpiarSeriesCrimen() {
-        viewModelScope.launch {
-            repository.deleteAllSeriesCrimen()
-        }
-    }
-
-    fun limpiarSeriesDrama() {
-        viewModelScope.launch {
-            repository.deleteAllSeriesDrama()
-        }
-    }
-
-    fun limpiarSeriesFamilia() {
-        viewModelScope.launch {
-            repository.deleteAllSeriesFamilia()
-        }
-    }
-
-    fun limpiarSeriesKids() {
-        viewModelScope.launch {
-            repository.deleteAllSeriesKids()
+            repository.deleteAllSeries()
         }
     }
 
@@ -377,6 +295,7 @@ class OfflineViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+
     fun insertPeliculasGenero2(movies: List<Genero2MovieEntity>) {
         viewModelScope.launch {
             repository.insertMoviesGenero2(movies)
@@ -389,112 +308,294 @@ class OfflineViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    fun insertPeliculasPopulares(movies: List<PeliculasPopularesEntity>) {
+    fun insertPeliculasPopulares(movies: List<Peliculas>) {
         viewModelScope.launch {
-            repository.insertMoviesPopulares(movies)
+            // Convierte las películas a PeliculasEntity con los géneros
+            val peliculasConGeneros = movies.map { pelicula ->
+                suspendCancellableCoroutine { continuation ->
+                    genresViewModel.createPeliculaEntityWithGeneros(pelicula) { peliculaEntity ->
+                        continuation.resume(peliculaEntity)
+                    }
+                }
+            }
+
+            // Inserta las películas con los géneros en la base de datos
+            repository.insertMoviesPopulares(peliculasConGeneros)
         }
     }
 
-    fun insertPeliculasUltimosLanzamientos(movies: List<UltimosLanzamientosMovieEntity>) {
+    fun insertPeliculasUltimosLanzamientos(movies: List<Peliculas>) {
         viewModelScope.launch {
-            repository.insertMoviesUltimosLanzamientos(movies)
+            // Convierte las películas a PeliculasEntity con los géneros
+            val peliculasConGeneros = movies.map { pelicula ->
+                suspendCancellableCoroutine { continuation ->
+                    genresViewModel.createPeliculaEntityWithGeneros(pelicula) { peliculaEntity ->
+                        continuation.resume(peliculaEntity)
+                    }
+                }
+            }
+
+            // Inserta las películas con los géneros en la base de datos
+            repository.insertMoviesUltimosLanzamientos(peliculasConGeneros)
         }
     }
 
-    fun insertPeliculasAccion(movies: List<AccionMovieEntity>) {
+    fun insertPeliculasAccion(peliculas: List<Peliculas>) {
         viewModelScope.launch {
-            repository.insertMoviesAccion(movies)
+            // Convierte las películas a PeliculasEntity con los géneros
+            val peliculasConGeneros = peliculas.map { pelicula ->
+                suspendCancellableCoroutine { continuation ->
+                    genresViewModel.createPeliculaEntityWithGeneros(pelicula) { peliculaEntity ->
+                        continuation.resume(peliculaEntity)
+                    }
+                }
+            }
+
+            // Inserta las películas con los géneros en la base de datos
+            repository.insertMoviesAccion(peliculasConGeneros)
         }
     }
 
-    fun insertPeliculasRomance(movies: List<RomanceMovieEntity>) {
+    fun insertPeliculasRomance(peliculas: List<Peliculas>) {
         viewModelScope.launch {
-            repository.insertMoviesRomance(movies)
+            // Convierte las películas a PeliculasEntity antes de insertarlas
+            val peliculasConGeneros = peliculas.map { pelicula ->
+                suspendCancellableCoroutine { continuation ->
+                    genresViewModel.createPeliculaEntityWithGeneros(pelicula) { peliculaEntity ->
+                        continuation.resume(peliculaEntity)
+                    }
+                }
+            }
+
+            // Inserta las películas con los géneros en la base de datos
+            repository.insertMoviesRomance(peliculasConGeneros)
         }
     }
 
-    fun insertPeliculasFamilia(movies: List<FamiliaMovieEntity>) {
+    fun insertPeliculasFamilia(movies: List<Peliculas>) {
         viewModelScope.launch {
-            repository.insertMoviesFamilia(movies)
+            // Convierte las películas a PeliculasEntity antes de insertarlas
+            val peliculasConGeneros = movies.map { pelicula ->
+                suspendCancellableCoroutine { continuation ->
+                    genresViewModel.createPeliculaEntityWithGeneros(pelicula) { peliculaEntity ->
+                        continuation.resume(peliculaEntity)
+                    }
+                }
+            }
+
+            // Inserta las películas con los géneros en la base de datos
+            repository.insertMoviesFamilia(peliculasConGeneros)
         }
     }
 
-    fun insertPeliculasComedia(movies: List<ComediaMovieEntity>) {
+    fun insertPeliculasComedia(movies: List<Peliculas>) {
         viewModelScope.launch {
-            repository.insertMoviesComedia(movies)
+            // Convierte las películas a PeliculasEntity con géneros
+            val peliculasComedia = movies.map { pelicula ->
+                suspendCancellableCoroutine { continuation ->
+                    genresViewModel.createPeliculaEntityWithGeneros(pelicula) { peliculaEntity ->
+                        continuation.resume(peliculaEntity)
+                    }
+                }
+            }
+
+            // Inserta las películas de comedia en la base de datos
+            repository.insertMoviesComedia(peliculasComedia)
         }
     }
 
-    fun insertPeliculasThriller(movies: List<ThrillerMovieEntity>) {
+    fun insertPeliculasThriller(movies: List<Peliculas>) {
         viewModelScope.launch {
-            repository.insertMoviesThriller(movies)
+            // Convierte las películas a PeliculasEntity con géneros
+            val peliculasThriller = movies.map { pelicula ->
+                suspendCancellableCoroutine { continuation ->
+                    genresViewModel.createPeliculaEntityWithGeneros(pelicula) { peliculaEntity ->
+                        continuation.resume(peliculaEntity)
+                    }
+                }
+            }
+
+            // Inserta las películas de thriller en la base de datos
+            repository.insertMoviesThriller(peliculasThriller)
         }
     }
 
-    fun insertPeliculasHorror(movies: List<HorrorMovieEntity>) {
+    fun insertPeliculasHorror(movies: List<Peliculas>) {
         viewModelScope.launch {
-            repository.insertMoviesHorror(movies)
+            // Convierte las películas a PeliculasEntity con géneros
+            val peliculasHorror = movies.map { pelicula ->
+                suspendCancellableCoroutine { continuation ->
+                    genresViewModel.createPeliculaEntityWithGeneros(pelicula) { peliculaEntity ->
+                        continuation.resume(peliculaEntity)
+                    }
+                }
+            }
+
+            // Inserta las películas de horror en la base de datos
+            repository.insertMoviesHorror(peliculasHorror)
         }
     }
 
-    fun insertPeliculasCienciaFiccion(movies: List<CienciaFiccionMovieEntity>) {
+    fun insertPeliculasCienciaFiccion(movies: List<Peliculas>) {
         viewModelScope.launch {
-            repository.insertMoviesCienciaFiccion(movies)
+            // Convierte las películas a PeliculasEntity con géneros
+            val peliculasCienciaFiccion = movies.map { pelicula ->
+                suspendCancellableCoroutine { continuation ->
+                    genresViewModel.createPeliculaEntityWithGeneros(pelicula) { peliculaEntity ->
+                        continuation.resume(peliculaEntity)
+                    }
+                }
+            }
+
+            // Inserta las películas de ciencia ficción en la base de datos
+            repository.insertMoviesCienciaFiccion(peliculasCienciaFiccion)
         }
     }
 
-    // Métodos de inserción para series
-    fun insertSeriesPopulares(series: List<SeriesPopularesEntity>) {
+    // Métodos de inserción para series, pero usando PeliculasEntity
+    fun insertSeriesPopulares(series: List<Peliculas>) {
         viewModelScope.launch {
-            repository.insertSeriesPopulares(series)
+            // Convierte las series a PeliculasEntity con géneros
+            val peliculasPopulares = series.map { serie ->
+                suspendCancellableCoroutine { continuation ->
+                    genresViewModel.createPeliculaEntityWithGeneros(serie) { peliculaEntity ->
+                        continuation.resume(peliculaEntity)
+                    }
+                }
+            }
+
+            // Inserta las series populares en la base de datos usando PeliculasEntity
+            repository.insertSeriesPopulares(peliculasPopulares)
         }
     }
 
-    fun insertSeriesUltimosLanzamientos(series: List<UltimosLanzamientosSeriesEntity>) {
+    fun insertSeriesUltimosLanzamientos(series: List<Peliculas>) {
         viewModelScope.launch {
-            repository.insertSeriesUltimosLanzamientos(series)
+            // Convierte las series a PeliculasEntity con géneros
+            val peliculasUltimosLanzamientos = series.map { serie ->
+                suspendCancellableCoroutine { continuation ->
+                    genresViewModel.createPeliculaEntityWithGeneros(serie) { peliculaEntity ->
+                        continuation.resume(peliculaEntity)
+                    }
+                }
+            }
+
+            // Inserta las series de últimos lanzamientos en la base de datos usando PeliculasEntity
+            repository.insertSeriesUltimosLanzamientos(peliculasUltimosLanzamientos)
         }
     }
 
-    fun insertSeriesAccionAventura(series: List<AccionAventuraSerieEntity>) {
+    fun insertSeriesAccionAventura(series: List<Peliculas>) {
         viewModelScope.launch {
-            repository.insertSeriesAccionAventura(series)
+            // Convierte las series a PeliculasEntity con géneros
+            val peliculasAccionAventura = series.map { serie ->
+                suspendCancellableCoroutine { continuation ->
+                    genresViewModel.createPeliculaEntityWithGeneros(serie) { peliculaEntity ->
+                        continuation.resume(peliculaEntity)
+                    }
+                }
+            }
+
+            // Inserta las series de acción y aventura en la base de datos usando PeliculasEntity
+            repository.insertSeriesAccionAventura(peliculasAccionAventura)
         }
     }
 
-    fun insertSeriesAnimacion(series: List<AnimacionSerieEntity>) {
+    fun insertSeriesAnimacion(series: List<Peliculas>) {
         viewModelScope.launch {
-            repository.insertSeriesAnimacion(series)
+            // Convierte las series a PeliculasEntity con géneros
+            val peliculasAnimacion = series.map { serie ->
+                suspendCancellableCoroutine { continuation ->
+                    genresViewModel.createPeliculaEntityWithGeneros(serie) { peliculaEntity ->
+                        continuation.resume(peliculaEntity)
+                    }
+                }
+            }
+
+            // Inserta las series de animación en la base de datos usando PeliculasEntity
+            repository.insertSeriesAnimacion(peliculasAnimacion)
         }
     }
 
-    fun insertSeriesComedia(series: List<ComediaSerieEntity>) {
+    fun insertSeriesComedia(series: List<Peliculas>) {
         viewModelScope.launch {
-            repository.insertSeriesComedia(series)
+            // Convierte las series a PeliculasEntity con géneros
+            val peliculasComedia = series.map { serie ->
+                suspendCancellableCoroutine { continuation ->
+                    genresViewModel.createPeliculaEntityWithGeneros(serie) { peliculaEntity ->
+                        continuation.resume(peliculaEntity)
+                    }
+                }
+            }
+
+            // Inserta las series de comedia en la base de datos usando PeliculasEntity
+            repository.insertSeriesComedia(peliculasComedia)
         }
     }
 
-    fun insertSeriesCrimen(series: List<CrimenSerieEntity>) {
+    fun insertSeriesCrimen(series: List<Peliculas>) {
         viewModelScope.launch {
-            repository.insertSeriesCrimen(series)
+            // Convierte las series a PeliculasEntity con géneros
+            val peliculasCrimen = series.map { serie ->
+                suspendCancellableCoroutine { continuation ->
+                    genresViewModel.createPeliculaEntityWithGeneros(serie) { peliculaEntity ->
+                        continuation.resume(peliculaEntity)
+                    }
+                }
+            }
+
+            // Inserta las series de crimen en la base de datos usando PeliculasEntity
+            repository.insertSeriesCrimen(peliculasCrimen)
         }
     }
 
-    fun insertSeriesDrama(series: List<DramaSerieEntity>) {
+    fun insertSeriesDrama(series: List<Peliculas>) {
         viewModelScope.launch {
-            repository.insertSeriesDrama(series)
+            // Convierte las series a PeliculasEntity con géneros
+            val peliculasDrama = series.map { serie ->
+                suspendCancellableCoroutine { continuation ->
+                    genresViewModel.createPeliculaEntityWithGeneros(serie) { peliculaEntity ->
+                        continuation.resume(peliculaEntity)
+                    }
+                }
+            }
+
+            // Inserta las series de drama en la base de datos usando PeliculasEntity
+            repository.insertSeriesDrama(peliculasDrama)
         }
     }
 
-    fun insertSeriesFamilia(series: List<FamiliaSerieEntity>) {
+    fun insertSeriesFamilia(series: List<Peliculas>) {
         viewModelScope.launch {
-            repository.insertSeriesFamilia(series)
+            // Convierte las series a PeliculasEntity con géneros
+            val peliculasFamilia = series.map { serie ->
+                suspendCancellableCoroutine { continuation ->
+                    genresViewModel.createPeliculaEntityWithGeneros(serie) { peliculaEntity ->
+                        continuation.resume(peliculaEntity)
+                    }
+                }
+            }
+
+            // Inserta las series de familia en la base de datos usando PeliculasEntity
+            repository.insertSeriesFamilia(peliculasFamilia)
         }
     }
 
-    fun insertSeriesKids(series: List<KidsSerieEntity>) {
+    fun insertSeriesKids(series: List<Peliculas>) {
         viewModelScope.launch {
-            repository.insertSeriesKids(series)
+            // Convierte las series a PeliculasEntity con géneros
+            val peliculasKids = series.map { serie ->
+                suspendCancellableCoroutine { continuation ->
+                    genresViewModel.createPeliculaEntityWithGeneros(serie) { peliculaEntity ->
+                        continuation.resume(peliculaEntity)
+                    }
+                }
+            }
+
+            // Inserta las series para niños en la base de datos usando PeliculasEntity
+            repository.insertSeriesKids(peliculasKids)
         }
     }
+
+
 }

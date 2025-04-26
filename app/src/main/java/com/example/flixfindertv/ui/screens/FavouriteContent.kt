@@ -22,17 +22,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.material3.IconButton
 import androidx.compose.ui.res.painterResource
 import com.example.flixfindertv.R
+import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun FavouriteContent(navController: NavController, uid:String, esSerie: Boolean) {
     val userViewModel: UsersViewModel = viewModel()
-    // Estados para las películas y series favoritas
+    val conexionViewModel: ConexionViewModel = viewModel()
+
     val favoriteMovies = remember { mutableStateOf<List<Peliculas>>(emptyList()) }
     val favoriteSeries = remember { mutableStateOf<List<Peliculas>>(emptyList()) }
+    var favoriteMoviesOffline by remember { mutableStateOf<List<Peliculas>>(emptyList()) }
+    var favoriteSeriesOffline by remember { mutableStateOf<List<Peliculas>>(emptyList()) }
 
     // Estado para manejar errores
     val errorMessage = remember { mutableStateOf<String?>(null) }
+    val hayConexion by conexionViewModel.conexionEstablecida.collectAsState()
 
     // Obtener las películas favoritas
     LaunchedEffect(Unit) {
@@ -43,7 +48,7 @@ fun FavouriteContent(navController: NavController, uid:String, esSerie: Boolean)
             },
             onFailure = { exception ->
                 errorMessage.value = "Error getting favorite movies: ${exception.message}"
-            }
+            },
         )
 
         // Get favorite series
@@ -56,7 +61,12 @@ fun FavouriteContent(navController: NavController, uid:String, esSerie: Boolean)
                 errorMessage.value = "Error getting favorite series: ${exception.message}"
             }
         )
+        userViewModel.getPeliculasFavoritasDesdeRoom()
+        userViewModel.getSeriesFavoritasDesdeRoom()
     }
+
+    favoriteMoviesOffline = userViewModel.favouriteMovies.value
+    favoriteSeriesOffline = userViewModel.favouriteSeries.value
 
     // Mostrar mensaje de error si lo hay
     errorMessage.value?.let {
@@ -98,9 +108,10 @@ fun FavouriteContent(navController: NavController, uid:String, esSerie: Boolean)
             Spacer(modifier = Modifier.height(16.dp)) // Espacio entre el botón y las portadas
             // Mostrar las portadas de acuerdo al tipo (películas o series)
             if (esSerie) {
-                if (favoriteSeries.value.isNotEmpty()) {
+                val seriesToShow = if (hayConexion) favoriteSeries.value else favoriteSeriesOffline
+                if (seriesToShow.isNotEmpty()) {
                     Column(modifier = Modifier.fillMaxWidth()) {
-                        favoriteSeries.value.chunked(3).forEach { chunk ->
+                        seriesToShow.chunked(3).forEach { chunk ->
                             FlowRow(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 modifier = Modifier.fillMaxWidth()
@@ -128,11 +139,23 @@ fun FavouriteContent(navController: NavController, uid:String, esSerie: Boolean)
                             Spacer(modifier = Modifier.height(16.dp)) // Espacio entre las filas de las portadas
                         }
                     }
+                } else {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "You have no favorite series",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Gray
+                        )
+                    }
                 }
             } else {
-                if (favoriteMovies.value.isNotEmpty()) {
+                val moviesToShow = if (hayConexion) favoriteMovies.value else favoriteMoviesOffline
+                if (moviesToShow.isNotEmpty()) {
                     Column(modifier = Modifier.fillMaxWidth()) {
-                        favoriteMovies.value.chunked(3).forEach { chunk ->
+                        moviesToShow.chunked(3).forEach { chunk ->
                             FlowRow(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 modifier = Modifier.fillMaxWidth()
@@ -160,25 +183,7 @@ fun FavouriteContent(navController: NavController, uid:String, esSerie: Boolean)
                             Spacer(modifier = Modifier.height(16.dp)) // Espacio entre las filas de las portadas
                         }
                     }
-                }
-            }
-        }
-        Column {
-            if (esSerie) {
-                if (favoriteSeries.value.isEmpty()) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "You have no favorite series",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Gray
-                        )
-                    }
-                }
-            } else {
-                if (favoriteMovies.value.isEmpty()) {
+                } else {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
