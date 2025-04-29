@@ -62,7 +62,7 @@ class MovieRepository(private val movieDao: MovieDao) {
     suspend fun deleteAllSeries() = movieDao.deleteAllSeries()
 
 
-    // FAVORITOS
+    // ------------------------ FAVORITOS ------------------------
     suspend fun getSeriesFavoritas(): List<FavoritoEntity> {
         return movieDao.getSeriesFavoritas()
     }

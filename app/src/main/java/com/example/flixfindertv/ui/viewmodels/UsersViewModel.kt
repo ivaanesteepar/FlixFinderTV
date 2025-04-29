@@ -671,8 +671,4 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun getAllMoviesFromRoom(){
-    }
-
-
 }

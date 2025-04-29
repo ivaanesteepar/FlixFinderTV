@@ -39,17 +39,11 @@ fun ContentListExplore(
     listState: LazyListState,
 ) {
     val genresViewModel: GenresViewModel = viewModel()
-    val usersViewModel: UsersViewModel = viewModel()
     var movieGenre by remember { mutableStateOf("") }
+    val usersViewModel: UsersViewModel = viewModel()
 
-    // Extraer todos los `genre_ids` de la lista de películas
-    val allGenreIds = movies.flatMap { it.genre_ids }
 
-    // Obtener los nombres de los géneros correspondientes
-    genresViewModel.fetchGenreNames(allGenreIds) { genres ->
-        movieGenre = genres.joinToString(", ")
-    }
-
+    // LazyRow que contiene las películas
     LazyRow(
         modifier = Modifier
             .fillMaxWidth()
@@ -66,8 +60,15 @@ fun ContentListExplore(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
+                            // Obtener el género de la película seleccionada (movie.genre_ids)
+                            val selectedMovieGenres = movie.genre_ids
+                            genresViewModel.fetchGenreNames(selectedMovieGenres) { genres ->
+                                movieGenre = genres.joinToString(", ")
+                                usersViewModel.updateFavoriteGenre(movieGenre)
+                            }
+
+                            // Navegar a la pantalla de detalles de la película
                             navController.navigate("detalles/${movie.id}/${movie.esSerie}")
-                            usersViewModel.updateFavoriteGenre(movieGenre)
                         },
                     elevation = CardDefaults.cardElevation(4.dp)
                 ) {

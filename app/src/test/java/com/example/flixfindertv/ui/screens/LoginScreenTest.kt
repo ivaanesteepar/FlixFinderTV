@@ -1,7 +1,7 @@
 package com.example.flixfindertv.ui.screens
 
 import android.content.Context
-import com.example.flixfindertv.ui.viewmodels.UsersViewModel
+import com.example.flixfindertv.ui.viewmodels.UsersViewModelTest
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.AuthResult
@@ -18,7 +18,7 @@ import io.mockk.*
 @ExperimentalCoroutinesApi
 class LoginScreenTest {
 
-    private lateinit var usersViewModel: UsersViewModel
+    private lateinit var usersViewModel: UsersViewModelTest
     private lateinit var firebaseAuth: FirebaseAuth
     private lateinit var firebaseFirestore: FirebaseFirestore
     private lateinit var context: Context

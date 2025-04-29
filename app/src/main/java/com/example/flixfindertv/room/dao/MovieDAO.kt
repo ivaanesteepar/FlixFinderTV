@@ -6,7 +6,6 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.example.flixfindertv.room.entities.*
-import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface MovieDao {
@@ -48,7 +47,6 @@ interface MovieDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMoviesCienciaFiccion(movies: List<PeliculasEntity>)
 
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSeriesPopulares(movies: List<PeliculasEntity>)
 
@@ -89,7 +87,6 @@ interface MovieDao {
 
     @Query("SELECT * FROM peliculas_proximas")
     suspend fun getAllMoviesProximas(): List<ProximasMovieEntity>
-
 
     @Query("SELECT * FROM peliculas WHERE esSerie = 0 ORDER BY popularity DESC LIMIT 10")
     suspend fun getAllMoviesPopulares(): List<PeliculasEntity>
@@ -146,7 +143,6 @@ interface MovieDao {
     suspend fun getAllSeriesKids(): List<PeliculasEntity>
 
 
-
     // DELETES
     @Query("DELETE FROM peliculas_genero1")
     suspend fun deleteAllMoviesGenero1()
@@ -156,7 +152,6 @@ interface MovieDao {
 
     @Query("DELETE FROM peliculas_proximas")
     suspend fun deleteAllMoviesProximas()
-
 
     @Query("DELETE FROM peliculas WHERE esSerie = 0")
     suspend fun deleteAllMovies()

@@ -11,9 +11,6 @@ import com.example.flixfindertv.models.Peliculas
 import com.example.flixfindertv.room.database.AppDatabase
 import com.example.flixfindertv.room.entities.*
 import com.example.flixfindertv.room.repository.MovieRepository
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
@@ -29,7 +26,7 @@ class OfflineViewModelFactory(private val application: Application) : ViewModelP
 
 class OfflineViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repository: MovieRepository
+    val repository: MovieRepository
     val genresViewModel: GenresViewModel
 
     private var _listaPeliculasGenero1 = MutableLiveData<List<Genero1MovieEntity>>(emptyList())

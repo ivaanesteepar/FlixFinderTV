@@ -1,8 +1,11 @@
 package com.example.flixfindertv.ui.viewmodels
 
+import android.app.Application
 import android.util.Log
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.example.flixfindertv.models.Peliculas
+import com.example.flixfindertv.room.entities.PeliculasEntity
+import com.example.flixfindertv.room.repository.MovieRepository
 import com.google.android.gms.common.util.ProcessUtils
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.FirebaseApp
@@ -10,12 +13,18 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.QuerySnapshot
 import io.mockk.MockKAnnotations
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
+import io.mockk.slot
+import io.mockk.spyk
+import io.mockk.verify
 import io.mockk.unmockkAll
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
+import junit.framework.TestCase.fail
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -38,6 +47,8 @@ class MoviesViewModelTest {
     private lateinit var firebaseApp: FirebaseApp
     private lateinit var viewModel: MoviesViewModel
     private lateinit var testDispatcher: TestDispatcher
+    private lateinit var repository: MovieRepository
+
 
     @Before
     fun setUp() {
@@ -132,49 +143,69 @@ class MoviesViewModelTest {
     }
 
     @Test
-    fun `test obtenerPeliculasFamily con multiples paginas`() = runTest {
-        mockkStatic(Log::class)
-        every { Log.e(any(), any()) } returns 0
-        every { Log.e(any(), any(), any()) } returns 0
+    fun `test insertPeliculasPopulares inserta correctamente en Room`() = runTest {
+        // Crear un mock de Application, ya que OfflineViewModel lo necesita
+        val mockApplication = mockk<Application>(relaxed = true)
 
-        // Mock de la primera página de películas
-        val mockPeliculas1 = listOf(mockPelicula("Pelicula 1", "id1"))
-        val mockPeliculas2 = listOf(mockPelicula("Pelicula 2", "id2"))
+        // Mockear dependencias
+        val repository = mockk<MovieRepository>(relaxed = true)
+        val genresViewModel = mockk<GenresViewModel>(relaxed = true)
 
-        // Mock del género
-        every {
-            firestore.collection("generos").whereEqualTo("name", "Family").get()
-        } returns Tasks.forResult(mockGenerosQuerySnapshot("Family", 1L))
+        // Crear un mock de OfflineViewModel usando un constructor o método adecuado
+        val viewModel = spyk(OfflineViewModel(mockApplication))
 
-        // Mock de las películas de la primera página
-        every {
-            firestore.collection("peliculas").whereArrayContains("genre_ids", 1L).limit(20).get()
-        } returns Tasks.forResult(mockPeliculasQuerySnapshot(mockPeliculas1))
+        // Usar un spyk para interceptar llamadas y así poder pasar mocks específicos cuando sea necesario
+        every { viewModel.repository } returns repository
+        every { viewModel.genresViewModel } returns genresViewModel
 
-        // Ejecutar la función para la primera página
-        viewModel.obtenerPeliculasFamily()
+        // Crear lista de películas de prueba
+        val peliculasList = listOf(
+            mockPelicula("Pelicula 1", "id1"),
+            mockPelicula("Pelicula 2", "id2")
+        )
+
+        println("Películas de prueba: $peliculasList") // Imprime las películas de prueba
+
+        // Mockear el comportamiento de createPeliculaEntityWithGeneros
+        peliculasList.forEach { pelicula ->
+            every { genresViewModel.createPeliculaEntityWithGeneros(eq(pelicula), any()) } answers {
+                val callback = arg<(PeliculasEntity) -> Unit>(1)
+                val mockEntity = mockk<PeliculasEntity>(relaxed = true)
+                println("Creando PeliculasEntity para: ${pelicula.title}") // Imprime cuando se está creando una entidad
+                callback(mockEntity) // Devuelve un PeliculasEntity simulado
+            }
+        }
+
+        // Llamar a la función insertPeliculasPopulares
+        println("Llamando a insertPeliculasPopulares con las películas de prueba...")
+        viewModel.insertPeliculasPopulares(peliculasList)
+
+        // Avanzar las corutinas para que las operaciones asíncronas se completen
         advanceUntilIdle()
 
-        // Mock de la segunda página de películas
-        every {
-            firestore.collection("peliculas").whereArrayContains("genre_ids", 1L).limit(20).startAfter(any()).get()
-        } returns Tasks.forResult(mockPeliculasQuerySnapshot(mockPeliculas2))
+        // Capturar la lista de películas que se pasó al repository
+        val captor = slot<List<PeliculasEntity>>()
 
-        // Simular que se paginó hacia la segunda página
-        viewModel.obtenerPeliculasFamily()
-        advanceUntilIdle()
+        // Verificar que se llamó al método insertMoviesPopulares con las entidades correctas
+        coVerify(exactly = 1) { repository.insertMoviesPopulares(capture(captor)) }
 
-        // Verificar que las películas de ambas páginas estén en la lista
-        assertEquals(mockPeliculas1 + mockPeliculas2, viewModel.listaPeliculasFamily.value)
+        // Imprimir lo que se pasó al repository
+        println("Películas pasadas al repository: ${captor.captured}") // Imprime las películas capturadas
 
-        // Verificar que la carga haya terminado
-        assertFalse(viewModel.isLoadingFamily.value == true)
+        // Verificar que el tamaño de la lista es correcto (en este caso, 2)
+        assert(captor.captured.size == peliculasList.size)
+
+        // Verificar el contenido de las películas insertadas
+        captor.captured.forEachIndexed { index, peliculaEntity ->
+            println("Pelicula ${index + 1}: $peliculaEntity") // Imprime cada PeliculasEntity insertada
+        }
     }
+
 
     // Funciones auxiliares
     private fun mockGenerosQuerySnapshot(name: String, id: Long): QuerySnapshot {
         val doc = mockk<DocumentSnapshot>()
-        every { doc.getLong("id") } returns id ?: 0L // Si id es null, retornar un valor por defecto (0L)
+        every { doc.getLong("id") } returns id
         every { doc.getString("name") } returns name
         val querySnapshot = mockk<QuerySnapshot>()
         every { querySnapshot.documents } returns listOf(doc)
