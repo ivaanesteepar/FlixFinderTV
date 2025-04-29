@@ -3,9 +3,6 @@ package com.example.flixfindertv.ui.viewmodels
 import android.app.Application
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -19,7 +16,7 @@ import java.net.URL
 class ConexionViewModel(application: Application) : AndroidViewModel(application) {
 
     // Usamos StateFlow para poder observar la conexión
-    private val _conexionEstablecida = MutableStateFlow(false)  // true por defecto, asumimos conexión al inicio
+    private val _conexionEstablecida = MutableStateFlow(true)  // true por defecto, asumimos conexión al inicio
     val conexionEstablecida: StateFlow<Boolean> get() = _conexionEstablecida
 
     init {
@@ -33,7 +30,7 @@ class ConexionViewModel(application: Application) : AndroidViewModel(application
     suspend fun monitorConnection() {
         while (true) {
             checkConnection()
-            kotlinx.coroutines.delay(5000) // Revisa cada 5 segundos
+            kotlinx.coroutines.delay(1000) // Revisa cada 5 segundos
         }
     }
 
