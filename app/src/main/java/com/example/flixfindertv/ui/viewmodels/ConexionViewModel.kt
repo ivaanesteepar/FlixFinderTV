@@ -30,7 +30,7 @@ class ConexionViewModel(application: Application) : AndroidViewModel(application
     suspend fun monitorConnection() {
         while (true) {
             checkConnection()
-            kotlinx.coroutines.delay(1000) // Revisa cada 5 segundos
+            kotlinx.coroutines.delay(5000) // Revisa cada 5 segundos
         }
     }
 

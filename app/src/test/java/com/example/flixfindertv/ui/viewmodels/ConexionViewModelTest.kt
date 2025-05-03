@@ -73,10 +73,10 @@ class ConexionViewModelTest {
         }
 
         // Avanzamos el tiempo para simular el paso del tiempo
-        advanceTimeBy(1000) // Primer intervalo
+        advanceTimeBy(5000) // Primer intervalo
         coVerify(exactly = 1) { spyViewModel.checkConnection() }
 
-        advanceTimeBy(1000) // Segundo intervalo
+        advanceTimeBy(5000) // Segundo intervalo
         coVerify(exactly = 2) { spyViewModel.checkConnection() }
 
         // Limpieza

@@ -70,6 +70,9 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
     val commentText = remember { mutableStateOf("") }
     var usuarioNombre by remember { mutableStateOf("") }
 
+    println("el id de la pelicula/serie es: $id")
+    println("el titulo de la serie es: $movieTitle")
+
     val firestore = FirebaseFirestore.getInstance()
     val auth = FirebaseAuth.getInstance()
     val collectionName = if (esSerie) "series" else "peliculas"
