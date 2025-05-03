@@ -1,5 +1,7 @@
 package com.example.flixfindertv.ui.screens
 
+import android.app.Activity
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,6 +34,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
@@ -39,11 +42,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.NavHostController
 import com.example.flixfindertv.R
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
+
 
 @Composable
 fun LoginScreen(navController: NavController) {
@@ -53,17 +55,21 @@ fun LoginScreen(navController: NavController) {
     var isLoading by remember { mutableStateOf(false) }
     val usersViewModel: UsersViewModel = viewModel()
     val context = LocalContext.current
+    val activity = context as? Activity
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
+    BackHandler {
+        activity?.finish()
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
         Image(
             painter = painterResource(id = R.drawable.fondo_app),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
+
+        // Contenido principal centrado
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -78,8 +84,8 @@ fun LoginScreen(navController: NavController) {
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .size(100.dp) // Tamaño de la imagen (ajustable)
-                        .clip(CircleShape) // Hace que la imagen sea circular
+                        .size(100.dp)
+                        .clip(CircleShape)
                         .align(Alignment.CenterHorizontally)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
@@ -87,118 +93,108 @@ fun LoginScreen(navController: NavController) {
                     text = "Log In",
                     color = Color.White,
                     fontSize = 24.sp,
-                    modifier = Modifier.padding(bottom = 16.dp).align(Alignment.CenterHorizontally)
+                    modifier = Modifier
+                        .padding(bottom = 16.dp)
+                        .align(Alignment.CenterHorizontally)
                 )
-
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
                     label = { Text("Email", color = Color.White) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                    textStyle = LocalTextStyle.current.copy(color = Color.White), // Texto en blanco
+                    textStyle = LocalTextStyle.current.copy(color = Color.White),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color.White,    // Borde blanco al estar seleccionado
-                        unfocusedBorderColor = Color.White, // Borde blanco en estado normal
-                        focusedTextColor = Color.White,      // Texto en blanco
+                        focusedBorderColor = Color.White,
+                        unfocusedBorderColor = Color.White,
+                        focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White,
-                        cursorColor = Color.White,           // Cursor blanco
-                        focusedTrailingIconColor = Color.White, // Ícono de búsqueda blanco
+                        cursorColor = Color.White,
+                        focusedTrailingIconColor = Color.White,
                         unfocusedTrailingIconColor = Color.White
                     ),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
-
                 Spacer(modifier = Modifier.height(16.dp))
-
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
                     label = { Text("Password", color = Color.White) },
                     visualTransformation = PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    textStyle = LocalTextStyle.current.copy(color = Color.White), // Texto en blanco
+                    textStyle = LocalTextStyle.current.copy(color = Color.White),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color.White,    // Borde blanco al estar seleccionado
-                        unfocusedBorderColor = Color.White, // Borde blanco en estado normal
-                        focusedTextColor = Color.White,      // Texto en blanco
+                        focusedBorderColor = Color.White,
+                        unfocusedBorderColor = Color.White,
+                        focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White,
-                        cursorColor = Color.White,           // Cursor blanco
-                        focusedTrailingIconColor = Color.White, // Ícono de búsqueda blanco
+                        cursorColor = Color.White,
+                        focusedTrailingIconColor = Color.White,
                         unfocusedTrailingIconColor = Color.White
                     ),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
-
                 Spacer(modifier = Modifier.height(16.dp))
-
                 errorMessage?.let {
                     Text(text = it, color = Color.Red, fontSize = 14.sp)
                     Spacer(modifier = Modifier.height(8.dp))
                 }
-
                 Button(
                     onClick = {
-                        // Iniciar proceso de login
-                        isLoading = true // Activar estado de carga
+                        isLoading = true
                         usersViewModel.login(email.text, password.text,
                             onSuccess = { screen ->
-                                isLoading = false // Desactivar estado de carga
+                                isLoading = false
                                 navController.navigate(screen)
-                                usersViewModel.saveSession(context, true, FirebaseAuth.getInstance().currentUser?.uid ?: "")
+                                usersViewModel.saveSession(
+                                    context,
+                                    true,
+                                    FirebaseAuth.getInstance().currentUser?.uid ?: ""
+                                )
                             },
                             onFailure = { error ->
-                                isLoading = false // Desactivar estado de carga
+                                isLoading = false
                                 errorMessage = error
                             }
                         )
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .then(if (isLoading) Modifier.pointerInput(Unit) {} else Modifier),  // No hace nada si isLoading es true, evitando clicks
-
+                        .then(if (isLoading) Modifier.pointerInput(Unit) {} else Modifier),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Blue, // El botón siempre será azul
-                        contentColor = Color.White  // El texto siempre será blanco
+                        containerColor = Color.Blue,
+                        contentColor = Color.White
                     )
                 ) {
                     Text(text = if (isLoading) "Logging in..." else "Log in")
                 }
-
                 Spacer(modifier = Modifier.height(16.dp))
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.CenterHorizontally)  // Centra la Box dentro de su contenedor
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,  // Centra los elementos dentro de la Column
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        TextButton(
-                            onClick = { navController.navigate("forgot_password") },
-                            modifier = Modifier.align(Alignment.CenterHorizontally)  // Centra el TextButton horizontalmente
-                        ) {
-                            Text(
-                                "Forgot your password?",
-                                color = Color.White
-                            )
-                        }
-
-                        TextButton(
-                            onClick = { navController.navigate("register") },
-                            modifier = Modifier.align(Alignment.CenterHorizontally)  // Centra el TextButton horizontalmente
-                        ) {
-                            Text(
-                                "Don't have an account? Sign up",
-                                color = Color.White
-                            )
-                        }
+                    TextButton(onClick = { navController.navigate("forgot_password") }) {
+                        Text("Forgot your password?", color = Color.White)
+                    }
+                    TextButton(onClick = { navController.navigate("register") }) {
+                        Text("Don't have an account? Sign up", color = Color.White)
                     }
                 }
-
             }
         }
+
+        Text(
+            text = "App developed by Iván Estépar © 2025",
+            color = Color.LightGray,
+            fontSize = 15.sp,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 50.dp),
+            fontStyle = FontStyle.Italic,
+            lineHeight = 14.sp
+        )
+
     }
 }
+
