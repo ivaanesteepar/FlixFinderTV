@@ -9,11 +9,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.flixfindertv.models.Peliculas
 import com.example.flixfindertv.models.Usuarios
-import com.example.flixfindertv.room.dao.MovieDao
 import com.example.flixfindertv.room.database.AppDatabase
 import com.example.flixfindertv.room.entities.FavoritoEntity
 import com.example.flixfindertv.room.repository.MovieRepository
@@ -28,7 +26,7 @@ import kotlinx.coroutines.withContext
 class UsersViewModel(application: Application) : AndroidViewModel(application) {
 
     private val firestore = FirebaseFirestore.getInstance()
-    private val auth = FirebaseAuth.getInstance() // Obtén la instancia de FirebaseAuth para obtener el usuario actual
+    private val auth = FirebaseAuth.getInstance()
 
     // Estado para almacenar si la película o serie está en favoritos
     private val _isFavorite = mutableStateOf(false)
@@ -44,8 +42,29 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
     private val movieDao = AppDatabase.getDatabase(application).movieDao()
     private val movieRepository = MovieRepository(movieDao)
 
-    val favouriteMovies = mutableStateOf<List<Peliculas>>(emptyList()) // MutableState<List<Peliculas>>
-    val favouriteSeries = mutableStateOf<List<Peliculas>>(emptyList()) // MutableState<List<Peliculas>>
+    val favouriteMovies = mutableStateOf<List<Peliculas>>(emptyList())
+    val favouriteSeries = mutableStateOf<List<Peliculas>>(emptyList())
+
+    suspend fun obtenerClientId(): String? {
+        val db = FirebaseFirestore.getInstance()
+        return try {
+            // Accede al documento "imgur" en la colección "apiKeys"
+            val documentSnapshot = db.collection("apiKeys")
+                .document("imgur")
+                .get()
+                .await()
+
+            // Obtiene el valor del campo "client_id"
+            val clientId = documentSnapshot.getString("client_id")
+
+            // Devuelve el valor
+            clientId
+        } catch (e: Exception) {
+            // Manejo de errores en caso de que ocurra algún problema
+            println("Error al obtener el client_id: ${e.message}")
+            null
+        }
+    }
 
 
 
@@ -112,9 +131,6 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
             }
     }
 
-
-
-    // Función que maneja el inicio de sesión
     fun login(email: String, password: String, onSuccess: (String) -> Unit, onFailure: (String) -> Unit) {
         if (email.isEmpty() || password.isEmpty()) {
             onFailure("All fields are required")
@@ -153,7 +169,6 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
             }
     }
 
-
     // Guardar sesión con el UID del usuario
     fun saveSession(context: Context, isLoggedIn: Boolean, uid: String?) {
         val sharedPreferences = context.getSharedPreferences("user_session", Context.MODE_PRIVATE)
@@ -177,7 +192,6 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
         }
         return false
     }
-
 
     fun updateFavoriteGenre(movieGenre: String) {
         val firstGenre = movieGenre.split(",").first().trim()
@@ -360,12 +374,9 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
             .get()
             .addOnSuccessListener { documents ->
                 val userId = documents.documents.firstOrNull()?.getString("uid") ?: "ID_DESCONOCIDO"
-                println("prueba4")
 
                 if (!userId.isNullOrEmpty()) {  // Asegurar que no es nulo ni vacío
                     _userIdComment.value = userId
-                    println("el id que se ha seleccionado es: ${_userIdComment.value}")
-                    println("entonces el id es: ${userIdComment.value}")
                 } else {
                     println("El campo 'id' no está presente o es nulo.")
                 }
@@ -383,12 +394,9 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
             .get()
             .addOnSuccessListener { documents ->
                 val userName = documents.documents.firstOrNull()?.getString("nombre") ?: "Nombre Desconocido"
-                println("prueba4")
 
                 if (!userName.isNullOrEmpty()) {  // Asegurar que no es nulo ni vacío
                     _userNameComment.value = userName
-                    println("El nombre que se ha seleccionado es: ${_userNameComment.value}")
-                    println("Entonces el nombre es: ${userNameComment.value}")
                 } else {
                     println("El campo 'nombre' no está presente o es nulo.")
                 }
@@ -397,8 +405,6 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
                 println("Error al obtener el usuario")
             }
     }
-
-
 
     suspend fun getUserAdminStatus(userId: String, callback: (Boolean) -> Unit) {
         // Obtener una referencia a la colección de usuarios
@@ -426,8 +432,6 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
             callback(false)
         }
     }
-
-
 
     // Función para verificar si una película o serie está en favoritos
     fun checkIfFavorite(id: String, isSerie: Boolean) {
@@ -458,13 +462,7 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun saveToFavorites(
-        context: Context,
-        id: String,
-        title: String,
-        posterUrl: String,
-        isSerie: Boolean
-    ) {
+    fun saveToFavorites(context: Context, id: String, title: String, posterUrl: String, isSerie: Boolean) {
         val currentUser = auth.currentUser
         if (currentUser != null) {
             val userId = currentUser.uid
@@ -512,9 +510,9 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
         CoroutineScope(Dispatchers.IO).launch {
             // Aquí llamas al repositorio para obtener las películas/series favoritas
             val currentFavorites = if (pelicula.esSerie) {
-                movieRepository.getSeriesFavoritas()  // Llamas al repositorio
+                movieRepository.getSeriesFavoritas()
             } else {
-                movieRepository.getPeliculasFavoritas()  // Llamas al repositorio
+                movieRepository.getPeliculasFavoritas()
             }
 
             if (currentFavorites.any { it.pelicula.id == pelicula.id }) return@launch
@@ -531,7 +529,7 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
             }
 
             val favorito = FavoritoEntity(idMovieEntity = pelicula.id, pelicula = pelicula)
-            movieRepository.insertFavorito(favorito)  // Llamas al repositorio para insertar
+            movieRepository.insertFavorito(favorito)
         }
     }
 
@@ -545,7 +543,6 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
-
 
     // Función para eliminar una película o serie de los favoritos
     fun removeFromFavorites(id: String, isSerie: Boolean) {
@@ -605,13 +602,8 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-
     // Función para obtener las series favoritas
-    fun getFavoriteSeries(
-        uid: String,
-        onSuccess: (List<Peliculas>) -> Unit,
-        onFailure: (Exception) -> Unit
-    ) {
+    fun getFavoriteSeries(uid: String, onSuccess: (List<Peliculas>) -> Unit, onFailure: (Exception) -> Unit) {
         val favoritesCollection = firestore.collection("usuarios").document(uid)
 
         // Obtener las series favoritas del usuario
@@ -628,7 +620,6 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
                         esSerie = movieData["esSerie"] as? Boolean ?: true
                     )
                 }
-
                 onSuccess(seriesFavoritas)
             } else {
                 onSuccess(emptyList()) // Si no existen favoritos, devolvemos una lista vacía
@@ -653,7 +644,6 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
             favouriteMovies.value = peliculas // Usamos .value para modificar el estado de la UI
         }
     }
-
 
     // Función para obtener las series favoritas desde Room
     fun getSeriesFavoritasDesdeRoom() {

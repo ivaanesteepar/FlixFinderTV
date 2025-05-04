@@ -34,6 +34,7 @@ import com.example.flixfindertv.ui.viewmodels.OfflineViewModel
 import com.example.flixfindertv.ui.viewmodels.OfflineViewModelFactory
 import com.example.flixfindertv.utils.BottomNavigationBar
 
+// Pantalla que muestra recomendaciones al usuario según sus gustos
 @Composable
 fun HomeScreen(
     navController: NavController,
@@ -78,8 +79,6 @@ fun HomeScreen(
 
     val prevGenero1 = remember { mutableStateOf(genresViewModel.nombreGenero1.value) }
     val prevGenero2 = remember { mutableStateOf(genresViewModel.nombreGenero2.value) }
-
-    println("MI ID ACTUAL ES: $uid")
 
     LaunchedEffect(Unit) {
         moviesViewModel.obtenerContenidoProximo()

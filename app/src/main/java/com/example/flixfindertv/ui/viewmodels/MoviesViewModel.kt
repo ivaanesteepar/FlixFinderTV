@@ -18,10 +18,9 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-
 // ViewModel que maneja la obtención de las peliculas/series
 class MoviesViewModel : ViewModel() {
-    private val db = FirebaseFirestore.getInstance()  // Instancia de Firestore
+    private val db = FirebaseFirestore.getInstance()
 
     private var _listaPeliculas = MutableLiveData<List<Peliculas>>(emptyList())
     val listaPeliculas: LiveData<List<Peliculas>> = _listaPeliculas
@@ -78,25 +77,21 @@ class MoviesViewModel : ViewModel() {
     private var _isLoadingScienceFiction = MutableLiveData<Boolean>(false)
     val isLoadingScienceFiction: LiveData<Boolean> = _isLoadingScienceFiction
 
-    private val _isLoadingSimilar = MutableLiveData(false)
-    val isLoadingSimilar: LiveData<Boolean> = _isLoadingSimilar
-
     private val _isLoadingRecientes = MutableLiveData(false)
-    val isLoadingRecientes: LiveData<Boolean> = _isLoadingSimilar
+    val isLoadingRecientes: LiveData<Boolean> = _isLoadingRecientes
 
     private val _isLoadingProximas = MutableLiveData(false)
     val isLoadingProximas: LiveData<Boolean> = _isLoadingProximas
 
-    var lastVisiblePeliculas: DocumentSnapshot? = null
-    var lastVisibleAction: DocumentSnapshot? = null
-    var lastVisibleRomance: DocumentSnapshot? = null
-    var lastVisibleFamily: DocumentSnapshot? = null
-    var lastVisibleComedy: DocumentSnapshot? = null
-    var lastVisibleThriller: DocumentSnapshot? = null
-    var lastVisibleHorror: DocumentSnapshot? = null
-    var lastVisibleScienceFiction: DocumentSnapshot? = null
-    var lastVisibleRecientes: DocumentSnapshot? = null
-    var lastVisibleProximas: DocumentSnapshot? = null
+    private var lastVisiblePeliculas: DocumentSnapshot? = null
+    private var lastVisibleAction: DocumentSnapshot? = null
+    private var lastVisibleRomance: DocumentSnapshot? = null
+    private var lastVisibleFamily: DocumentSnapshot? = null
+    private var lastVisibleComedy: DocumentSnapshot? = null
+    private var lastVisibleThriller: DocumentSnapshot? = null
+    private var lastVisibleHorror: DocumentSnapshot? = null
+    private var lastVisibleScienceFiction: DocumentSnapshot? = null
+    private var lastVisibleRecientes: DocumentSnapshot? = null
 
     private val _voteAverage = MutableStateFlow(0.0)
     val voteAverage = _voteAverage.asStateFlow()
@@ -107,16 +102,6 @@ class MoviesViewModel : ViewModel() {
     private val _voteCount = MutableStateFlow("")
     val voteCount = _voteCount.asStateFlow()
 
-    suspend fun getTmdbApiKey(): String {
-        return try {
-            val db = FirebaseFirestore.getInstance()
-            val document = db.collection("apiKeys").document("tmdbApiKey").get().await()
-            document.getString("key") ?: "" // Si es null, devolvemos una cadena vacía
-        } catch (e: Exception) {
-            e.printStackTrace()
-            "" // En caso de error, devolvemos una cadena vacía en lugar de null
-        }
-    }
 
     fun incrementUserCommentCount(userId: String) {
         val userRef = FirebaseFirestore.getInstance().collection("usuarios").document(userId)
@@ -269,7 +254,6 @@ class MoviesViewModel : ViewModel() {
             }
     }
 
-
     private fun getPopularityFromFirebase(movieId: String, callback: (Double?) -> Unit) {
         val db = FirebaseFirestore.getInstance()
 
@@ -310,7 +294,6 @@ class MoviesViewModel : ViewModel() {
                 callback(null)  // Pasamos null en caso de error en peliculas
             }
     }
-
 
     fun calculateNewVoteAverage(peliculaId: String, newRating: Int, callback: (String?) -> Unit) {
         // Primero obtenemos el contador de votos
@@ -515,9 +498,6 @@ class MoviesViewModel : ViewModel() {
 
                 val resultado = consulta.get().await()
 
-                // Verificar la cantidad de resultados obtenidos
-                Log.d("Debug", "Total movies retrieved: ${resultado.size()}")
-
                 for (documento in resultado.documents) {
                     val pelicula = documento.toObject(Peliculas::class.java)
                     pelicula?.let {
@@ -571,8 +551,6 @@ class MoviesViewModel : ViewModel() {
                 val peliculasResult = peliculasTask.await()
                 val seriesResult = seriesTask.await()
 
-                Log.d("Debug", "Total series obtenidas: ${seriesResult.size()}")
-
                 // Convertir documentos a objetos de tipo Peliculas (ya que las series también tienen el mismo modelo)
                 val peliculas = peliculasResult.documents.mapNotNull { doc ->
                     doc.toObject(Peliculas::class.java)
@@ -594,12 +572,6 @@ class MoviesViewModel : ViewModel() {
                 listaProximos.sortBy {
                     // Usamos release_date si es una película, sino usamos release_date_series para series
                     it.release_date ?: it.release_date_series
-                }
-
-                // Log para verificar
-                Log.d("Debug", "Total contenido próximo: ${listaProximos.size}")
-                listaProximos.forEach {
-                    Log.d("Debug", "→ ${it.titulo} | ${it.release_date ?: it.release_date_series}")
                 }
 
                 _listaPeliculasProximas.postValue(listaProximos)

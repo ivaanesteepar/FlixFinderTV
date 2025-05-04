@@ -16,7 +16,7 @@ class Converters {
 
     @TypeConverter
     fun fromListStringToString(value: List<String>): String {
-        return value.joinToString("|||") // Usamos un separador que probablemente no esté en los comentarios
+        return value.joinToString("|||")
     }
 
     @TypeConverter

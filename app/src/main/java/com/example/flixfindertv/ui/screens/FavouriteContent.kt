@@ -24,6 +24,7 @@ import androidx.compose.ui.res.painterResource
 import com.example.flixfindertv.R
 import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 
+// Pantalla que muestra el contenido favorito del usuario, ya sean películas o series
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun FavouriteContent(navController: NavController, uid:String, esSerie: Boolean) {
@@ -51,7 +52,6 @@ fun FavouriteContent(navController: NavController, uid:String, esSerie: Boolean)
             },
         )
 
-        // Get favorite series
         userViewModel.getFavoriteSeries(
             uid,
             onSuccess = { series ->

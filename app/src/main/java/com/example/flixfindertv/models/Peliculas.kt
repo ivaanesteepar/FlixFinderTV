@@ -2,9 +2,9 @@ package com.example.flixfindertv.models
 
 import androidx.room.PrimaryKey
 
-
+// Clase que representa una película o serie con sus datos
 data class Peliculas(
-    @PrimaryKey val id: String = "",  // ID de Firebase
+    @PrimaryKey val id: String = "",
     val title: String? = null,
     val name: String? = null,
     val overview: String = "",
@@ -23,7 +23,7 @@ data class Peliculas(
     val status: String = "",
     val trailer: String? = null,
     val director_name: String? = "",
-    val director_photo_url: String? = ""  // Asignar un valor por defecto vacío
+    val director_photo_url: String? = ""
 ) {
     val titulo: String
         get() = title ?: name ?: "Título desconocido"

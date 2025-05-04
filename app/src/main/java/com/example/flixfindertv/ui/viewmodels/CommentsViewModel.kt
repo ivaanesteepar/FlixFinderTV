@@ -16,13 +16,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.util.UUID
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 class CommentsViewModel : ViewModel() {
     private val firestore = FirebaseFirestore.getInstance()
 
-    // Cambiar mutableStateOf a MutableStateFlow
     private val _comments = MutableStateFlow<List<Comentarios>>(emptyList())
     val comments: StateFlow<List<Comentarios>> get() = _comments
 
@@ -226,7 +223,6 @@ class CommentsViewModel : ViewModel() {
         }
     }
 
-
     suspend fun obtenerNombreLikes(peliculaId: String, comentarioId: String): List<String> {
         val db = FirebaseFirestore.getInstance()
 
@@ -343,7 +339,6 @@ class CommentsViewModel : ViewModel() {
         }
     }
 
-
     // Función para escuchar los cambios de 'likes' en un comentario específico
     fun listenToComentarioLikes(peliculaId: String, comentarioId: String, onLikesChanged: (Int) -> Unit): ListenerRegistration {
         return firestore.collection("comentarios") // Colección de comentarios
@@ -352,7 +347,6 @@ class CommentsViewModel : ViewModel() {
             .document(comentarioId) // Documento correspondiente al comentario
             .addSnapshotListener { documentSnapshot, exception ->
                 if (exception != null || documentSnapshot == null) {
-                    // Maneja el error si es necesario
                     return@addSnapshotListener
                 }
 
@@ -375,7 +369,6 @@ class CommentsViewModel : ViewModel() {
             .document(comentarioId) // Documento correspondiente al comentario
             .addSnapshotListener { documentSnapshot, exception ->
                 if (exception != null || documentSnapshot == null) {
-                    // Maneja el error si es necesario
                     return@addSnapshotListener
                 }
 
@@ -390,7 +383,6 @@ class CommentsViewModel : ViewModel() {
                 onLikesChanged(likes.size) // Pasa el número de likes al callback
             }
     }
-
 
     // Función para obtener los comentarios de la subcolección 'subcoleccionComentarios' dentro de un documento 'idContenido'
     fun getComments(idContenido: String) {
@@ -470,7 +462,6 @@ class CommentsViewModel : ViewModel() {
             }
     }
 
-
     // Función para agregar un nuevo comentario a la subcolección 'subcoleccionComentarios' dentro de un documento 'idContenido'
     fun sendComment(idContenido: String, usuarioNombre: String, puntuacion: Int, comentario: String, reviewed: Boolean) {
         val newComment = Comentarios(
@@ -498,7 +489,6 @@ class CommentsViewModel : ViewModel() {
             }
     }
 
-
     // Función para obtener la URL de la foto de perfil de un usuario
     fun getUserProfilePhoto(usuarioNombre: String, onProfilePhotoFetched: (String?) -> Unit) {
         viewModelScope.launch {
@@ -522,32 +512,6 @@ class CommentsViewModel : ViewModel() {
                 }
         }
     }
-
-    // Función para obtener la URL de la foto de perfil de un usuario
-    suspend fun getReviewField(idContenido: String, comentarioId: String): Boolean? {
-        val firestore = FirebaseFirestore.getInstance()
-
-        // Usamos suspendCoroutine para convertir el callback en una función suspendida
-        return suspendCoroutine { continuation ->
-            firestore.collection("comentarios")
-                .document(idContenido)
-                .collection("comentarios")
-                .document(comentarioId)
-                .get()
-                .addOnSuccessListener { document ->
-                    if (document.exists()) {
-                        val revision = document.getBoolean("revision")  // Obtener el valor del campo 'revision'
-                        continuation.resume(revision)  // Pasamos el resultado al continuation
-                    } else {
-                        continuation.resume(null)  // Si el documento no existe, devolvemos null
-                    }
-                }
-                .addOnFailureListener { exception ->
-                    continuation.resume(null)  // En caso de error, devolvemos null
-                }
-        }
-    }
-
 
     // Función para agregar una nueva respuesta a un comentario
     fun sendResponse(idContenido: String, comentarioId: String, usuarioNombre: String, respuesta: String, reviewed: Boolean) {

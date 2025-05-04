@@ -62,6 +62,7 @@ import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 import com.example.flixfindertv.utils.BottomNavigationBar
 
+// Pantalla que muestra el perfil del usuario
 @Composable
 fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean) {
     val auth = FirebaseAuth.getInstance()
@@ -96,8 +97,6 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
     if (currentUser != null) {
         val currentUid = currentUser.uid
 
-        println("el uid en perfil es $uid")
-
         // Recuperar los datos del usuario desde Firestore
         LaunchedEffect(uid) {
             firestore.collection("usuarios")
@@ -131,7 +130,6 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
 
         // Llamada inicial para verificar si el usuario ya sigue al otro
         LaunchedEffect(uid) {
-            // Asegúrate de consultar si el usuario ya sigue al otro cuando se carga la pantalla
             usersViewModel.checkIfFollowing(currentUid, uid) { following ->
                 isFollowing.value = following
             }
@@ -390,8 +388,8 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                             )
                         ) {
                             Text(
-                                text = if (isFollowing.value) "Following" else "Follow", // Change text based on the state
-                                color = Color.White // Change text color
+                                text = if (isFollowing.value) "Following" else "Follow",
+                                color = Color.White
                             )
                         }
                     }
@@ -618,8 +616,7 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                                             context,
                                             "Session closed",
                                             Toast.LENGTH_SHORT
-                                        )
-                                            .show()
+                                        ).show()
 
                                         // Navegar a la pantalla de login
                                         navController.navigate("login")
@@ -636,7 +633,6 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                                     )
                                 }
                             }
-
                         }
                     }
                 }

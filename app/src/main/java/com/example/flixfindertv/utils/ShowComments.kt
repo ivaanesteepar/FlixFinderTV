@@ -15,7 +15,6 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Publish
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -26,9 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -49,13 +46,9 @@ import com.example.flixfindertv.ui.viewmodels.CommentsViewModel
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.Navigation
-import androidx.navigation.compose.rememberNavController
 import com.example.flixfindertv.models.Respuestas
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
-
 
 @Composable
 fun ShowComments(navController: NavController, commentsList: List<Comentarios>, viewModel: CommentsViewModel) {
@@ -66,7 +59,7 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
     val showDialogState = remember { mutableStateOf<Map<String, Boolean>>(emptyMap()) }
     val showAllResponsesState = remember { mutableStateOf<Map<String, Boolean>>(emptyMap()) }
     val commentsLikesState = remember { mutableStateOf<Map<String, Int>>(emptyMap()) }
-    val likedCommentsState = remember { mutableStateOf<Map<String, Boolean>>(emptyMap()) }  // Mapa para manejar el estado de "like" por comentario
+    val likedCommentsState = remember { mutableStateOf<Map<String, Boolean>>(emptyMap()) }
     val responsesLikesState = remember { mutableStateOf<Map<String, Int>>(emptyMap()) }
     val likedCommentsStateResponse = remember { mutableStateOf<Map<String, Boolean>>(emptyMap()) }
     val context = LocalContext.current // Para mostrar el Toast
@@ -75,13 +68,11 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
     val respuestasParaMostrar = remember { mutableStateOf<MutableList<Respuestas>>(mutableListOf()) }
     val comment = true
 
-    // Usamos LaunchedEffect para actualizar mutableCommentsList y respuestasParaMostrar cuando commentsList cambia
+
     LaunchedEffect(commentsList) {
-        println("obtencion de comentarios2")
         mutableCommentsList.value = commentsList
     }
 
-    println("El userId en showcomments es: $userId")
     // Llamamos a obtenerNombreUsuario y getUserAdminStatus cuando el userId cambia
     LaunchedEffect(userId) {
         if (userId != null) {
@@ -90,10 +81,7 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
             usersViewModel.getUserAdminStatus(userId) { isAdmin -> isUserAdmin = isAdmin }
         }
     }
-
     val nombreActual = usersViewModel.userNameComment.value
-
-    println("el nombre de usuario en showComments es: $nombreUsuario")
 
     Column(modifier = Modifier.fillMaxWidth()) {
         // Verificar si no hay comentarios
@@ -148,32 +136,19 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                     if (nombreUsuario != null) {
                         val nombreLikes = viewModel.obtenerNombreLikes(comentario.idContenido, comentario.id)
 
-                        // Imprimir los nombres de los usuarios que han dado like
-                        println("Usuarios que han dado like al comentario ${comentario.id}: $nombreLikes")
-
-                        // Imprimir el nombre actual para depuración
-                        println("nombreActual: $nombreUsuario")
-
                         // Verificamos si el nombre del usuario está en los likes
                         isLiked = nombreLikes.contains(nombreUsuario)
-
-                        // Imprimir si el usuario actual ha dado like
-                        println("¿El usuario actual ha dado like al comentario? $isLiked")
 
                         // Actualizamos el estado de "like" para este comentario
                         val updatedLikedComments = likedCommentsState.value.toMutableMap().apply {
                             put(comentario.id, isLiked)
                         }
                         likedCommentsState.value = updatedLikedComments
-
-                        // Imprimir el estado actualizado de likedCommentsState
-                        println("Estado de likedCommentsState después de actualizar: ${likedCommentsState.value}")
                     } else {
                         // Si nombreUsuario es null, no hacemos nada
                         println("nombreUsuario es null, esperando actualización")
                     }
                 }
-
 
 
 
@@ -518,8 +493,6 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                                                 onSuccess = {
                                                     // Actualizamos la UI y ocultamos el dialogo de publicación
                                                     showPublishDialog.value = false
-                                                    // Imprimir el nuevo valor de 'revision' después de la actualización
-                                                    println("Revisión del comentario publicado (actualizado): ${comentario.revision}")
                                                 },
                                                 onFailure = { exception ->
                                                     println("Error publicando el comentario: ${exception.message}")
@@ -881,7 +854,6 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                                                         }
                                                     )
                                                 }
-
                                             }
                                         }
                                     }
@@ -918,7 +890,6 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                                 }
                             }
                         }
-
                     }
                 }
                 Spacer(modifier = Modifier.height(16.dp))

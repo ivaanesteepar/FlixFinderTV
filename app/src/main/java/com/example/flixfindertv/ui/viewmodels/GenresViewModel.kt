@@ -15,7 +15,7 @@ import kotlinx.coroutines.tasks.await
 
 
 class GenresViewModel : ViewModel() {
-    var db = FirebaseFirestore.getInstance()
+    private var db = FirebaseFirestore.getInstance()
 
     val nombreGenero1 = mutableStateOf("")
     val nombreGenero2 = mutableStateOf("")
@@ -34,11 +34,11 @@ class GenresViewModel : ViewModel() {
     private val _isLoadingGenero2 = MutableLiveData(false)
     val isLoadingGenero2: LiveData<Boolean> get() = _isLoadingGenero2
 
-    var lastVisibleGenero1: DocumentSnapshot? = null
-    var lastVisibleGenero2: DocumentSnapshot? = null
+    private var lastVisibleGenero1: DocumentSnapshot? = null
+    private var lastVisibleGenero2: DocumentSnapshot? = null
 
-    var prevGenero1 = mutableStateOf<String?>(null)
-    var prevGenero2 = mutableStateOf<String?>(null)
+    private var prevGenero1 = mutableStateOf<String?>(null)
+    private var prevGenero2 = mutableStateOf<String?>(null)
 
 
     fun limpiarPeliculasGenero1() {
@@ -48,7 +48,6 @@ class GenresViewModel : ViewModel() {
     fun limpiarPeliculasGenero2() {
         _peliculasGenero2.postValue(emptyList()) // Vacía la lista del segundo género
     }
-
 
     fun fetchGenreNames(genreIds: List<Int>, onResult: (List<String>) -> Unit) {
         val firestore = FirebaseFirestore.getInstance()
@@ -164,7 +163,7 @@ class GenresViewModel : ViewModel() {
     }
 
     // Obtiene los géneros favoritos del usuario
-    fun obtenerGenerosFavoritos(userId: String, callback: (List<String>) -> Unit) {
+    private fun obtenerGenerosFavoritos(userId: String, callback: (List<String>) -> Unit) {
         viewModelScope.launch {
             try {
                 val doc = db.collection("usuarios").document(userId).get().await()

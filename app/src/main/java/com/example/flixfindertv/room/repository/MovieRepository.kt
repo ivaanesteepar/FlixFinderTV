@@ -3,6 +3,7 @@ package com.example.flixfindertv.room.repository
 import com.example.flixfindertv.room.dao.MovieDao
 import com.example.flixfindertv.room.entities.*
 
+// Repositorio que gestiona las operaciones CRUD sobre películas y series a través del MovieDao
 class MovieRepository(private val movieDao: MovieDao) {
 
     // ------------------------ INSERTS ------------------------

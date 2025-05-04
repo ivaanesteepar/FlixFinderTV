@@ -16,7 +16,7 @@ import java.util.Date
 import java.util.Locale
 
 class SeriesViewModel : ViewModel() {
-    private val db = FirebaseFirestore.getInstance()  // Instancia de Firestore
+    private val db = FirebaseFirestore.getInstance()
 
     private var _listaSeries = MutableLiveData<List<Peliculas>>(emptyList())
     val listaSeries: LiveData<List<Peliculas>> = _listaSeries
@@ -73,15 +73,15 @@ class SeriesViewModel : ViewModel() {
     private val _isLoadingRecentSeries = MutableLiveData(false)
     val isLoadingRecentSeries: LiveData<Boolean> = _isLoadingRecentSeries
 
-    var lastVisibleSeries: DocumentSnapshot? = null
-    var lastVisibleActionAdventure: DocumentSnapshot? = null
-    var lastVisibleAnimation: DocumentSnapshot? = null
-    var lastVisibleComedySeries: DocumentSnapshot? = null
-    var lastVisibleCrime: DocumentSnapshot? = null
-    var lastVisibleDrama: DocumentSnapshot? = null
-    var lastVisibleFamilySeries: DocumentSnapshot? = null
-    var lastVisibleKids: DocumentSnapshot? = null
-    var lastVisibleRecentSeries: DocumentSnapshot? = null
+    private var lastVisibleSeries: DocumentSnapshot? = null
+    private var lastVisibleActionAdventure: DocumentSnapshot? = null
+    private var lastVisibleAnimation: DocumentSnapshot? = null
+    private var lastVisibleComedySeries: DocumentSnapshot? = null
+    private var lastVisibleCrime: DocumentSnapshot? = null
+    private var lastVisibleDrama: DocumentSnapshot? = null
+    private var lastVisibleFamilySeries: DocumentSnapshot? = null
+    private var lastVisibleKids: DocumentSnapshot? = null
+    private var lastVisibleRecentSeries: DocumentSnapshot? = null
 
 
     fun obtenerSeriesMasRecientes() {
@@ -108,9 +108,6 @@ class SeriesViewModel : ViewModel() {
                 }
 
                 val resultado = consulta.get().await()
-
-                // Verificar la cantidad de resultados obtenidos
-                Log.d("Debug", "Total series retrieved: ${resultado.size()}")
 
                 for (documento in resultado.documents) {
                     val pelicula = documento.toObject(Peliculas::class.java)

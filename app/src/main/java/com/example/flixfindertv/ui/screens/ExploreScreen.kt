@@ -48,12 +48,13 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.delay
 
+// Expresión regular para detectar caracteres en chino, japonés, coreano o ruso
 fun contieneCaracteresNoLatinos(titulo: String): Boolean {
-    // Expresión regular para detectar caracteres en chino, japonés, coreano o ruso
     val regex = "[\\u4E00-\\u9FFF\\u3040-\\u30FF\\uAC00-\\uD7AF\\u0400-\\u04FF]".toRegex()
     return regex.containsMatchIn(titulo)
 }
 
+// Pantalla que muestra películas y series, y permite la búsqueda y filtrado de contenido
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) {
@@ -121,7 +122,6 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
     val movieTabListState = rememberLazyListState()
     val seriesTabListState = rememberLazyListState()
 
-
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var movieResults by rememberSaveable { mutableStateOf<List<Peliculas>>(emptyList()) }
     var isSearching by remember { mutableStateOf(false) }
@@ -134,8 +134,6 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
     var selectedGenreId by rememberSaveable { mutableStateOf<Int?>(null) }
     val options = listOf("Unordered", "Ascending", "Descending")
     val previousGenreId = remember { mutableStateOf(selectedGenreId) }
-
-    println("selected genre id: $selectedGenreId")
 
     val genres = listOf(
         "Music", "Romance", "Family", "War", "Action & Adventure", "Kids", "News",
@@ -173,7 +171,6 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
     LaunchedEffect(Unit) {
         peliculas.value = offlineViewModel.getAllMovies()
     }
-
 
     // BackHandler para manejar el retroceso
     BackHandler {
@@ -465,7 +462,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
         recentSeries.isEmpty()) {
 
         if (!hayConexion){
-            println("no hay conexion asi que accedemos a room en explore")
+            println("no hay conexion, asi que accedemos a room en explore")
             offlineViewModel.loadPeliculasPopulares()
             offlineViewModel.loadPeliculasUltimosLanzamientos()
             offlineViewModel.loadPeliculasAccion()
@@ -578,9 +575,9 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(550.dp) // Mantener la caja gris con altura fija de 550.dp
+                                    .height(550.dp) // Mantener la caja gris con altura fija
                             ) {
-                                // Column con scroll, ajustamos el padding inferior para evitar que se solape con el botón
+                                // Column con scroll
                                 Column(
                                     modifier = Modifier
                                         .fillMaxHeight()
@@ -608,10 +605,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                                                         genre
                                                                     ) { genreId ->
                                                                         selectedGenre = genre
-                                                                        selectedGenreId =
-                                                                            genreId
-                                                                        println("Seleccionado: $genre, ID: $genreId")
-
+                                                                        selectedGenreId = genreId
                                                                         // Llamar a la función para obtener las películas y series para el género
                                                                         genreId?.let {
                                                                             genresViewModel.obtenerPeliculasSeriesPorGenero(
@@ -693,12 +687,11 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                         modifier = Modifier.fillMaxSize()
                     ) {
                         // Variables de estado para el menú desplegable
-                        var expandedSearch by remember { mutableStateOf(false) }
                         val selectedTextSearch by rememberSaveable { mutableStateOf("Unordered") }
 
                         if (!hayConexion) {  // Verifica si no hay conexión
                             val filteredRoomMovies = peliculas.value.filter { movieEntity ->
-                                val movie = movieEntity.pelicula  // Accedemos al Peliculas dentro de PeliculasEntity
+                                val movie = movieEntity.pelicula
 
                                 val matchesType = if (filterMovie || filterSerie) {
                                     (filterMovie && !movie.esSerie) || (filterSerie && movie.esSerie)
@@ -770,7 +763,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                     movie.genre_ids.contains(selectedGenreId) // Si se seleccionó un género, lo filtramos
                                 }
 
-                                matchesType && matchesQuery && matchesGenre
+                                matchesType && matchesQuery && matchesGenre // Se deben cumplir las 3 para mostrar la pelicula o serie
                             }
 
                             val sortedSearchResults = when (selectedTextSearch) {
@@ -988,7 +981,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                                         .fillMaxSize() // La imagen se ajusta a toda la caja
                                                         .graphicsLayer(
                                                             scaleX = 1.2f, // Escalar un poco la imagen para que cubra más espacio
-                                                            scaleY = 1.4f  // Escalar un poco la imagen para que cubra más espacio
+                                                            scaleY = 1.4f
                                                         )
                                                 )
                                             }
@@ -1175,7 +1168,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                                         .fillMaxSize() // La imagen se ajusta a toda la caja
                                                         .graphicsLayer(
                                                             scaleX = 1.2f, // Escalar un poco la imagen para que cubra más espacio
-                                                            scaleY = 1.4f  // Escalar un poco la imagen para que cubra más espacio
+                                                            scaleY = 1.4f
                                                         )
                                                 )
                                             }

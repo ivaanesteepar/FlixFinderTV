@@ -12,7 +12,6 @@ class LanguageLifecycleObserver(private val languageState: MutableStateFlow<Stri
     LifecycleEventObserver {
 
     override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
-        println("prueba1")
         if (event == Lifecycle.Event.ON_RESUME) {
             val currentLanguage = Locale.getDefault().language
 
@@ -22,6 +21,5 @@ class LanguageLifecycleObserver(private val languageState: MutableStateFlow<Stri
                 println("Idioma en observer: $currentLanguage")
             }
         }
-        println("prueba2")
     }
 }

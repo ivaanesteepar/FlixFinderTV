@@ -1,8 +1,13 @@
 package com.example.flixfindertv.utils
 
 import android.util.Log
+import androidx.lifecycle.viewModelScope
 import com.example.flixfindertv.models.ImgurResponse
 import com.example.flixfindertv.network.ImgurApiService
+import com.example.flixfindertv.ui.viewmodels.UsersViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -13,7 +18,6 @@ import retrofit2.create
 
 
 object ImgurUploader {
-    private const val CLIENT_ID = "c41d1f5c8ac8204"
     private const val BASE_URL = "https://api.imgur.com/"
 
     private val retrofit: Retrofit = Retrofit.Builder()
@@ -24,25 +28,39 @@ object ImgurUploader {
 
     private val apiService: ImgurApiService = retrofit.create()
 
-    fun uploadImage(imageBytes: ByteArray, callback: (String?) -> Unit) {
-        val requestFile = imageBytes.toRequestBody("image/*".toMediaTypeOrNull())
-        val imagePart = MultipartBody.Part.createFormData("image", "upload.jpg", requestFile)
+    // Función no suspendida, usamos withContext
+    fun uploadImage(imageBytes: ByteArray, usersViewModel: UsersViewModel, callback: (String?) -> Unit) {
+        // Llamar a obtenerClientId en un hilo de fondo
+        usersViewModel.viewModelScope.launch {
+            val clientId = withContext(Dispatchers.IO) {
+                usersViewModel.obtenerClientId()
+            }
+            if (clientId == null) {
+                Log.e("ImgurUploader", "Client ID no encontrado en Firestore")
+                callback(null)
+                return@launch
+            }
 
-        val call = apiService.uploadImage("Client-ID $CLIENT_ID", imagePart)
-        call.enqueue(object : retrofit2.Callback<ImgurResponse> {
-            override fun onResponse(call: retrofit2.Call<ImgurResponse>, response: retrofit2.Response<ImgurResponse>) {
-                if (response.isSuccessful) {
-                    val imageUrl = response.body()?.data?.link
-                    callback(imageUrl)
-                } else {
+            val requestFile = imageBytes.toRequestBody("image/*".toMediaTypeOrNull())
+            val imagePart = MultipartBody.Part.createFormData("image", "upload.jpg", requestFile)
+
+            // Usar el clientId dinámico obtenido del ViewModel
+            val call = apiService.uploadImage("Client-ID $clientId", imagePart)
+            call.enqueue(object : retrofit2.Callback<ImgurResponse> {
+                override fun onResponse(call: retrofit2.Call<ImgurResponse>, response: retrofit2.Response<ImgurResponse>) {
+                    if (response.isSuccessful) {
+                        val imageUrl = response.body()?.data?.link
+                        callback(imageUrl)
+                    } else {
+                        callback(null)
+                    }
+                }
+
+                override fun onFailure(call: retrofit2.Call<ImgurResponse>, t: Throwable) {
+                    Log.e("ImgurUploader", "Error subiendo imagen", t)
                     callback(null)
                 }
-            }
-
-            override fun onFailure(call: retrofit2.Call<ImgurResponse>, t: Throwable) {
-                Log.e("ImgurUploader", "Error subiendo imagen", t)
-                callback(null)
-            }
-        })
+            })
+        }
     }
 }

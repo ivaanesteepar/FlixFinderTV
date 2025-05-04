@@ -29,6 +29,7 @@ import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 import kotlinx.coroutines.launch
 
+// Pantalla que muestra la lista de seguidores o seguidos del usuario
 @Composable
 fun UserListScreen(navController: NavController, uid: String, isFollowing: Boolean) {
     val usersViewModel: UsersViewModel = viewModel()
@@ -39,8 +40,6 @@ fun UserListScreen(navController: NavController, uid: String, isFollowing: Boole
     var userList by remember { mutableStateOf<List<Pair<String, String>>?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     val coroutineScope = rememberCoroutineScope()
-
-    println("isFollowing aqui es: $isFollowing")
 
     LaunchedEffect(uid, isFollowing) {
         coroutineScope.launch {

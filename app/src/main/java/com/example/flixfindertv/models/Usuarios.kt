@@ -1,5 +1,7 @@
 package com.example.flixfindertv.models
 
+
+// Clase de datos que representa a un usuario
 data class Usuarios (
     val nombre: String = "",
     val email: String = "",

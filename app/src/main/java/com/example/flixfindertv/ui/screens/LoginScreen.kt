@@ -46,7 +46,6 @@ import com.example.flixfindertv.R
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 import com.google.firebase.auth.FirebaseAuth
 
-
 @Composable
 fun LoginScreen(navController: NavController) {
     var email by remember { mutableStateOf(TextFieldValue()) }

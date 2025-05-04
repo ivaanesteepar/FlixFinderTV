@@ -33,7 +33,7 @@ import androidx.navigation.NavController
 import com.example.flixfindertv.R
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 
-
+// Pantalla de registro para crear una nueva cuenta de usuario
 @Composable
 fun RegisterScreen(navController: NavController) {
     var username by remember { mutableStateOf(TextFieldValue()) }
@@ -69,7 +69,7 @@ fun RegisterScreen(navController: NavController) {
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .size(100.dp) // Tamaño de la imagen (ajustable)
+                        .size(100.dp) // Tamaño de la imagen
                         .clip(CircleShape) // Hace que la imagen sea circular
                         .align(Alignment.CenterHorizontally)
                 )
@@ -183,7 +183,7 @@ fun RegisterScreen(navController: NavController) {
                             username = username.text,
                             onSuccess = { screen ->
                                 isLoading = false // Desactivar estado de carga
-                                navController.navigate(screen) // Navegar a la pantalla correspondiente (login)
+                                navController.navigate(screen) // Navegar al login
                             },
                             onFailure = { error ->
                                 isLoading = false // Desactivar estado de carga
@@ -193,14 +193,14 @@ fun RegisterScreen(navController: NavController) {
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .then(if (isLoading) Modifier.pointerInput(Unit) {} else Modifier), // Evitar clicks si está cargando
+                        .then(if (isLoading) Modifier.pointerInput(Unit) {} else Modifier), // Evita clicks si está cargando
 
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.Blue, // El botón siempre será azul
                         contentColor = Color.White  // El texto siempre será blanco
                     )
                 ) {
-                    Text(text = if (isLoading) "Registering..." else "Register") // Cambiar el texto dependiendo de si está cargando
+                    Text(text = if (isLoading) "Registering..." else "Register") // Cambia el texto dependiendo de si está cargando
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))

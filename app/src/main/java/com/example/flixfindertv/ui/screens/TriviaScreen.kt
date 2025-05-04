@@ -29,11 +29,9 @@ import com.example.flixfindertv.utils.BottomNavigationBar
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
 
-
+// Pantalla de trivia donde el usuario responde preguntas sobre películas y series
 @Composable
-fun TriviaScreen(
-    navController: NavHostController
-) {
+fun TriviaScreen(navController: NavHostController) {
     val context = LocalContext.current
     val activity = context as? Activity
 
@@ -282,7 +280,6 @@ fun TriviaScreen(
                             if (showNextButton) {
                                 Button(
                                     onClick = {
-                                        // Animar el cambio de la explicación a la siguiente pregunta
                                         transitioningToNextQuestion = true
                                     },
                                     modifier = Modifier.fillMaxWidth()

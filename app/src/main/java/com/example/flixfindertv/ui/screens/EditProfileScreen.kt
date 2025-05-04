@@ -11,7 +11,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
@@ -24,8 +23,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -35,8 +32,10 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.flixfindertv.R
 import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
+import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 import com.example.flixfindertv.utils.ImgurUploader
 
+// Función que gestiona la pantalla de edición de perfil del usuario
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditProfileScreen(navController: NavHostController) {
@@ -45,13 +44,11 @@ fun EditProfileScreen(navController: NavHostController) {
     val context = LocalContext.current
     val conexionViewModel: ConexionViewModel = viewModel()
     val hayConexion by conexionViewModel.conexionEstablecida.collectAsState()
+    val usersViewModel: UsersViewModel = viewModel()
 
     val currentUser = auth.currentUser
     var userName by remember { mutableStateOf("") }
     var userEmail by remember { mutableStateOf("") }
-    var newEmail by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var showPasswordField by remember { mutableStateOf(false) }
     var profileImageUri by remember { mutableStateOf<String?>(null) }
 
     var deleteImageInUI by remember { mutableStateOf(false) }
@@ -98,8 +95,6 @@ fun EditProfileScreen(navController: NavHostController) {
                 .addOnSuccessListener { document ->
                     userName = document.getString("nombre") ?: ""
                     userEmail = document.getString("email") ?: ""  // Aquí cargamos el correo actual
-                    newEmail = userEmail  // Asignamos el correo actual a newEmail
-                    // Aquí puedes cargar la imagen del perfil si está disponible
                     profileImageUri = document.getString("fotoPerfil")
                 }
                 .addOnFailureListener {
@@ -114,7 +109,7 @@ fun EditProfileScreen(navController: NavHostController) {
                 title = {
                     Text(
                         text = "Edit Profile",
-                        color = Color.White // Cambia el color del texto a blanco
+                        color = Color.White
                     )
                 },
                 navigationIcon = {
@@ -122,12 +117,12 @@ fun EditProfileScreen(navController: NavHostController) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Volver",
-                            tint = Color.White // Cambia el color del icono a blanco
+                            tint = Color.White
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent // Fondo transparente
+                    containerColor = Color.Transparent
                 )
             )
         }
@@ -191,7 +186,7 @@ fun EditProfileScreen(navController: NavHostController) {
                         onClick = {
                             // Marcar como que se desea eliminar la foto de perfil solo en la UI
                             deleteImageInUI = true
-                            profileImageUri = null // Eliminar la imagen solo en la UI
+                            profileImageUri = null
                         },
                     ) {
                         Row(
@@ -251,32 +246,6 @@ fun EditProfileScreen(navController: NavHostController) {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Mostrar campo de contraseña solo si el email cambia
-                if (newEmail.isNotEmpty() && newEmail != userEmail) {
-                    showPasswordField = true
-                    Spacer(modifier = Modifier.height(16.dp))
-                    OutlinedTextField(
-                        value = password,
-                        onValueChange = { password = it },
-                        label = { Text("Current password") },
-                        modifier = Modifier.fillMaxWidth(),
-                        textStyle = LocalTextStyle.current.copy(color = Color.White), // Texto en blanco
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color.White,    // Borde blanco al estar seleccionado
-                            unfocusedBorderColor = Color.White, // Borde blanco en estado normal
-                            focusedTextColor = Color.White,      // Texto en blanco
-                            unfocusedTextColor = Color.White,
-                            cursorColor = Color.White,           // Cursor blanco
-                            focusedTrailingIconColor = Color.White, // Ícono de búsqueda blanco
-                            unfocusedTrailingIconColor = Color.White
-                        ),
-                        visualTransformation = PasswordVisualTransformation(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
                 Button(
                     onClick = {
                         if (hayConexion) {
@@ -297,7 +266,7 @@ fun EditProfileScreen(navController: NavHostController) {
                                             val imageBytes = inputStream?.readBytes()
 
                                             if (imageBytes != null) {
-                                                ImgurUploader.uploadImage(imageBytes) { imageUrl ->
+                                                ImgurUploader.uploadImage(imageBytes, usersViewModel) { imageUrl ->
                                                     if (imageUrl != null) {
                                                         userUpdates["fotoPerfil"] = imageUrl
                                                         // Guardar con imagen subida

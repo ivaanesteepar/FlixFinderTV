@@ -23,6 +23,7 @@ import androidx.navigation.NavHostController
 import com.example.flixfindertv.R
 import com.google.firebase.auth.FirebaseAuth
 
+// Pantalla para restablecer la contraseña mediante correo electrónico
 @Composable
 fun ForgotPasswordScreen(navController: NavHostController) {
     var email by remember { mutableStateOf(TextFieldValue()) }
@@ -54,7 +55,7 @@ fun ForgotPasswordScreen(navController: NavHostController) {
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .size(100.dp) // Tamaño de la imagen (ajustable)
+                        .size(100.dp) // Tamaño de la imagen
                         .clip(CircleShape) // Hace que la imagen sea circular
                         .align(Alignment.CenterHorizontally)
                 )

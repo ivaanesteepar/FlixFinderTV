@@ -42,6 +42,7 @@ import com.example.flixfindertv.utils.validateComment
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
+// Función que muestra la pantalla de detalles de una película o serie
 @Composable
 fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean) {
     val usersViewModel: UsersViewModel = viewModel()
@@ -70,9 +71,6 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
     val commentText = remember { mutableStateOf("") }
     var usuarioNombre by remember { mutableStateOf("") }
 
-    println("el id de la pelicula/serie es: $id")
-    println("el titulo de la serie es: $movieTitle")
-
     val firestore = FirebaseFirestore.getInstance()
     val auth = FirebaseAuth.getInstance()
     val collectionName = if (esSerie) "series" else "peliculas"
@@ -100,12 +98,12 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
 
     LaunchedEffect(showOffensiveSnackbar.value) {
         if (showOffensiveSnackbar.value) {
-            // Muestra el Snackbar con duración LARGA (7 segundos)
+            // Muestra el Snackbar con duración larga (7 segundos)
             snackbarHostState.showSnackbar(
                 message = "Tu mensaje será revisado antes de publicarse.",
                 duration = SnackbarDuration.Long // 7 segundos
             )
-            // Cuando el Snackbar termine (automáticamente a los 7s), actualiza el estado
+            // Cuando el Snackbar termine, actualiza el estado
             showOffensiveSnackbar.value = false
         }
     }
@@ -125,7 +123,7 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                     voteCount = it.vote_count
 
                     movieBannerUrl = it.backdrop_path?.takeIf { path -> path.isNotEmpty() }
-                        ?.let { path -> "https://image.tmdb.org/t/p/w500$path" } // Ahora puede aceptar null
+                        ?.let { path -> "https://image.tmdb.org/t/p/w500$path" }
 
 
                     movieCoverUrl = it.poster_path?.takeIf { path -> path.isNotEmpty() }
@@ -160,8 +158,6 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
         commentsViewModel.getComments(id)
     }
     val commentsList by commentsViewModel.comments.collectAsState()
-
-    println("el banner es: $movieBannerUrl")
 
     Box(
         modifier = Modifier
@@ -470,7 +466,7 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                                     // Aumentar el contador de comentarios en Firebase
                                     moviesViewModel.incrementUserCommentCount(userId)
 
-                                    // Si le damos una buena puntuación, recomendamos el genero y contenido similar
+                                    // Si le damos una buena puntuación (por lo menos 3 estrellas), recomendamos el genero
                                     if (selectedStars.value > 6) {
                                         usersViewModel.updateFavoriteGenre(movieGenre)
                                     }
@@ -496,7 +492,7 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                                                         updatedVoteAverageFloat
                                                     )
 
-                                                    // También actualizamos la popularidad, si es necesario
+                                                    // También actualizamos la popularidad
                                                     moviesViewModel.calculateNewPopularity(movieId) { newPopularity ->
                                                         if (newPopularity != null) {
                                                             // Actualizamos la popularidad en Firebase
@@ -516,7 +512,7 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                                                 }
                                             }
                                         } else {
-                                            // Si no se pudo calcular el nuevo promedio, puedes manejar el error aquí
+                                            // Si no se pudo calcular el nuevo promedio, manejar el error
                                             Toast.makeText(
                                                 context,
                                                 "Error calculating the average vote",
@@ -524,7 +520,7 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                                             ).show()
                                         }
 
-                                        // Restablecemos la bandera después de la actualización
+                                        // Restablecemos el flag después de la actualización
                                         isUpdating = false
                                     }
 
@@ -532,7 +528,7 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                                     isDialogOpen.value = false
                                     selectedStars.value = 0
                                     commentText.value = ""
-                                    errorMessage.value = "" // Limpiamos el mensaje de error
+                                    errorMessage.value = ""
                                 }
                             }
                         }) {
@@ -544,7 +540,7 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                             isDialogOpen.value = false
                             commentText.value = ""
                             selectedStars.value = 0
-                            errorMessage.value = "" // Limpiamos el mensaje de error
+                            errorMessage.value = ""
                         }) {
                             Text("Cancel")
                         }
@@ -557,7 +553,6 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
 
 @Composable
 fun ShowTrailer(videoId: String) {
-    // YouTube player
     YoutubePlayer(videoId)
 }
 

@@ -33,8 +33,6 @@ fun ContentListSearch (movie: Peliculas, navController: NavHostController) {
     val usersViewModel: UsersViewModel = viewModel()
     val genresViewModel: GenresViewModel = viewModel()
     var movieGenre by remember { mutableStateOf("") }
-    val conexionViewModel: ConexionViewModel = viewModel()
-    val hayConexion by conexionViewModel.conexionEstablecida.collectAsState()
 
     genresViewModel.fetchGenreNames(movie.genre_ids) { genres ->
         movieGenre = genres.joinToString(", ")
@@ -85,7 +83,6 @@ fun ContentListSearch (movie: Peliculas, navController: NavHostController) {
                 maxLines = 6,  // Limita el texto a 6 líneas
                 overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis // Agrega "..." al final si el texto es más largo
             )
-
         }
     }
 }

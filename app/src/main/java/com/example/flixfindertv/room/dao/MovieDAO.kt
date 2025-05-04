@@ -7,9 +7,9 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.example.flixfindertv.room.entities.*
 
+// Interfaz que define las operaciones para gestionar películas y series en la base de datos
 @Dao
 interface MovieDao {
-
     // INSERTS
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMoviesGenero1(movies: List<Genero1MovieEntity>)

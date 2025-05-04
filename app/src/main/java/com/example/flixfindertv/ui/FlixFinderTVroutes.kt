@@ -26,6 +26,7 @@ import com.example.flixfindertv.ui.viewmodels.MoviesViewModel
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 import com.google.firebase.auth.FirebaseAuth
 
+// Composable que gestiona las rutas de navegación de la app FlixFinderTV según el estado de autenticación del usuario
 @Composable
 fun FlixFinderTVroutes(modifier: Modifier = Modifier, navController: NavHostController) {
     val moviesViewModel: MoviesViewModel = viewModel()
@@ -49,7 +50,7 @@ fun FlixFinderTVroutes(modifier: Modifier = Modifier, navController: NavHostCont
             modifier = Modifier.padding(padding)
         ) {
             composable("login") {
-                LoginScreen(navController)  // Pantalla de login
+                LoginScreen(navController)
             }
             composable("home") {
                 val conexionViewModel: ConexionViewModel = viewModel()
@@ -57,13 +58,13 @@ fun FlixFinderTVroutes(modifier: Modifier = Modifier, navController: NavHostCont
                     navController,
                     moviesViewModel,
                     conexionViewModel
-                )   // Pantalla de inicio
+                )
             }
             composable("register") {
-                RegisterScreen(navController)  // Pantalla de registro
+                RegisterScreen(navController)
             }
             composable("explore") {
-                ExploreScreen(navController, moviesViewModel)  // Pantalla de exploración
+                ExploreScreen(navController, moviesViewModel)
             }
             composable("profile/{userId}/{isComment}") { backStackEntry ->
                 val userId = backStackEntry.arguments?.getString("userId")
@@ -75,7 +76,7 @@ fun FlixFinderTVroutes(modifier: Modifier = Modifier, navController: NavHostCont
                 }
             }
             composable("forgot_password") {
-                ForgotPasswordScreen(navController)  // Pantalla de recuperación de contraseña
+                ForgotPasswordScreen(navController)
             }
             composable("detalles/{id}/{esSerie}") { backStackEntry ->
                 val id = backStackEntry.arguments?.getString("id") ?: ""
@@ -86,7 +87,7 @@ fun FlixFinderTVroutes(modifier: Modifier = Modifier, navController: NavHostCont
                 NewQuestionsScreen(navController)
             }
             composable("edit_profile") {
-                EditProfileScreen(navController)  // Pantalla de exploración
+                EditProfileScreen(navController)
             }
             composable("trivia") {
                 TriviaScreen(navController)

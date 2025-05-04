@@ -18,7 +18,7 @@ import java.util.*
 
 class TriviaViewModelFactory(
     private val context: Context,
-    private val lifecycleOwner: LifecycleOwner // Agregado el LifecycleOwner
+    private val lifecycleOwner: LifecycleOwner
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -36,7 +36,7 @@ class TriviaViewModel(private val context: Context, lifecycleOwner: LifecycleOwn
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
     private val _languageState: MutableStateFlow<String> = MutableStateFlow(Locale.getDefault().language)
-    val languageState: StateFlow<String> = _languageState.asStateFlow()
+    private val languageState: StateFlow<String> = _languageState.asStateFlow()
 
     private val apiKey = BuildConfig.apiKey
     var explanation: String? = null
@@ -101,7 +101,6 @@ class TriviaViewModel(private val context: Context, lifecycleOwner: LifecycleOwn
         """.trimIndent()
         }
     }
-
 
     fun generateQuestion() {
         _uiState.value = UiState.Loading

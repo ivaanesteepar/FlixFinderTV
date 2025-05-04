@@ -9,5 +9,5 @@ import com.example.flixfindertv.models.Peliculas
 data class PeliculasEntity(
     @Embedded val pelicula: Peliculas,
     @PrimaryKey val idMovieEntity: String = pelicula.id,
-    val genero: String, // Ej: "populares", "accion", etc.
+    val genero: String
 )

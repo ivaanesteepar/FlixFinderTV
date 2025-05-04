@@ -20,6 +20,7 @@ import com.example.flixfindertv.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
+// Pantalla que permite a un usuario nuevo seleccionar 2 géneros que mas le gusten
 @Composable
 fun NewQuestionsScreen(navController: NavHostController) {
     val generos = listOf(

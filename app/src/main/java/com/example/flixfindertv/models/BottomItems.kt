@@ -5,9 +5,9 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LiveTv
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Quiz
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.ui.graphics.vector.ImageVector
 
+// Representa los ítems de la barra de navegación inferior
 sealed class BottomItems(
     val ruta: String,
     val titulo: String,

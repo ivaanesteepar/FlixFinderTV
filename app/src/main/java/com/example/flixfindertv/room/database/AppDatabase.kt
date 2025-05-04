@@ -9,6 +9,7 @@ import com.example.flixfindertv.local.Converters
 import com.example.flixfindertv.room.entities.*
 import com.example.flixfindertv.room.dao.MovieDao
 
+// Base de datos Room que define las entidades y el DAO para las películas y series
 @Database(
     entities = [
         Genero1MovieEntity::class,
@@ -19,6 +20,7 @@ import com.example.flixfindertv.room.dao.MovieDao
     ],
     version = 24
 )
+
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
 

@@ -107,7 +107,6 @@ class OfflineViewModel(application: Application) : AndroidViewModel(application)
         return repository.getAllMovies()
     }
 
-
     fun limpiarPeliculasGenero1() {
         viewModelScope.launch {
             repository.deleteAllMoviesGenero1()

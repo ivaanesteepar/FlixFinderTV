@@ -13,6 +13,7 @@ import com.example.flixfindertv.ui.theme.FlixFinderTVTheme
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 import com.google.firebase.auth.FirebaseAuth
 
+// Actividad principal que configura la navegación y guarda la sesión del usuario al pausar la app
 class MainActivity : ComponentActivity() {
 
     private val usersViewModel: UsersViewModel by viewModels()
