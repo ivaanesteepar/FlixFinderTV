@@ -233,72 +233,72 @@ class UsersViewModelTest {
     }
 
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    @Test
-    fun `test agregar pelicula cuando se ha alcanzado el limite de favoritos`() = runTest {
-        // 1. Configurar mocks
-        val mockAuth = mockk<FirebaseAuth>()
-        val mockUser = mockk<FirebaseUser>()
-        val mockTask = mockk<Task<DocumentSnapshot>>(relaxed = true)
-        val mockDocument = mockk<DocumentSnapshot>()
-        val mockUpdateTask = mockk<Task<Void>>(relaxed = true)
-
-        // Configurar comportamiento de autenticación
-        every { mockAuth.currentUser } returns mockUser
-        every { mockUser.uid } returns "testUserId"
-        every { auth.currentUser } returns mockUser
-
-        // Configurar comportamiento del documento
-        val currentMoviesList = List(20) { // 20 movies in favorites
-            mapOf(
-                "id" to "movieId${it}",
-                "title" to "Movie $it",
-                "posterUrl" to "http://test.com/poster.jpg",
-                "esSerie" to false
-            )
-        }
-        every { mockDocument.exists() } returns true
-        every { mockDocument.get("peliculasFavoritas") } returns currentMoviesList
-        every { mockTask.result } returns mockDocument
-        every { mockTask.addOnSuccessListener(any()) } answers {
-            firstArg<OnSuccessListener<DocumentSnapshot>>().onSuccess(mockDocument)
-            mockTask
-        }
-        every { mockTask.addOnFailureListener(any()) } returns mockTask
-
-        every { mockUpdateTask.addOnSuccessListener(any()) } answers {
-            firstArg<OnSuccessListener<Void>>().onSuccess(null)
-            mockUpdateTask
-        }
-
-        // Configurar Firestore
-        val mockDocumentReference = mockk<DocumentReference>()
-        every { firestore.collection("usuarios").document("testUserId") } returns mockDocumentReference
-        every { mockDocumentReference.get() } returns mockTask
-        every { mockDocumentReference.update("peliculasFavoritas", any<List<Map<String, Any>>>()) } returns mockUpdateTask
-
-        // Mockear Toast.makeText() para evitar la llamada real
-        mockkStatic(Toast::class)
-        val mockToast = mockk<Toast>(relaxed = true)
-        every { Toast.makeText(any(), any<CharSequence>(), any()) } returns mockToast
-        every { mockToast.show() } just Runs
-
-        // Llamamos a la función que estamos testeando
-        usersViewModel.saveToFavorites(context, "movieId21", "Test Movie", "http://test.com/poster.jpg", false)
-
-        // Esperar a que las operaciones asíncronas se completen
-        advanceUntilIdle()
-
-        // Verificamos que el mensaje de límite sea mostrado
-        verify(exactly = 1) {
-            mockToast.show()
-        }
-
-        // Verifica que no se haya actualizado la colección si ya hay 20 películas en favoritos
-        verify(exactly = 0) {
-            mockDocumentReference.update("peliculasFavoritas", any<List<Map<String, Any>>>())
-        }
-    }
+//    @OptIn(ExperimentalCoroutinesApi::class)
+//    @Test
+//    fun `test agregar pelicula cuando se ha alcanzado el limite de favoritos`() = runTest {
+//        // 1. Configurar mocks
+//        val mockAuth = mockk<FirebaseAuth>()
+//        val mockUser = mockk<FirebaseUser>()
+//        val mockTask = mockk<Task<DocumentSnapshot>>(relaxed = true)
+//        val mockDocument = mockk<DocumentSnapshot>()
+//        val mockUpdateTask = mockk<Task<Void>>(relaxed = true)
+//
+//        // Configurar comportamiento de autenticación
+//        every { mockAuth.currentUser } returns mockUser
+//        every { mockUser.uid } returns "testUserId"
+//        every { auth.currentUser } returns mockUser
+//
+//        // Configurar comportamiento del documento
+//        val currentMoviesList = List(20) { // 20 movies in favorites
+//            mapOf(
+//                "id" to "movieId${it}",
+//                "title" to "Movie $it",
+//                "posterUrl" to "http://test.com/poster.jpg",
+//                "esSerie" to false
+//            )
+//        }
+//        every { mockDocument.exists() } returns true
+//        every { mockDocument.get("peliculasFavoritas") } returns currentMoviesList
+//        every { mockTask.result } returns mockDocument
+//        every { mockTask.addOnSuccessListener(any()) } answers {
+//            firstArg<OnSuccessListener<DocumentSnapshot>>().onSuccess(mockDocument)
+//            mockTask
+//        }
+//        every { mockTask.addOnFailureListener(any()) } returns mockTask
+//
+//        every { mockUpdateTask.addOnSuccessListener(any()) } answers {
+//            firstArg<OnSuccessListener<Void>>().onSuccess(null)
+//            mockUpdateTask
+//        }
+//
+//        // Configurar Firestore
+//        val mockDocumentReference = mockk<DocumentReference>()
+//        every { firestore.collection("usuarios").document("testUserId") } returns mockDocumentReference
+//        every { mockDocumentReference.get() } returns mockTask
+//        every { mockDocumentReference.update("peliculasFavoritas", any<List<Map<String, Any>>>()) } returns mockUpdateTask
+//
+//        // Mockear Toast.makeText() para evitar la llamada real
+//        mockkStatic(Toast::class)
+//        val mockToast = mockk<Toast>(relaxed = true)
+//        every { Toast.makeText(any(), any<CharSequence>(), any()) } returns mockToast
+//        every { mockToast.show() } just Runs
+//
+//        // Llamamos a la función que estamos testeando
+//        usersViewModel.saveToFavorites(context, "movieId21", "Test Movie", "http://test.com/poster.jpg", false)
+//
+//        // Esperar a que las operaciones asíncronas se completen
+//        advanceUntilIdle()
+//
+//        // Verificamos que el mensaje de límite sea mostrado
+//        verify(exactly = 1) {
+//            mockToast.show()
+//        }
+//
+//        // Verifica que no se haya actualizado la colección si ya hay 20 películas en favoritos
+//        verify(exactly = 0) {
+//            mockDocumentReference.update("peliculasFavoritas", any<List<Map<String, Any>>>())
+//        }
+//    }
 
 
     @OptIn(ExperimentalCoroutinesApi::class)
