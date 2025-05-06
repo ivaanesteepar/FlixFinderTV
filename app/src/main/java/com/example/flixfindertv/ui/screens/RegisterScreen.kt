@@ -1,9 +1,13 @@
 package com.example.flixfindertv.ui.screens
 
+import android.content.res.Configuration
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LocalTextStyle
@@ -12,6 +16,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,6 +27,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -31,6 +38,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.flixfindertv.R
+import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 
 // Pantalla de registro para crear una nueva cuenta de usuario
@@ -42,7 +50,13 @@ fun RegisterScreen(navController: NavController) {
     var confirmPassword by remember { mutableStateOf(TextFieldValue()) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
+    val context = LocalContext.current
     val usersViewModel: UsersViewModel = viewModel()
+    val conexionViewModel: ConexionViewModel = viewModel()
+    val hayConexion by conexionViewModel.conexionEstablecida.collectAsState()
+
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     Box(
         modifier = Modifier
@@ -54,161 +68,356 @@ fun RegisterScreen(navController: NavController) {
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(24.dp)
-        ) {
-            Column(
+        if (!isLandscape) {
+            Box(
                 modifier = Modifier
-                    .align(Alignment.Center) // Centra en ambas direcciones (horizontal y vertical)
-                    .padding(bottom = 16.dp)
+                    .fillMaxSize()
+                    .padding(24.dp)
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.app_logo),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
+                Column(
                     modifier = Modifier
-                        .size(100.dp) // Tamaño de la imagen
-                        .clip(CircleShape) // Hace que la imagen sea circular
-                        .align(Alignment.CenterHorizontally)
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "Register",
-                    color = Color.White,
-                    fontSize = 24.sp,
-                    modifier = Modifier.padding(bottom = 16.dp).align(Alignment.CenterHorizontally)
-                )
-
-                OutlinedTextField(
-                    value = username,
-                    onValueChange = { username = it },
-                    label = { Text("Username", color = Color.White) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                    textStyle = LocalTextStyle.current.copy(color = Color.White), // Texto en blanco
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color.White,    // Borde blanco al estar seleccionado
-                        unfocusedBorderColor = Color.White, // Borde blanco en estado normal
-                        focusedTextColor = Color.White,      // Texto en blanco
-                        unfocusedTextColor = Color.White,
-                        cursorColor = Color.White,           // Cursor blanco
-                        focusedTrailingIconColor = Color.White, // Ícono de búsqueda blanco
-                        unfocusedTrailingIconColor = Color.White
-                    ),
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                OutlinedTextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    label = { Text("Email", color = Color.White) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                    textStyle = LocalTextStyle.current.copy(color = Color.White), // Texto en blanco
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color.White,    // Borde blanco al estar seleccionado
-                        unfocusedBorderColor = Color.White, // Borde blanco en estado normal
-                        focusedTextColor = Color.White,      // Texto en blanco
-                        unfocusedTextColor = Color.White,
-                        cursorColor = Color.White,           // Cursor blanco
-                        focusedTrailingIconColor = Color.White, // Ícono de búsqueda blanco
-                        unfocusedTrailingIconColor = Color.White
-                    ),
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                OutlinedTextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    label = { Text("Password", color = Color.White) },
-                    visualTransformation = PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    textStyle = LocalTextStyle.current.copy(color = Color.White), // Texto en blanco
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color.White,    // Borde blanco al estar seleccionado
-                        unfocusedBorderColor = Color.White, // Borde blanco en estado normal
-                        focusedTextColor = Color.White,      // Texto en blanco
-                        unfocusedTextColor = Color.White,
-                        cursorColor = Color.White,           // Cursor blanco
-                        focusedTrailingIconColor = Color.White, // Ícono de búsqueda blanco
-                        unfocusedTrailingIconColor = Color.White
-                    ),
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                OutlinedTextField(
-                    value = confirmPassword,
-                    onValueChange = { confirmPassword = it },
-                    label = { Text("Confirm Password", color = Color.White) },
-                    visualTransformation = PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    textStyle = LocalTextStyle.current.copy(color = Color.White), // Texto en blanco
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color.White,    // Borde blanco al estar seleccionado
-                        unfocusedBorderColor = Color.White, // Borde blanco en estado normal
-                        focusedTextColor = Color.White,      // Texto en blanco
-                        unfocusedTextColor = Color.White,
-                        cursorColor = Color.White,           // Cursor blanco
-                        focusedTrailingIconColor = Color.White, // Ícono de búsqueda blanco
-                        unfocusedTrailingIconColor = Color.White
-                    ),
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                errorMessage?.let {
-                    Text(text = it, color = Color.Red, fontSize = 14.sp)
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-
-                Button(
-                    onClick = {
-                        // Iniciar proceso de registro
-                        isLoading = true // Activar estado de carga
-                        usersViewModel.register(
-                            email = email.text,
-                            password = password.text,
-                            confirmPassword = confirmPassword.text,
-                            username = username.text,
-                            onSuccess = { screen ->
-                                isLoading = false // Desactivar estado de carga
-                                navController.navigate(screen) // Navegar al login
-                            },
-                            onFailure = { error ->
-                                isLoading = false // Desactivar estado de carga
-                                errorMessage = error // Mostrar el mensaje de error
-                            }
-                        )
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .then(if (isLoading) Modifier.pointerInput(Unit) {} else Modifier), // Evita clicks si está cargando
-
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Blue, // El botón siempre será azul
-                        contentColor = Color.White  // El texto siempre será blanco
+                        .align(Alignment.Center) // Centra en ambas direcciones (horizontal y vertical)
+                        .padding(bottom = 16.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.app_logo),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(120.dp) // Tamaño de la imagen
+                            .clip(CircleShape) // Hace que la imagen sea circular
+                            .align(Alignment.CenterHorizontally)
                     )
-                ) {
-                    Text(text = if (isLoading) "Registering..." else "Register") // Cambia el texto dependiendo de si está cargando
-                }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Register",
+                        color = Color.White,
+                        fontSize = 24.sp,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                            .align(Alignment.CenterHorizontally)
+                    )
 
-                Spacer(modifier = Modifier.height(8.dp))
-                Box (
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                    OutlinedTextField(
+                        value = username,
+                        onValueChange = { username = it },
+                        label = { Text("Username", color = Color.White) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                        textStyle = LocalTextStyle.current.copy(color = Color.White), // Texto en blanco
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color.White,    // Borde blanco al estar seleccionado
+                            unfocusedBorderColor = Color.White, // Borde blanco en estado normal
+                            focusedTextColor = Color.White,      // Texto en blanco
+                            unfocusedTextColor = Color.White,
+                            cursorColor = Color.White,           // Cursor blanco
+                            focusedTrailingIconColor = Color.White, // Ícono de búsqueda blanco
+                            unfocusedTrailingIconColor = Color.White
+                        ),
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        label = { Text("Email", color = Color.White) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                        textStyle = LocalTextStyle.current.copy(color = Color.White), // Texto en blanco
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color.White,    // Borde blanco al estar seleccionado
+                            unfocusedBorderColor = Color.White, // Borde blanco en estado normal
+                            focusedTextColor = Color.White,      // Texto en blanco
+                            unfocusedTextColor = Color.White,
+                            cursorColor = Color.White,           // Cursor blanco
+                            focusedTrailingIconColor = Color.White, // Ícono de búsqueda blanco
+                            unfocusedTrailingIconColor = Color.White
+                        ),
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        label = { Text("Password", color = Color.White) },
+                        visualTransformation = PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        textStyle = LocalTextStyle.current.copy(color = Color.White), // Texto en blanco
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color.White,    // Borde blanco al estar seleccionado
+                            unfocusedBorderColor = Color.White, // Borde blanco en estado normal
+                            focusedTextColor = Color.White,      // Texto en blanco
+                            unfocusedTextColor = Color.White,
+                            cursorColor = Color.White,           // Cursor blanco
+                            focusedTrailingIconColor = Color.White, // Ícono de búsqueda blanco
+                            unfocusedTrailingIconColor = Color.White
+                        ),
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    OutlinedTextField(
+                        value = confirmPassword,
+                        onValueChange = { confirmPassword = it },
+                        label = { Text("Confirm Password", color = Color.White) },
+                        visualTransformation = PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        textStyle = LocalTextStyle.current.copy(color = Color.White), // Texto en blanco
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color.White,    // Borde blanco al estar seleccionado
+                            unfocusedBorderColor = Color.White, // Borde blanco en estado normal
+                            focusedTextColor = Color.White,      // Texto en blanco
+                            unfocusedTextColor = Color.White,
+                            cursorColor = Color.White,           // Cursor blanco
+                            focusedTrailingIconColor = Color.White, // Ícono de búsqueda blanco
+                            unfocusedTrailingIconColor = Color.White
+                        ),
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    errorMessage?.let {
+                        Text(text = it, color = Color.Red, fontSize = 14.sp)
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+
+                    Button(
+                        onClick = {
+                            if (!hayConexion) {
+                                Toast.makeText(
+                                    context,
+                                    "You need an internet connection to log in",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            } else {
+                                // Iniciar proceso de registro
+                                isLoading = true // Activar estado de carga
+                                usersViewModel.register(
+                                    email = email.text,
+                                    password = password.text,
+                                    confirmPassword = confirmPassword.text,
+                                    username = username.text,
+                                    onSuccess = { screen ->
+                                        isLoading = false // Desactivar estado de carga
+                                        navController.navigate(screen) // Navegar al login
+                                    },
+                                    onFailure = { error ->
+                                        isLoading = false // Desactivar estado de carga
+                                        errorMessage = error // Mostrar el mensaje de error
+                                    }
+                                )
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .then(if (isLoading) Modifier.pointerInput(Unit) {} else Modifier), // Evita clicks si está cargando
+
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Blue, // El botón siempre será azul
+                            contentColor = Color.White  // El texto siempre será blanco
+                        )
+                    ) {
+                        Text(text = if (isLoading) "Registering..." else "Register") // Cambia el texto dependiendo de si está cargando
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Box(
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    ) {
+                        TextButton(onClick = { navController.popBackStack() }) {
+                            Text("Back to login", color = Color.White, modifier = Modifier)
+                        }
+                    }
+                }
+            }
+        }
+        else {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp)
+            ) {
+                Column(
+                    modifier = Modifier.verticalScroll(rememberScrollState())
                 ) {
-                    TextButton(onClick = { navController.popBackStack() }) {
-                        Text("Back to login", color = Color.White, modifier = Modifier)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.app_logo),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(170.dp) // Tamaño de la imagen
+                                .clip(CircleShape) // Hace que la imagen sea circular
+                                .padding(start = 26.dp)
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Contenido a la derecha
+                        Column(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .weight(1f),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "Register",
+                                color = Color.White,
+                                fontSize = 24.sp,
+                                modifier = Modifier.padding(bottom = 16.dp)
+                            )
+                            OutlinedTextField(
+                                value = username,
+                                onValueChange = { username = it },
+                                label = { Text("Username", color = Color.White) },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                                textStyle = LocalTextStyle.current.copy(color = Color.White), // Texto en blanco
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = Color.White,    // Borde blanco al estar seleccionado
+                                    unfocusedBorderColor = Color.White, // Borde blanco en estado normal
+                                    focusedTextColor = Color.White,      // Texto en blanco
+                                    unfocusedTextColor = Color.White,
+                                    cursorColor = Color.White,           // Cursor blanco
+                                    focusedTrailingIconColor = Color.White, // Ícono de búsqueda blanco
+                                    unfocusedTrailingIconColor = Color.White
+                                ),
+                                singleLine = true,
+                                modifier = Modifier.width(500.dp)
+                            )
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            OutlinedTextField(
+                                value = email,
+                                onValueChange = { email = it },
+                                label = { Text("Email", color = Color.White) },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                                textStyle = LocalTextStyle.current.copy(color = Color.White), // Texto en blanco
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = Color.White,    // Borde blanco al estar seleccionado
+                                    unfocusedBorderColor = Color.White, // Borde blanco en estado normal
+                                    focusedTextColor = Color.White,      // Texto en blanco
+                                    unfocusedTextColor = Color.White,
+                                    cursorColor = Color.White,           // Cursor blanco
+                                    focusedTrailingIconColor = Color.White, // Ícono de búsqueda blanco
+                                    unfocusedTrailingIconColor = Color.White
+                                ),
+                                singleLine = true,
+                                modifier = Modifier.width(500.dp)
+                            )
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            OutlinedTextField(
+                                value = password,
+                                onValueChange = { password = it },
+                                label = { Text("Password", color = Color.White) },
+                                visualTransformation = PasswordVisualTransformation(),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                                textStyle = LocalTextStyle.current.copy(color = Color.White), // Texto en blanco
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = Color.White,    // Borde blanco al estar seleccionado
+                                    unfocusedBorderColor = Color.White, // Borde blanco en estado normal
+                                    focusedTextColor = Color.White,      // Texto en blanco
+                                    unfocusedTextColor = Color.White,
+                                    cursorColor = Color.White,           // Cursor blanco
+                                    focusedTrailingIconColor = Color.White, // Ícono de búsqueda blanco
+                                    unfocusedTrailingIconColor = Color.White
+                                ),
+                                singleLine = true,
+                                modifier = Modifier.width(500.dp)
+                            )
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            OutlinedTextField(
+                                value = confirmPassword,
+                                onValueChange = { confirmPassword = it },
+                                label = { Text("Confirm Password", color = Color.White) },
+                                visualTransformation = PasswordVisualTransformation(),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                                textStyle = LocalTextStyle.current.copy(color = Color.White), // Texto en blanco
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = Color.White,    // Borde blanco al estar seleccionado
+                                    unfocusedBorderColor = Color.White, // Borde blanco en estado normal
+                                    focusedTextColor = Color.White,      // Texto en blanco
+                                    unfocusedTextColor = Color.White,
+                                    cursorColor = Color.White,           // Cursor blanco
+                                    focusedTrailingIconColor = Color.White, // Ícono de búsqueda blanco
+                                    unfocusedTrailingIconColor = Color.White
+                                ),
+                                singleLine = true,
+                                modifier = Modifier.width(500.dp)
+                            )
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            errorMessage?.let {
+                                Text(text = it, color = Color.Red, fontSize = 14.sp)
+                                Spacer(modifier = Modifier.height(8.dp))
+                            }
+
+                            Button(
+                                onClick = {
+                                    if (!hayConexion) {
+                                        Toast.makeText(
+                                            context,
+                                            "You need an internet connection to log in",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    } else {
+                                        // Iniciar proceso de registro
+                                        isLoading = true // Activar estado de carga
+                                        usersViewModel.register(
+                                            email = email.text,
+                                            password = password.text,
+                                            confirmPassword = confirmPassword.text,
+                                            username = username.text,
+                                            onSuccess = { screen ->
+                                                isLoading = false // Desactivar estado de carga
+                                                navController.navigate(screen) // Navegar al login
+                                            },
+                                            onFailure = { error ->
+                                                isLoading = false // Desactivar estado de carga
+                                                errorMessage = error // Mostrar el mensaje de error
+                                            }
+                                        )
+                                    }
+                                },
+                                modifier = Modifier
+                                    .width(300.dp)
+                                    .then(if (isLoading) Modifier.pointerInput(Unit) {} else Modifier), // Evita clicks si está cargando
+
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color.Blue, // El botón siempre será azul
+                                    contentColor = Color.White  // El texto siempre será blanco
+                                )
+                            ) {
+                                Text(text = if (isLoading) "Registering..." else "Register") // Cambia el texto dependiendo de si está cargando
+                            }
+
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Box(
+
+                            ) {
+                                TextButton(onClick = { navController.popBackStack() }) {
+                                    Text("Back to login", color = Color.White, modifier = Modifier)
+                                }
+                            }
+                        }
                     }
                 }
             }

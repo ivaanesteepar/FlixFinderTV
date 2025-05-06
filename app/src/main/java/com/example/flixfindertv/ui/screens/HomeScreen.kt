@@ -210,80 +210,82 @@ fun HomeScreen(
             }
         }
     ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.fondo_app),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
-            )
-            Column(
+        if (uid != null) {
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp)
-                    .padding(paddingValues)
             ) {
-                Text(
-                    text = "You might be interested...",
-                    color = Color.White,
-                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = 24.sp),
-                    modifier = Modifier
-                        .padding(bottom = 16.dp)
-                        .padding(top = 26.dp)
+                Image(
+                    painter = painterResource(id = R.drawable.fondo_app),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
                 )
-                Spacer(modifier = Modifier.height(20.dp))
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
+                        .padding(16.dp)
+                        .padding(paddingValues)
                 ) {
-                    if (nombreGenero1.isNotEmpty() && nombreGenero2.isNotEmpty()) {
-                        // Películas del primer género
-                        if (peliculasGenero1.isNotEmpty() || peliculasGenero1Offline.isNotEmpty()) {
-                            Text(
-                                text = nombreGenero1,
-                                color = Color.White,
-                                style = MaterialTheme.typography.bodyMedium.copy(fontSize = 20.sp),
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            )
-                            ContentListExplore(
-                                movies = if (hayConexion) peliculasGenero1 else peliculasGenero1Offline.map { it.pelicula },
-                                navController = navController,
-                                listState = listStateGenero1
-                            )
-                        }
+                    Text(
+                        text = "You might be interested...",
+                        color = Color.White,
+                        style = MaterialTheme.typography.bodyMedium.copy(fontSize = 24.sp),
+                        modifier = Modifier
+                            .padding(bottom = 16.dp)
+                            .padding(top = 26.dp)
+                    )
+                    Spacer(modifier = Modifier.height(20.dp))
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        if (nombreGenero1.isNotEmpty() && nombreGenero2.isNotEmpty()) {
+                            // Películas del primer género
+                            if (peliculasGenero1.isNotEmpty() || peliculasGenero1Offline.isNotEmpty()) {
+                                Text(
+                                    text = nombreGenero1,
+                                    color = Color.White,
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = 20.sp),
+                                    modifier = Modifier.padding(bottom = 8.dp)
+                                )
+                                ContentListExplore(
+                                    movies = if (hayConexion) peliculasGenero1 else peliculasGenero1Offline.map { it.pelicula },
+                                    navController = navController,
+                                    listState = listStateGenero1
+                                )
+                            }
 
-                        // Películas del segundo género
-                        if (peliculasGenero2.isNotEmpty() || peliculasGenero2Offline.isNotEmpty()) {
-                            Text(
-                                text = nombreGenero2,
-                                color = Color.White,
-                                style = MaterialTheme.typography.bodyMedium.copy(fontSize = 20.sp),
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            )
-                            ContentListExplore(
-                                movies = if (hayConexion) peliculasGenero2 else peliculasGenero2Offline.map { it.pelicula },
-                                navController = navController,
-                                listState = listStateGenero2
-                            )
-                        }
+                            // Películas del segundo género
+                            if (peliculasGenero2.isNotEmpty() || peliculasGenero2Offline.isNotEmpty()) {
+                                Text(
+                                    text = nombreGenero2,
+                                    color = Color.White,
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = 20.sp),
+                                    modifier = Modifier.padding(bottom = 8.dp)
+                                )
+                                ContentListExplore(
+                                    movies = if (hayConexion) peliculasGenero2 else peliculasGenero2Offline.map { it.pelicula },
+                                    navController = navController,
+                                    listState = listStateGenero2
+                                )
+                            }
 
-                        // Próximas películas
-                        if (peliculasProximas.isNotEmpty() || peliculasProximasOffline.isNotEmpty()) {
-                            Text(
-                                text = "Next Releases",
-                                color = Color.White,
-                                style = MaterialTheme.typography.bodyMedium.copy(fontSize = 20.sp),
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            )
-                            ContentListExplore(
-                                movies = if (hayConexion) peliculasProximas else peliculasProximasOffline.map { it.pelicula },
-                                navController = navController,
-                                listState = listStatePeliculasProximas
-                            )
+                            // Próximas películas
+                            if (peliculasProximas.isNotEmpty() || peliculasProximasOffline.isNotEmpty()) {
+                                Text(
+                                    text = "Next Releases",
+                                    color = Color.White,
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = 20.sp),
+                                    modifier = Modifier.padding(bottom = 8.dp)
+                                )
+                                ContentListExplore(
+                                    movies = if (hayConexion) peliculasProximas else peliculasProximasOffline.map { it.pelicula },
+                                    navController = navController,
+                                    listState = listStatePeliculasProximas
+                                )
+                            }
                         }
                     }
                 }

@@ -29,10 +29,9 @@ android {
     }
 
     buildTypes {
-        // Importante para JaCoCo: habilitar cobertura en debug
         debug {
             enableUnitTestCoverage = true // cobertura para tests unitarios
-            enableAndroidTestCoverage = true // (opcional) cobertura para tests instrumentados
+            enableAndroidTestCoverage = true // cobertura para tests instrumentados
         }
         release {
             isMinifyEnabled = false
@@ -62,28 +61,48 @@ jacoco {
 }
 
 tasks.register<JacocoReport>("jacocoTestReport") {
-    dependsOn("testDebugUnitTest") // Verifica que este sea el nombre correcto de la tarea de pruebas
+    dependsOn("testDebugUnitTest")
+
+    group = "Reporting"
+    description = "Generates Jacoco coverage reports for the debug build."
+
     reports {
-        xml.required.set(true) // Generar reporte en XML
-        html.required.set(true) // Generar reporte en HTML (opcional)
+        xml.required.set(true)
+        html.required.set(true)
+        xml.outputLocation.set(file("${buildDir}/reports/jacoco/jacocoTestReport/jacocoTestReport.xml"))
+        html.outputLocation.set(file("${buildDir}/reports/jacoco/jacocoTestReport/html"))
     }
 
-    // Asegúrate de que la ruta a las clases esté correcta
-    classDirectories.setFrom(
-        fileTree("build/tmp/kotlin-classes/debug") {
-            exclude(
-                "**/R.class",
-                "**/R$*.class",
-                "**/BuildConfig.*",
-                "**/Manifest*.*",
-                "**/*Test*.*"
-            )
-        }
+    val fileFilter = listOf(
+        "**/R.class",
+        "**/R$*.class",
+        "**/BuildConfig.*",
+        "**/Manifest*.*",
+        "**/*Test*.*",
+        "**/*$*$*.*",
+        "**/di/**",
+        "**/Hilt*.*",
+        "**/*_MembersInjector.class",
+        "**/Dagger*Component*.class"
     )
 
-    // Asegúrate de que las fuentes estén configuradas correctamente
-    sourceDirectories.setFrom(files("src/main/java", "src/main/kotlin"))
-    executionData.setFrom(fileTree(buildDir).include("jacoco/testDebugUnitTest.exec"))
+    // Directorios con clases compiladas (Java + Kotlin)
+    val debugTree = fileTree("${buildDir}/tmp/kotlin-classes/debug") {
+        exclude(fileFilter)
+    }
+
+    // Fuentes
+    sourceDirectories.setFrom(files(
+        "${project.projectDir}/src/main/java",
+        "${project.projectDir}/src/main/kotlin"
+    ))
+
+    classDirectories.setFrom(files(debugTree))
+
+    // Ruta corregida para executionData
+    executionData.setFrom(fileTree(buildDir).include(
+        "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec"
+    ))
 }
 
 

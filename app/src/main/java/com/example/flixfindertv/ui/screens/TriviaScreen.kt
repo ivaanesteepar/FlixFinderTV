@@ -123,187 +123,194 @@ fun TriviaScreen(navController: NavHostController) {
             }
         }
     ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize()) {
-            Image(
-                painter = painterResource(id = R.drawable.fondo_app),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
-            )
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-            ) {
-                if (hayConexion) {
-                    if (showWelcomeScreen) {
-                        Box(
-                            modifier = Modifier.fillMaxSize()
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center,
+        if (uid != null) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                Image(
+                    painter = painterResource(id = R.drawable.fondo_app),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                ) {
+                    if (hayConexion) {
+                        if (showWelcomeScreen) {
+                            Box(
                                 modifier = Modifier.fillMaxSize()
                             ) {
-                                Text(
-                                    text = "Welcome to the FlixFinderTV Trivia!",
-                                    style = MaterialTheme.typography.headlineSmall,
-                                    color = Color.White,
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.padding(16.dp)
-                                )
-                                Button(
-                                    onClick = { showWelcomeScreen = false },
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color.Blue)
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center,
+                                    modifier = Modifier.fillMaxSize()
                                 ) {
-                                    Text(text = "Start", color = Color.White)
-                                }
-
-                            }
-                            Text(
-                                text = "Powered by Gemini AI",
-                                style = MaterialTheme.typography.bodySmall.copy(
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold
-                                ),
-                                modifier = Modifier
-                                    .align(Alignment.BottomCenter)
-                                    .padding(16.dp)
-                                    .offset(y = (-20).dp)
-                            )
-                        }
-                    } else {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(16.dp)
-                                .padding(top = 30.dp)
-                        ) {
-                            if (uiState is UiState.Loading) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(16.dp)
-                                ) {
-                                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                                }
-                            } else if (uiState is UiState.Success) {
-                                fullText = (uiState as UiState.Success).outputText
-
-                                val answerStartIndex = fullText.indexOfFirst { it == 'A' }
-
-                                if (answerStartIndex != -1) {
-                                    questionText = fullText.substring(0, answerStartIndex).trim()
-                                    val answersText = fullText.substring(answerStartIndex).trim()
-                                    answersList =
-                                        answersText.split(Regex("(?=\\s*[A-D]\\)\\s*)"))
-                                            .map { it.trim() }
-                                            .filter { it.isNotEmpty() }
-                                }
-                            } else if (uiState is UiState.Error) {
-                                Text(
-                                    text = (uiState as UiState.Error).errorMessage,
-                                    color = MaterialTheme.colorScheme.error,
-                                    modifier = Modifier
-                                        .padding(bottom = 16.dp)
-                                        .align(Alignment.CenterHorizontally)
-                                )
-                            }
-
-                            // Mostrar la pregunta solo si no se ha respondido aún
-                            if (!hasAnswered && questionText.isNotEmpty()) {
-                                Text(
-                                    text = questionText,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(bottom = 16.dp),
-                                    textAlign = TextAlign.Center,
-                                    color = Color.White
-                                )
-                                Spacer(modifier = Modifier.height(50.dp))
-                                // Mostrar las opciones de respuesta
-                                answersList.forEachIndexed { index, answerOption ->
-                                    Button(
-                                        onClick = {
-                                            // Aquí va la lógica para validar la respuesta
-                                            val normalizedAnswer = when (index) {
-                                                0 -> "a"
-                                                1 -> "b"
-                                                2 -> "c"
-                                                3 -> "d"
-                                                else -> ""
-                                            }
-                                            triviaViewModel.checkAnswer(normalizedAnswer)
-                                            showNextButton = true
-                                            hasAnswered = true
-                                            isAnswered = true
-                                        },
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(vertical = 15.dp)
-                                    ) {
-                                        Text(text = answerOption)
-                                    }
-                                }
-                            }
-                        }
-
-                        // Mostrar la explicación después de la espera
-                        if (hasAnswered && explanationShown) {
-                            LazyColumn(
-                                modifier = Modifier.height(530.dp)
-                            ) {
-                                item {
-                                    // Usar la variable global 'explanation' para mostrar la explicación
                                     Text(
-                                        text = triviaViewModel.explanation ?: "",
-                                        style = MaterialTheme.typography.bodyLarge,
+                                        text = "Welcome to the FlixFinderTV Trivia!",
+                                        style = MaterialTheme.typography.headlineSmall,
+                                        color = Color.White,
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier.padding(16.dp)
+                                    )
+                                    Button(
+                                        onClick = { showWelcomeScreen = false },
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color.Blue)
+                                    ) {
+                                        Text(text = "Start", color = Color.White)
+                                    }
+
+                                }
+                                Text(
+                                    text = "Powered by Gemini AI",
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        color = Color.White,
+                                        fontWeight = FontWeight.Bold
+                                    ),
+                                    modifier = Modifier
+                                        .align(Alignment.BottomCenter)
+                                        .padding(16.dp)
+                                        .offset(y = (-20).dp)
+                                )
+                            }
+                        } else {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(16.dp)
+                                    .padding(top = 30.dp)
+                            ) {
+                                if (uiState is UiState.Loading) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .padding(16.dp)
+                                    ) {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.align(
+                                                Alignment.Center
+                                            )
+                                        )
+                                    }
+                                } else if (uiState is UiState.Success) {
+                                    fullText = (uiState as UiState.Success).outputText
+
+                                    val answerStartIndex = fullText.indexOfFirst { it == 'A' }
+
+                                    if (answerStartIndex != -1) {
+                                        questionText =
+                                            fullText.substring(0, answerStartIndex).trim()
+                                        val answersText =
+                                            fullText.substring(answerStartIndex).trim()
+                                        answersList =
+                                            answersText.split(Regex("(?=\\s*[A-D]\\)\\s*)"))
+                                                .map { it.trim() }
+                                                .filter { it.isNotEmpty() }
+                                    }
+                                } else if (uiState is UiState.Error) {
+                                    Text(
+                                        text = (uiState as UiState.Error).errorMessage,
+                                        color = MaterialTheme.colorScheme.error,
+                                        modifier = Modifier
+                                            .padding(bottom = 16.dp)
+                                            .align(Alignment.CenterHorizontally)
+                                    )
+                                }
+
+                                // Mostrar la pregunta solo si no se ha respondido aún
+                                if (!hasAnswered && questionText.isNotEmpty()) {
+                                    Text(
+                                        text = questionText,
+                                        style = MaterialTheme.typography.titleMedium,
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .padding(26.dp),
+                                            .padding(bottom = 16.dp),
                                         textAlign = TextAlign.Center,
                                         color = Color.White
                                     )
+                                    Spacer(modifier = Modifier.height(50.dp))
+                                    // Mostrar las opciones de respuesta
+                                    answersList.forEachIndexed { index, answerOption ->
+                                        Button(
+                                            onClick = {
+                                                // Aquí va la lógica para validar la respuesta
+                                                val normalizedAnswer = when (index) {
+                                                    0 -> "a"
+                                                    1 -> "b"
+                                                    2 -> "c"
+                                                    3 -> "d"
+                                                    else -> ""
+                                                }
+                                                triviaViewModel.checkAnswer(normalizedAnswer)
+                                                showNextButton = true
+                                                hasAnswered = true
+                                                isAnswered = true
+                                            },
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(vertical = 15.dp)
+                                        ) {
+                                            Text(text = answerOption)
+                                        }
+                                    }
                                 }
                             }
-                        }
 
-                        // Fila con los botones fijos en la parte inferior
-                        Column(
-                            modifier = Modifier
-                                .align(Alignment.BottomCenter)
-                                .padding(16.dp)
-                                .fillMaxWidth()
-                        ) {
-                            // Botón para continuar a la siguiente pregunta
-                            if (showNextButton) {
-                                Button(
-                                    onClick = {
-                                        transitioningToNextQuestion = true
-                                    },
-                                    modifier = Modifier.fillMaxWidth()
+                            // Mostrar la explicación después de la espera
+                            if (hasAnswered && explanationShown) {
+                                LazyColumn(
+                                    modifier = Modifier.height(530.dp)
                                 ) {
-                                    Text(text = "Next question")
+                                    item {
+                                        // Usar la variable global 'explanation' para mostrar la explicación
+                                        Text(
+                                            text = triviaViewModel.explanation ?: "",
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(26.dp),
+                                            textAlign = TextAlign.Center,
+                                            color = Color.White
+                                        )
+                                    }
                                 }
                             }
-                            Spacer(modifier = Modifier.height(12.dp))
+
+                            // Fila con los botones fijos en la parte inferior
+                            Column(
+                                modifier = Modifier
+                                    .align(Alignment.BottomCenter)
+                                    .padding(16.dp)
+                                    .fillMaxWidth()
+                            ) {
+                                // Botón para continuar a la siguiente pregunta
+                                if (showNextButton) {
+                                    Button(
+                                        onClick = {
+                                            transitioningToNextQuestion = true
+                                        },
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Text(text = "Next question")
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(12.dp))
+                            }
                         }
-                    }
-                }
-                else {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp)
-                    ) {
-                        Text(
-                            text = "You need an internet connection to play",
-                            color = Color.White,
-                            style = MaterialTheme.typography.bodyMedium,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.align(Alignment.Center)
-                        )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp)
+                        ) {
+                            Text(
+                                text = "You need an internet connection to play",
+                                color = Color.White,
+                                style = MaterialTheme.typography.bodyMedium,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.align(Alignment.Center)
+                            )
+                        }
                     }
                 }
             }

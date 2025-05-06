@@ -599,27 +599,34 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                             )
                         } else {
                             if (!isComment) {
+                                var errorMessage by remember { mutableStateOf("") }
+
                                 Button(
                                     onClick = {
-                                        // Cerrar sesión de Firebase
-                                        auth.signOut()
+                                        try {
+                                            // Cerrar sesión de Firebase
+                                            auth.signOut()
 
-                                        // Eliminar la sesión guardada en SharedPreferences
-                                        usersViewModel.saveSession(
-                                            context,
-                                            false,
-                                            uid
-                                        )  // false indica que el usuario ya no está logueado
+                                            // Eliminar la sesión guardada en SharedPreferences
+                                            usersViewModel.saveSession(
+                                                context,
+                                                false,
+                                                uid
+                                            )  // false indica que el usuario ya no está logueado
 
-                                        // Mostrar un mensaje de sesión cerrada
-                                        Toast.makeText(
-                                            context,
-                                            "Session closed",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
+                                            // Mostrar un mensaje de sesión cerrada
+                                            Toast.makeText(
+                                                context,
+                                                "Session closed",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
 
-                                        // Navegar a la pantalla de login
-                                        navController.navigate("login")
+                                            // Navegar a la pantalla de login
+                                            navController.navigate("login")
+                                        } catch (e: Exception) {
+                                            // Si ocurre un error, asignar el mensaje de error
+                                            errorMessage = "Error: ${e.message}"
+                                        }
                                     },
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -630,6 +637,16 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                                         text = "Log out",
                                         style = MaterialTheme.typography.bodyLarge,
                                         color = Color.White
+                                    )
+                                }
+
+                                // Si hay un mensaje de error, mostrarlo
+                                if (errorMessage.isNotEmpty()) {
+                                    Text(
+                                        text = errorMessage,
+                                        color = Color.Red, // Color rojo para el mensaje de error
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        modifier = Modifier.padding(16.dp)
                                     )
                                 }
                             }
