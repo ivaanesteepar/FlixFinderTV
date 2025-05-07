@@ -232,7 +232,7 @@ class UsersViewModelTest {
         }
     }
 
-// PRUEBA SONARQUBE
+
 //    @OptIn(ExperimentalCoroutinesApi::class)
 //    @Test
 //    fun `test agregar pelicula cuando se ha alcanzado el limite de favoritos`() = runTest {
