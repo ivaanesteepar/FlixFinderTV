@@ -50,5 +50,8 @@ jobs:
       - name: Ejecutar SonarCloud
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./gradlew sonarqube -Dsonar.login=$SONAR_TOKEN
+        run: ./gradlew sonarqube \
+              -Dsonar.login=$SONAR_TOKEN \
+              -Dsonar.coverage.jacoco.xmlReportPaths=app/build/reports/jacoco/test/jacocoTestReport.xml
+
 
