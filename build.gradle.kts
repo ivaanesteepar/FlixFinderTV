@@ -14,8 +14,6 @@ sonarqube {
         // Archivos de prueba (mejor separados por coma sin espacios)
         property("sonar.tests", "src/test/kotlin,src/test/java")
 
-        property("sonar.token", "18450ef60b74b77383c26813c611b29606b8ef3f")
-
         // ⚠️ Claves necesarias para SonarCloud
         property("sonar.projectKey", "ivaanesteepar_FlixFinderTV")
         property("sonar.organization", "ivaanesteepar")
