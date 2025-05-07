@@ -32,7 +32,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -41,13 +41,12 @@ import com.example.flixfindertv.R
 import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 
-// Pantalla de registro para crear una nueva cuenta de usuario
 @Composable
 fun RegisterScreen(navController: NavController) {
-    var username by remember { mutableStateOf(TextFieldValue()) }
-    var email by remember { mutableStateOf(TextFieldValue()) }
-    var password by remember { mutableStateOf(TextFieldValue()) }
-    var confirmPassword by remember { mutableStateOf(TextFieldValue()) }
+    var username by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -76,7 +75,7 @@ fun RegisterScreen(navController: NavController) {
             ) {
                 Column(
                     modifier = Modifier
-                        .align(Alignment.Center) // Centra en ambas direcciones (horizontal y vertical)
+                        .align(Alignment.Center)
                         .padding(bottom = 16.dp)
                 ) {
                     Image(
@@ -84,8 +83,8 @@ fun RegisterScreen(navController: NavController) {
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
-                            .size(120.dp) // Tamaño de la imagen
-                            .clip(CircleShape) // Hace que la imagen sea circular
+                            .size(120.dp)
+                            .clip(CircleShape)
                             .align(Alignment.CenterHorizontally)
                     )
                     Spacer(modifier = Modifier.height(16.dp))
@@ -97,87 +96,32 @@ fun RegisterScreen(navController: NavController) {
                             .align(Alignment.CenterHorizontally)
                     )
 
-                    OutlinedTextField(
+                    // Llamamos a la función para los campos de texto
+                    InputField(
+                        label = "Username",
                         value = username,
                         onValueChange = { username = it },
-                        label = { Text("Username", color = Color.White) },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                        textStyle = LocalTextStyle.current.copy(color = Color.White), // Texto en blanco
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color.White,    // Borde blanco al estar seleccionado
-                            unfocusedBorderColor = Color.White, // Borde blanco en estado normal
-                            focusedTextColor = Color.White,      // Texto en blanco
-                            unfocusedTextColor = Color.White,
-                            cursorColor = Color.White,           // Cursor blanco
-                            focusedTrailingIconColor = Color.White, // Ícono de búsqueda blanco
-                            unfocusedTrailingIconColor = Color.White
-                        ),
-                        singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    OutlinedTextField(
+                    InputField(
+                        label = "Email",
                         value = email,
                         onValueChange = { email = it },
-                        label = { Text("Email", color = Color.White) },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                        textStyle = LocalTextStyle.current.copy(color = Color.White), // Texto en blanco
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color.White,    // Borde blanco al estar seleccionado
-                            unfocusedBorderColor = Color.White, // Borde blanco en estado normal
-                            focusedTextColor = Color.White,      // Texto en blanco
-                            unfocusedTextColor = Color.White,
-                            cursorColor = Color.White,           // Cursor blanco
-                            focusedTrailingIconColor = Color.White, // Ícono de búsqueda blanco
-                            unfocusedTrailingIconColor = Color.White
-                        ),
-                        singleLine = true,
+                        keyboardType = KeyboardType.Email,
                         modifier = Modifier.fillMaxWidth()
                     )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    OutlinedTextField(
+                    InputField(
+                        label = "Password",
                         value = password,
                         onValueChange = { password = it },
-                        label = { Text("Password", color = Color.White) },
-                        visualTransformation = PasswordVisualTransformation(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                        textStyle = LocalTextStyle.current.copy(color = Color.White), // Texto en blanco
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color.White,    // Borde blanco al estar seleccionado
-                            unfocusedBorderColor = Color.White, // Borde blanco en estado normal
-                            focusedTextColor = Color.White,      // Texto en blanco
-                            unfocusedTextColor = Color.White,
-                            cursorColor = Color.White,           // Cursor blanco
-                            focusedTrailingIconColor = Color.White, // Ícono de búsqueda blanco
-                            unfocusedTrailingIconColor = Color.White
-                        ),
-                        singleLine = true,
+                        isPassword = true,
                         modifier = Modifier.fillMaxWidth()
                     )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    OutlinedTextField(
+                    InputField(
+                        label = "Confirm Password",
                         value = confirmPassword,
                         onValueChange = { confirmPassword = it },
-                        label = { Text("Confirm Password", color = Color.White) },
-                        visualTransformation = PasswordVisualTransformation(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                        textStyle = LocalTextStyle.current.copy(color = Color.White), // Texto en blanco
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color.White,    // Borde blanco al estar seleccionado
-                            unfocusedBorderColor = Color.White, // Borde blanco en estado normal
-                            focusedTextColor = Color.White,      // Texto en blanco
-                            unfocusedTextColor = Color.White,
-                            cursorColor = Color.White,           // Cursor blanco
-                            focusedTrailingIconColor = Color.White, // Ícono de búsqueda blanco
-                            unfocusedTrailingIconColor = Color.White
-                        ),
-                        singleLine = true,
+                        isPassword = true,
                         modifier = Modifier.fillMaxWidth()
                     )
 
@@ -197,34 +141,32 @@ fun RegisterScreen(navController: NavController) {
                                     Toast.LENGTH_SHORT
                                 ).show()
                             } else {
-                                // Iniciar proceso de registro
-                                isLoading = true // Activar estado de carga
+                                isLoading = true
                                 usersViewModel.register(
-                                    email = email.text,
-                                    password = password.text,
-                                    confirmPassword = confirmPassword.text,
-                                    username = username.text,
+                                    email = email,
+                                    password = password,
+                                    confirmPassword = confirmPassword,
+                                    username = username,
                                     onSuccess = { screen ->
-                                        isLoading = false // Desactivar estado de carga
-                                        navController.navigate(screen) // Navegar al login
+                                        isLoading = false
+                                        navController.navigate(screen)
                                     },
                                     onFailure = { error ->
-                                        isLoading = false // Desactivar estado de carga
-                                        errorMessage = error // Mostrar el mensaje de error
+                                        isLoading = false
+                                        errorMessage = error
                                     }
                                 )
                             }
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .then(if (isLoading) Modifier.pointerInput(Unit) {} else Modifier), // Evita clicks si está cargando
-
+                            .then(if (isLoading) Modifier.pointerInput(Unit) {} else Modifier),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.Blue, // El botón siempre será azul
-                            contentColor = Color.White  // El texto siempre será blanco
+                            containerColor = Color.Blue,
+                            contentColor = Color.White
                         )
                     ) {
-                        Text(text = if (isLoading) "Registering..." else "Register") // Cambia el texto dependiendo de si está cargando
+                        Text(text = if (isLoading) "Registering..." else "Register")
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -232,13 +174,12 @@ fun RegisterScreen(navController: NavController) {
                         modifier = Modifier.align(Alignment.CenterHorizontally)
                     ) {
                         TextButton(onClick = { navController.popBackStack() }) {
-                            Text("Back to login", color = Color.White, modifier = Modifier)
+                            Text("Back to login", color = Color.White)
                         }
                     }
                 }
             }
-        }
-        else {
+        } else {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -258,14 +199,13 @@ fun RegisterScreen(navController: NavController) {
                             contentDescription = null,
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
-                                .size(170.dp) // Tamaño de la imagen
-                                .clip(CircleShape) // Hace que la imagen sea circular
+                                .size(170.dp)
+                                .clip(CircleShape)
                                 .padding(start = 26.dp)
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Contenido a la derecha
                         Column(
                             modifier = Modifier
                                 .fillMaxHeight()
@@ -279,96 +219,37 @@ fun RegisterScreen(navController: NavController) {
                                 fontSize = 24.sp,
                                 modifier = Modifier.padding(bottom = 16.dp)
                             )
-                            OutlinedTextField(
+
+                            // Llamamos a la función para los campos de texto con ancho de 500 dp en landscape
+                            InputField(
+                                label = "Username",
                                 value = username,
                                 onValueChange = { username = it },
-                                label = { Text("Username", color = Color.White) },
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                                textStyle = LocalTextStyle.current.copy(color = Color.White), // Texto en blanco
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = Color.White,    // Borde blanco al estar seleccionado
-                                    unfocusedBorderColor = Color.White, // Borde blanco en estado normal
-                                    focusedTextColor = Color.White,      // Texto en blanco
-                                    unfocusedTextColor = Color.White,
-                                    cursorColor = Color.White,           // Cursor blanco
-                                    focusedTrailingIconColor = Color.White, // Ícono de búsqueda blanco
-                                    unfocusedTrailingIconColor = Color.White
-                                ),
-                                singleLine = true,
                                 modifier = Modifier.width(500.dp)
                             )
-
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            OutlinedTextField(
+                            InputField(
+                                label = "Email",
                                 value = email,
                                 onValueChange = { email = it },
-                                label = { Text("Email", color = Color.White) },
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                                textStyle = LocalTextStyle.current.copy(color = Color.White), // Texto en blanco
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = Color.White,    // Borde blanco al estar seleccionado
-                                    unfocusedBorderColor = Color.White, // Borde blanco en estado normal
-                                    focusedTextColor = Color.White,      // Texto en blanco
-                                    unfocusedTextColor = Color.White,
-                                    cursorColor = Color.White,           // Cursor blanco
-                                    focusedTrailingIconColor = Color.White, // Ícono de búsqueda blanco
-                                    unfocusedTrailingIconColor = Color.White
-                                ),
-                                singleLine = true,
+                                keyboardType = KeyboardType.Email,
                                 modifier = Modifier.width(500.dp)
                             )
-
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            OutlinedTextField(
+                            InputField(
+                                label = "Password",
                                 value = password,
                                 onValueChange = { password = it },
-                                label = { Text("Password", color = Color.White) },
-                                visualTransformation = PasswordVisualTransformation(),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                                textStyle = LocalTextStyle.current.copy(color = Color.White), // Texto en blanco
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = Color.White,    // Borde blanco al estar seleccionado
-                                    unfocusedBorderColor = Color.White, // Borde blanco en estado normal
-                                    focusedTextColor = Color.White,      // Texto en blanco
-                                    unfocusedTextColor = Color.White,
-                                    cursorColor = Color.White,           // Cursor blanco
-                                    focusedTrailingIconColor = Color.White, // Ícono de búsqueda blanco
-                                    unfocusedTrailingIconColor = Color.White
-                                ),
-                                singleLine = true,
+                                isPassword = true,
                                 modifier = Modifier.width(500.dp)
                             )
-
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            OutlinedTextField(
+                            InputField(
+                                label = "Confirm Password",
                                 value = confirmPassword,
                                 onValueChange = { confirmPassword = it },
-                                label = { Text("Confirm Password", color = Color.White) },
-                                visualTransformation = PasswordVisualTransformation(),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                                textStyle = LocalTextStyle.current.copy(color = Color.White), // Texto en blanco
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = Color.White,    // Borde blanco al estar seleccionado
-                                    unfocusedBorderColor = Color.White, // Borde blanco en estado normal
-                                    focusedTextColor = Color.White,      // Texto en blanco
-                                    unfocusedTextColor = Color.White,
-                                    cursorColor = Color.White,           // Cursor blanco
-                                    focusedTrailingIconColor = Color.White, // Ícono de búsqueda blanco
-                                    unfocusedTrailingIconColor = Color.White
-                                ),
-                                singleLine = true,
+                                isPassword = true,
                                 modifier = Modifier.width(500.dp)
                             )
 
                             Spacer(modifier = Modifier.height(16.dp))
-
-                            errorMessage?.let {
-                                Text(text = it, color = Color.Red, fontSize = 14.sp)
-                                Spacer(modifier = Modifier.height(8.dp))
-                            }
 
                             Button(
                                 onClick = {
@@ -379,42 +260,39 @@ fun RegisterScreen(navController: NavController) {
                                             Toast.LENGTH_SHORT
                                         ).show()
                                     } else {
-                                        // Iniciar proceso de registro
-                                        isLoading = true // Activar estado de carga
+                                        isLoading = true
                                         usersViewModel.register(
-                                            email = email.text,
-                                            password = password.text,
-                                            confirmPassword = confirmPassword.text,
-                                            username = username.text,
+                                            email = email,
+                                            password = password,
+                                            confirmPassword = confirmPassword,
+                                            username = username,
                                             onSuccess = { screen ->
-                                                isLoading = false // Desactivar estado de carga
-                                                navController.navigate(screen) // Navegar al login
+                                                isLoading = false
+                                                navController.navigate(screen)
                                             },
                                             onFailure = { error ->
-                                                isLoading = false // Desactivar estado de carga
-                                                errorMessage = error // Mostrar el mensaje de error
+                                                isLoading = false
+                                                errorMessage = error
                                             }
                                         )
                                     }
                                 },
                                 modifier = Modifier
                                     .width(300.dp)
-                                    .then(if (isLoading) Modifier.pointerInput(Unit) {} else Modifier), // Evita clicks si está cargando
-
+                                    .then(if (isLoading) Modifier.pointerInput(Unit) {} else Modifier),
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color.Blue, // El botón siempre será azul
-                                    contentColor = Color.White  // El texto siempre será blanco
+                                    containerColor = Color.Blue,
+                                    contentColor = Color.White
                                 )
                             ) {
-                                Text(text = if (isLoading) "Registering..." else "Register") // Cambia el texto dependiendo de si está cargando
+                                Text(text = if (isLoading) "Registering..." else "Register")
                             }
-
                             Spacer(modifier = Modifier.height(8.dp))
                             Box(
-
+                                modifier = Modifier.align(Alignment.CenterHorizontally)
                             ) {
                                 TextButton(onClick = { navController.popBackStack() }) {
-                                    Text("Back to login", color = Color.White, modifier = Modifier)
+                                    Text("Back to login", color = Color.White)
                                 }
                             }
                         }
@@ -424,3 +302,33 @@ fun RegisterScreen(navController: NavController) {
         }
     }
 }
+
+@Composable
+fun InputField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    isPassword: Boolean = false,
+    keyboardType: KeyboardType = KeyboardType.Text,
+    modifier: Modifier = Modifier
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = { onValueChange(it) },
+        label = { Text(label, color = Color.White) },
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
+        textStyle = LocalTextStyle.current.copy(color = Color.White),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = Color.White,
+            unfocusedBorderColor = Color.White,
+            focusedTextColor = Color.White,
+            unfocusedTextColor = Color.White,
+            cursorColor = Color.White
+        ),
+        singleLine = true,
+        modifier = modifier
+    )
+    Spacer(modifier = Modifier.height(16.dp))
+}
+
