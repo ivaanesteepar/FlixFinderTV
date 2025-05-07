@@ -41,9 +41,6 @@ jobs:
       - name: Verificar permisos de gradlew
         run: ls -l gradlew
 
-      - name: Compilar proyecto
-        run: ./gradlew build
-
       - name: Ejecutar SonarCloud
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
