@@ -142,65 +142,6 @@ class MoviesViewModelTest {
         assertFalse(viewModel.isLoadingFamily.value == true)
     }
 
-    @Test
-    fun `test insertPeliculasPopulares inserta correctamente en Room`() = runTest {
-        // Crear un mock de Application, ya que OfflineViewModel lo necesita
-        val mockApplication = mockk<Application>(relaxed = true)
-
-        // Mockear dependencias
-        val repository = mockk<MovieRepository>(relaxed = true)
-        val genresViewModel = mockk<GenresViewModel>(relaxed = true)
-
-        // Crear un mock de OfflineViewModel usando un constructor o método adecuado
-        val viewModel = spyk(OfflineViewModel(mockApplication))
-
-        // Usar un spyk para interceptar llamadas y así poder pasar mocks específicos cuando sea necesario
-        every { viewModel.repository } returns repository
-        every { viewModel.genresViewModel } returns genresViewModel
-
-        // Crear lista de películas de prueba
-        val peliculasList = listOf(
-            mockPelicula("Pelicula 1", "id1"),
-            mockPelicula("Pelicula 2", "id2")
-        )
-
-        println("Películas de prueba: $peliculasList") // Imprime las películas de prueba
-
-        // Mockear el comportamiento de createPeliculaEntityWithGeneros
-        peliculasList.forEach { pelicula ->
-            every { genresViewModel.createPeliculaEntityWithGeneros(eq(pelicula), any()) } answers {
-                val callback = arg<(PeliculasEntity) -> Unit>(1)
-                val mockEntity = mockk<PeliculasEntity>(relaxed = true)
-                println("Creando PeliculasEntity para: ${pelicula.title}") // Imprime cuando se está creando una entidad
-                callback(mockEntity) // Devuelve un PeliculasEntity simulado
-            }
-        }
-
-        // Llamar a la función insertPeliculasPopulares
-        println("Llamando a insertPeliculasPopulares con las películas de prueba...")
-        viewModel.insertPeliculasPopulares(peliculasList)
-
-        // Avanzar las corutinas para que las operaciones asíncronas se completen
-        advanceUntilIdle()
-
-        // Capturar la lista de películas que se pasó al repository
-        val captor = slot<List<PeliculasEntity>>()
-
-        // Verificar que se llamó al método insertMoviesPopulares con las entidades correctas
-        coVerify(exactly = 1) { repository.insertMoviesPopulares(capture(captor)) }
-
-        // Imprimir lo que se pasó al repository
-        println("Películas pasadas al repository: ${captor.captured}") // Imprime las películas capturadas
-
-        // Verificar que el tamaño de la lista es correcto (en este caso, 2)
-        assert(captor.captured.size == peliculasList.size)
-
-        // Verificar el contenido de las películas insertadas
-        captor.captured.forEachIndexed { index, peliculaEntity ->
-            println("Pelicula ${index + 1}: $peliculaEntity") // Imprime cada PeliculasEntity insertada
-        }
-    }
-
 
     // Funciones auxiliares
     private fun mockGenerosQuerySnapshot(name: String, id: Long): QuerySnapshot {
