@@ -7,6 +7,7 @@ plugins {
 }
 
 val sonarToken = findProperty("sonar.token") as String?
+println("sonar token: $sonarToken")
 
 sonarqube {
     properties {
