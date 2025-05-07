@@ -41,7 +41,7 @@ import com.example.flixfindertv.utils.MovieDetailsContent
 import com.example.flixfindertv.utils.validateComment
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
-
+//PRUEBAAAAAAAAAAAAAAAAAAAAAAA
 // Función que muestra la pantalla de detalles de una película o serie
 @Composable
 fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean) {
