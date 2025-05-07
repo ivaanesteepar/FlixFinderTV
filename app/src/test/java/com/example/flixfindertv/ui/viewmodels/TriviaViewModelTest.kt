@@ -78,6 +78,7 @@ class TriviaViewModelTest {
         )
     }
 
+
 //    @Test
 //    fun `checkAnswer deberia emitir UiState Success con explicacion cuando la respuesta es comprobada`() = runTest {
 //        // Configurar el mock para GenerativeModel
@@ -124,5 +125,5 @@ class TriviaViewModelTest {
 //        val successResult = result
 //        assertTrue(successResult.outputText.contains("La respuesta correcta es A) París"))
 //    }
-//}
+}
 
