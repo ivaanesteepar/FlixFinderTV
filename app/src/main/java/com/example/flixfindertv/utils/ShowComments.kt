@@ -765,10 +765,10 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                                                             showPublishDialogRes.value = false // Cierra el diálogo si se hace clic fuera de él
                                                         },
                                                         title = {
-                                                            Text("Confirmar publicación")
+                                                            Text("Confirm Post")
                                                         },
                                                         text = {
-                                                            Text("¿Estás seguro de que quieres publicar esta respuesta?")
+                                                            Text("Are you sure you want to post this response?")
                                                         },
                                                         confirmButton = {
                                                             Button(
@@ -778,21 +778,21 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                                                                         res.idContenido, res.idComentario, res.id,
                                                                         onSuccess = {
                                                                             showPublishDialogRes.value = false
-                                                                            println("Revisión de respuesta publicada (actualizada): ${res.revision}")
+                                                                            println("Response review published (updated): ${res.revision}")
                                                                         },
                                                                         onFailure = { exception ->
-                                                                            println("Error publicando la respuesta: ${exception.message}")
+                                                                            println("Error publishing the response: ${exception.message}")
                                                                         }
                                                                     )
                                                                 }
                                                             ) {
-                                                                Text("Si")
+                                                                Text("Yes")
                                                             }
                                                         },
                                                         dismissButton = {
                                                             Button(
                                                                 onClick = {
-                                                                    showPublishDialogRes.value = false // Cierra el diálogo
+                                                                    showPublishDialogRes.value = false // Close the dialog
                                                                 }
                                                             ) {
                                                                 Text("No")
@@ -805,48 +805,48 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                                                 if (showDeleteDialogRes.value) {
                                                     AlertDialog(
                                                         onDismissRequest = {
-                                                            showDeleteDialogRes.value = false // Cierra el diálogo si se hace clic fuera de él
+                                                            showDeleteDialogRes.value = false // Close the dialog if clicked outside
                                                         },
                                                         title = {
-                                                            Text("Confirmar eliminación")
+                                                            Text("Confirm Deletion")
                                                         },
                                                         text = {
-                                                            Text("¿Estás seguro de que quieres eliminar esta respuesta?")
+                                                            Text("Are you sure you want to delete this response?")
                                                         },
                                                         confirmButton = {
                                                             Button(
                                                                 onClick = {
-                                                                    // Eliminar la respuesta de Firestore
+                                                                    // Delete the response from Firestore
                                                                     viewModel.deleteAnswer(
                                                                         res.idContenido, res.idComentario, res.id,
                                                                         onSuccess = {
                                                                             showDeleteDialogRes.value = false
-                                                                            println("Respuesta eliminada")
+                                                                            println("Response deleted")
 
-                                                                            // Filtrar las respuestas eliminadas
+                                                                            // Filter out the deleted responses
                                                                             val updatedRespuestas = comentario.respuestas.filterNot { it.id == res.id }
                                                                             comentario.respuestas = updatedRespuestas
 
-                                                                            // Actualizar la lista de respuestas en la UI
+                                                                            // Update the list of responses in the UI
                                                                             respuestasParaMostrar.value = if (comentario.respuestas.size > 2 && !showAllResponses) {
-                                                                                comentario.respuestas.take(2).toMutableList() // Tomamos solo las primeras 2 respuestas si no se muestran todas
+                                                                                comentario.respuestas.take(2).toMutableList() // Take only the first 2 responses if not showing all
                                                                             } else {
-                                                                                comentario.respuestas.toMutableList() // Mostrar todas las respuestas si corresponde
+                                                                                comentario.respuestas.toMutableList() // Show all responses if applicable
                                                                             }
                                                                         },
                                                                         onFailure = { exception ->
-                                                                            println("Error eliminando la respuesta: ${exception.message}")
+                                                                            println("Error deleting the response: ${exception.message}")
                                                                         }
                                                                     )
                                                                 }
                                                             ) {
-                                                                Text("Si")
+                                                                Text("Yes")
                                                             }
                                                         },
                                                         dismissButton = {
                                                             Button(
                                                                 onClick = {
-                                                                    showDeleteDialogRes.value = false // Cierra el diálogo
+                                                                    showDeleteDialogRes.value = false // Close the dialog
                                                                 }
                                                             ) {
                                                                 Text("No")

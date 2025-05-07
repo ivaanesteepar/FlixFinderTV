@@ -113,7 +113,6 @@ fun FavouriteContent(navController: NavController, uid:String, esSerie: Boolean)
                     Column(modifier = Modifier.fillMaxWidth()) {
                         seriesToShow.chunked(3).forEach { chunk ->
                             FlowRow(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 chunk.forEach { series ->
@@ -157,7 +156,7 @@ fun FavouriteContent(navController: NavController, uid:String, esSerie: Boolean)
                     Column(modifier = Modifier.fillMaxWidth()) {
                         moviesToShow.chunked(3).forEach { chunk ->
                             FlowRow(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                horizontalArrangement = Arrangement.Start,
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 chunk.forEach { movie ->
