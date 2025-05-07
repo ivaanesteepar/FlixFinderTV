@@ -6,26 +6,16 @@ plugins {
     id("org.sonarqube") version "3.3" apply true
 }
 
+val sonarToken = findProperty("sonar.token") as String?
+
 sonarqube {
     properties {
-        // Fuentes de producción
         property("sonar.sources", "src/main/kotlin")
-
-        // Archivos de prueba (mejor separados por coma sin espacios)
         property("sonar.tests", "src/test/kotlin,src/test/java")
-
-        // ⚠️ Claves necesarias para SonarCloud
+        property("sonar.token", sonarToken ?: "")
         property("sonar.projectKey", "ivaanesteepar_FlixFinderTV")
         property("sonar.organization", "ivaanesteepar")
         property("sonar.host.url", "https://sonarcloud.io")
-
-        // Informe de cobertura
         property("sonar.coverage.jacoco.xmlReportPaths", "app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml")
-
     }
 }
-
-
-
-
-
