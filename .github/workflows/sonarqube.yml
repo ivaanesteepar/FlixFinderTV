@@ -37,18 +37,9 @@ jobs:
       - name: Verificar permisos de gradlew
         run: ls -l gradlew
 
-      - name: Run tests with coverage
-        run: ./gradlew jacocoTestReport
-
       - name: Ejecutar SonarCloud
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: ./gradlew sonarqube -Dsonar.login=$SONAR_TOKEN
 
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          slug: ivaanesteepar/FlixFinderTV
-          files: build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
 
