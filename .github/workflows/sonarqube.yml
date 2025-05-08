@@ -37,6 +37,9 @@ jobs:
       - name: Verificar permisos de gradlew
         run: ls -l gradlew
 
+      - name: Run tests with coverage
+        run: ./gradlew jacocoTestReport
+
       - name: Ejecutar SonarCloud
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
