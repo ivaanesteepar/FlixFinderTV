@@ -47,4 +47,5 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: ivaanesteepar/FlixFinderTV
+          files: build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
 
