@@ -6,7 +6,7 @@ from firebase_admin import credentials, firestore
 from cryptography.fernet import Fernet
 import base64
 
-# Configuración de la API de TMDb
+
 BASE_URL = 'https://api.themoviedb.org/3'
 
 # Inicializar Firebase
@@ -28,7 +28,7 @@ doc_ref = db.collection('apiKeys').document('tmdbApiKey')
 doc = doc_ref.get()
 
 if doc.exists:
-    # Obtén el valor del campo 'key' que está en base64
+    # Obtiene el valor del campo 'key' que está en base64
     encrypted_base64 = doc.to_dict().get('key')
 
     # Decodifica la base64 a bytes

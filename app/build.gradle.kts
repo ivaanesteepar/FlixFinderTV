@@ -37,10 +37,9 @@ android {
     }
 
     buildTypes {
-        // Importante para JaCoCo: habilitar cobertura en debug
         debug {
             enableUnitTestCoverage = true // cobertura para tests unitarios
-            enableAndroidTestCoverage = true // (opcional) cobertura para tests instrumentados
+            enableAndroidTestCoverage = true // cobertura para tests instrumentados
         }
         release {
             isMinifyEnabled = false
@@ -76,7 +75,6 @@ tasks.register<JacocoReport>("jacocoTestReport") {
         html.required.set(true) // Generar reporte en HTML
     }
 
-    // Asegúrate de que la ruta a las clases esté correcta
     classDirectories.setFrom(
         fileTree("build/tmp/kotlin-classes/debug") {
             exclude(
@@ -89,7 +87,6 @@ tasks.register<JacocoReport>("jacocoTestReport") {
         }
     )
 
-    // Asegúrate de que las fuentes estén configuradas correctamente
     sourceDirectories.setFrom(files("src/main/java", "src/main/kotlin"))
     executionData.setFrom(fileTree(buildDir).include("jacoco/testDebugUnitTest.exec"))
 }
@@ -131,10 +128,10 @@ dependencies {
 
     // Dependencias de pruebas
     testImplementation(libs.junit)
-    testImplementation(libs.mockk)  // MockK para pruebas en Kotlin
+    testImplementation(libs.mockk)
     testImplementation ("androidx.arch.core:core-testing:2.1.0")
     testImplementation ("org.robolectric:robolectric:4.9")
 
     // Herramientas para pruebas de corutinas
-    testImplementation(libs.kotlinx.coroutines.test)  // Para pruebas de corutinas
+    testImplementation(libs.kotlinx.coroutines.test)
 }
