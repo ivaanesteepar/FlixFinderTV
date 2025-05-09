@@ -1,7 +1,10 @@
 import requests
 import firebase_admin
 import time
+import json
 from firebase_admin import credentials, firestore
+from cryptography.fernet import Fernet
+import base64
 
 # Configuración de la API de TMDb
 BASE_URL = 'https://api.themoviedb.org/3'
@@ -10,16 +13,34 @@ BASE_URL = 'https://api.themoviedb.org/3'
 cred = credentials.Certificate('C:\\Users\\Usuario\\Documents\\KeyFirebase\\flixfindertv-1f381-firebase-adminsdk-fbsvc-b62fc4096c.json')
 firebase_admin.initialize_app(cred)
 db = firestore.client()
-# Acceder al documento tmdbApiKey dentro de la colección apiKeys
+
+# Clave de cifrado original
+with open('config.json', 'r') as config_file:
+    config = json.load(config_file)
+    key = bytes(config['clave_encriptacion'], 'utf-8')
+print(key)
+
+# Inicializa el objeto Fernet con la clave
+cipher = Fernet(key)
+
+# Recupera el documento de Firebase
 doc_ref = db.collection('apiKeys').document('tmdbApiKey')
 doc = doc_ref.get()
 
 if doc.exists:
-    # Obtener el valor del campo 'key'
-    API_KEY = doc.to_dict().get('key')
+    # Obtén el valor del campo 'key' que está en base64
+    encrypted_base64 = doc.to_dict().get('key')
+
+    # Decodifica la base64 a bytes
+    encrypted_bytes = base64.b64decode(encrypted_base64)
+
+    # Desencripta la API key
+    API_KEY = cipher.decrypt(encrypted_bytes).decode('utf-8')
+    
     print("API Key recuperada:", API_KEY)
 else:
     print("No se encontró el documento o la clave API no está almacenada.")
+
 
 # Colecciones de Firestore
 peliculas_collection = db.collection('peliculas')
@@ -27,6 +48,49 @@ series_collection = db.collection('series')
 config_collection = db.collection('config')
 eliminadas_collection = db.collection('eliminadas')
 generos_collection = db.collection('generos')
+
+
+def obtener_trailer(tipo, id_contenido):
+    url = f"{BASE_URL}/{tipo}/{id_contenido}/videos?api_key={API_KEY}&language=en-US"
+    respuesta = requests.get(url)
+    
+    if respuesta.status_code == 200:
+        videos = respuesta.json().get('results', [])
+        for video in videos:
+            if video.get('type') == 'Trailer' and video.get('site') == 'YouTube':
+                return f"https://www.youtube.com/watch?v={video['key']}"
+    
+    return None
+
+
+def obtener_director(tipo, id_contenido):
+    url = f"{BASE_URL}/{tipo}/{id_contenido}/credits"
+    params = {
+        "api_key": API_KEY,
+        "language": "en-US"
+    }
+    try:
+        response = requests.get(url, params=params)
+        if response.status_code == 200:
+            data = response.json()
+            crew = data.get("crew", [])
+            for persona in crew:
+                if persona.get("job") == "Director":
+                    nombre_director = persona.get("name")
+                    foto_director = persona.get("profile_path")
+                    if foto_director:
+                        # Construir la URL de la foto del director
+                        foto_director_url = f"https://image.tmdb.org/t/p/w500{foto_director}"
+                    else:
+                        foto_director_url = None
+                    return nombre_director, foto_director_url
+        else:
+            print(f"Error al obtener director para {tipo} ID {id_contenido}: {response.status_code}")
+    except Exception as e:
+        print(f"Excepción al obtener director: {e}")
+    
+    return None, None
+
 
 
 def obtener_generos(api_key):
@@ -175,55 +239,57 @@ def obtener_status_serie(tv_id):
 
 
 def guardar_en_db(datos, coleccion, peliculas_eliminadas):
-    contador = 0  # Inicializamos el contador
+    contador = 0  
 
     for item in datos:
-        # Verificar si la película o serie ya fue eliminada
         if str(item['id']) in peliculas_eliminadas:
             print(f"La {coleccion.id[:-1]} con ID {item['id']} ya fue eliminada y no se guardará.")
             continue
 
-        # Obtener el estado (status) de la película o serie
-        if 'title' in item:  # Si es una película
+        if 'title' in item:  # Película
             status = obtener_status_pelicula(item['id'])
-        elif 'name' in item:  # Si es una serie
+            trailer_url = obtener_trailer('movie', item['id'])
+            director_nombre, director_foto_url = obtener_director('movie', item['id'])
+        elif 'name' in item:  # Serie
             status = obtener_status_serie(item['id'])
+            trailer_url = obtener_trailer('tv', item['id'])
+            director_nombre, director_foto_url = obtener_director('tv', item['id'])
+
         else:
             status = 'Desconocido'
+            trailer_url = None
+            director_nombre, director_foto_url = None, None
         
-        # Verificar si la película o serie ya existe en Firestore
         doc_ref = coleccion.document(str(item['id']))
-
-        # Crear un diccionario con la información de la película o serie
         pelicula = {
-            "id": str(item['id']),  # Asegurar que el ID sea un string
+            "id": str(item['id']),
             "title": item.get('title', None),
             "name": item.get('name', None),
             "overview": item.get('overview', ''),
             "release_date": item.get('release_date', None),
             "release_date_series": item.get('first_air_date', None),
             "poster_path": item.get('poster_path', ''),
-            "vote_average": str(item.get('vote_average', '0.0')),  # Convertir a string
-            "vote_count": str(item.get('vote_count', '0')),  # Convertir a string
-            "genre_ids": item.get('genre_ids', []),  # Guardar los IDs como enteros
+            "vote_average": str(item.get('vote_average', '0.0')),
+            "vote_count": str(item.get('vote_count', '0')),
+            "genre_ids": item.get('genre_ids', []),
             "adult": item.get('adult', False),
-            "original_language": item.get('original_language', 'en'),  # Se asume inglés como idioma por defecto
+            "original_language": item.get('original_language', 'en'),
             "backdrop_path": item.get('backdrop_path', ''),
             "popularity": item.get('popularity', 0.0),
-            "status": status,  # Aquí agregamos el campo status
-            "esSerie": 'name' in item,  # Si tiene name, es serie
-            "comentarios": []  # Lista vacía de comentarios
+            "status": status,
+            "esSerie": 'name' in item,
+            "trailer": trailer_url,
+            "director_name": director_nombre,  # Almacenar el nombre del director
+            "director_photo_url": director_foto_url  # Almacenar la URL de la foto del director
         }
 
-        # Guardar en la colección de Firestore
         doc_ref.set(pelicula, merge=True)
         print(f"Guardando {coleccion.id[:-1]} con ID {item['id']}...")
-            
-        # Aumentamos el contador cada vez que se guarda un nuevo elemento
+
         contador += 1
-    
-    # Mostrar el número total de elementos guardados
+
     print(f"Se han guardado {contador} elementos.")
+
 
 
 # Función para obtener todas las películas y series de Firebase
@@ -333,7 +399,7 @@ def contar_duplicados(coleccion):
     # Obtener todos los documentos de la colección
     documentos = coleccion.get()
 
-    # Usar un diccionario para contar los duplicados por id
+    # Usar un diccionario para contar los duplicados por 'id'
     ids = {}
     for doc in documentos:
         doc_data = doc.to_dict()
@@ -344,7 +410,7 @@ def contar_duplicados(coleccion):
         else:
             ids[doc_id] = 1
     
-    # Contar cuántos duplicados hay
+    # Contar cuántos duplicados hay (es decir, aquellos que tienen más de 1 ocurrencia)
     duplicados = {key: value for key, value in ids.items() if value > 1}
     print(f"Se encontraron {len(duplicados)} duplicados en la colección.")
     for doc_id, count in duplicados.items():
@@ -394,11 +460,10 @@ def obtener_y_guardar():
         # Obtener todas las películas y series de firebase
         todas_las_peliculas, todas_las_series = obtener_todas_las_peliculas_y_series_firebase()
 
-    # En este punto, ya hay películas y series almacenadas en las listas
+    # Continuar con el proceso de obtener y guardar las películas y series más recientes
     # Obtener la página actual
     pagina_actual = obtener_pagina_actual()
 
-    # Obtener las películas y series eliminadas
     peliculas_eliminadas, series_eliminadas = obtener_eliminadas()
 
     # Imprimir el tamaño de ambas listas
@@ -445,7 +510,7 @@ def obtener_y_guardar():
     contar_duplicados(series_collection)
 
     # Aumentar la página actual en Firestore
-    pagina_actual += 1
+    pagina_actual += 1  # Incrementar la página en 1
     config_collection.document('pagina_actual').set({'pagina': pagina_actual})
     print(f"Página actual actualizada a {pagina_actual}.")
 
