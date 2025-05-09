@@ -37,9 +37,6 @@ jobs:
       - name: Verificar permisos de gradlew
         run: ls -l gradlew
 
-      - name: Verificar que se genera el report
-        run: ls -lah app/build/reports/jacoco/jacocoTestReport/
-
       - name: Ejecutar SonarCloud
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
