@@ -13,4 +13,3 @@
 .externalNativeBuild
 .cxx
 *.json
-gradle.properties
