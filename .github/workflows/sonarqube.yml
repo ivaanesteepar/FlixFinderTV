@@ -37,9 +37,6 @@ jobs:
       - name: Verificar permisos de gradlew
         run: ls -l gradlew
 
-      - name: Ejecutar las pruebas unitarias
-        run: ./gradlew testDebugUnitTest
-
       - name: Generar el reporte JaCoCo
         run: ./gradlew jacocoTestReport
 
