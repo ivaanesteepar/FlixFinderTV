@@ -10,7 +10,7 @@ import base64
 BASE_URL = 'https://api.themoviedb.org/3'
 
 # Inicializar Firebase
-cred = credentials.Certificate('C:\\Users\\Usuario\\Documents\\KeyFirebase\\flixfindertv-1f381-firebase-adminsdk-fbsvc-b62fc4096c.json')
+cred = credentials.Certificate('flixfindertv-1f381-firebase-adminsdk-fbsvc-b62fc4096c.json')
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
