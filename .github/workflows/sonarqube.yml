@@ -37,9 +37,6 @@ jobs:
       - name: Verificar permisos de gradlew
         run: ls -l gradlew
 
-      - name: Generar el reporte JaCoCo
-        run: ./gradlew jacocoTestReport
-
       - name: Verificar que se genera el report
         run: ls -lah app/build/reports/jacoco/jacocoTestReport/
 
