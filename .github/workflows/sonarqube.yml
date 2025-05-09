@@ -3,13 +3,9 @@ name: SonarCloud Analysis
 on:
   push:
     branches:
-      - main
-      - develop
       - master
   pull_request:
     branches:
-      - main
-      - develop
       - master
 
 jobs:
@@ -49,4 +45,5 @@ jobs:
             -Dsonar.login=$SONAR_TOKEN \
             -Dsonar.coverage.jacoco.xmlReportPaths=app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
  
+
 

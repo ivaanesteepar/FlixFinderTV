@@ -10,12 +10,12 @@ BASE_URL = 'https://api.themoviedb.org/3'
 cred = credentials.Certificate('C:\\Users\\Usuario\\Documents\\KeyFirebase\\flixfindertv-1f381-firebase-adminsdk-fbsvc-b62fc4096c.json')
 firebase_admin.initialize_app(cred)
 db = firestore.client()
-# Accede al documento tmdbApiKey dentro de la colección apiKeys
+# Acceder al documento tmdbApiKey dentro de la colección apiKeys
 doc_ref = db.collection('apiKeys').document('tmdbApiKey')
 doc = doc_ref.get()
 
 if doc.exists:
-    # Obtén el valor del campo 'key'
+    # Obtener el valor del campo 'key'
     API_KEY = doc.to_dict().get('key')
     print("API Key recuperada:", API_KEY)
 else:
@@ -211,7 +211,7 @@ def guardar_en_db(datos, coleccion, peliculas_eliminadas):
             "backdrop_path": item.get('backdrop_path', ''),
             "popularity": item.get('popularity', 0.0),
             "status": status,  # Aquí agregamos el campo status
-            "esSerie": 'name' in item,  # Si tiene "name", es serie
+            "esSerie": 'name' in item,  # Si tiene name, es serie
             "comentarios": []  # Lista vacía de comentarios
         }
 
@@ -333,7 +333,7 @@ def contar_duplicados(coleccion):
     # Obtener todos los documentos de la colección
     documentos = coleccion.get()
 
-    # Usar un diccionario para contar los duplicados por 'id'
+    # Usar un diccionario para contar los duplicados por id
     ids = {}
     for doc in documentos:
         doc_data = doc.to_dict()
@@ -344,7 +344,7 @@ def contar_duplicados(coleccion):
         else:
             ids[doc_id] = 1
     
-    # Contar cuántos duplicados hay (es decir, aquellos que tienen más de 1 ocurrencia)
+    # Contar cuántos duplicados hay
     duplicados = {key: value for key, value in ids.items() if value > 1}
     print(f"Se encontraron {len(duplicados)} duplicados en la colección.")
     for doc_id, count in duplicados.items():
@@ -394,10 +394,11 @@ def obtener_y_guardar():
         # Obtener todas las películas y series de firebase
         todas_las_peliculas, todas_las_series = obtener_todas_las_peliculas_y_series_firebase()
 
-    # Continuar con el proceso de obtener y guardar las películas y series más recientes
+    # En este punto, ya hay películas y series almacenadas en las listas
     # Obtener la página actual
     pagina_actual = obtener_pagina_actual()
 
+    # Obtener las películas y series eliminadas
     peliculas_eliminadas, series_eliminadas = obtener_eliminadas()
 
     # Imprimir el tamaño de ambas listas
@@ -444,7 +445,7 @@ def obtener_y_guardar():
     contar_duplicados(series_collection)
 
     # Aumentar la página actual en Firestore
-    pagina_actual += 1  # Incrementar la página en 1
+    pagina_actual += 1
     config_collection.document('pagina_actual').set({'pagina': pagina_actual})
     print(f"Página actual actualizada a {pagina_actual}.")
 
