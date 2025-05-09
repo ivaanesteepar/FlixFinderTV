@@ -56,7 +56,7 @@ import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 import com.google.firebase.auth.FirebaseAuth
 
-// PRUEBA SONARQUBE
+
 @Composable
 fun LoginScreen(navController: NavController) {
     var email by remember { mutableStateOf(TextFieldValue()) }

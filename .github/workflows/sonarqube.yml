@@ -37,8 +37,14 @@ jobs:
       - name: Verificar permisos de gradlew
         run: ls -l gradlew
 
+      - name: Ejecutar las pruebas unitarias
+        run: ./gradlew testDebugUnitTest
+
+      - name: Generar el reporte JaCoCo
+        run: ./gradlew jacocoTestReport
+
       - name: Verificar que se genera el report
-        run: ls -lah build/reports/jacoco/jacocoTestReport/
+        run: ls -lah app/build/reports/jacoco/jacocoTestReport/
 
       - name: Ejecutar SonarCloud
         env:
