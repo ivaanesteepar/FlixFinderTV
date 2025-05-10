@@ -85,8 +85,11 @@ jacoco {
 tasks.register<JacocoReport>("jacocoTestReport") {
     dependsOn("testDebugUnitTest")
     reports {
-        xml.required.set(true) // Generar reporte en XML
-        html.required.set(true) // Generar reporte en HTML
+        xml.required.set(true)
+        xml.outputLocation.set(file("$buildDir/reports/jacoco/jacocoTestReport/jacocoTestReport.xml"))
+
+        html.required.set(true)
+        html.outputLocation.set(file("$buildDir/reports/jacoco/jacocoTestReport/html"))
     }
 
     classDirectories.setFrom(

@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.kotlin.android) apply false
@@ -5,7 +7,17 @@ plugins {
     alias(libs.plugins.google.gms.google.services) apply false
     id("org.sonarqube") version "3.3" apply true
 }
-val sonarToken = System.getenv("SONAR_TOKEN")
+val sonarToken: String? by lazy {
+    System.getenv("SONAR_TOKEN")
+        ?: run {
+            val props = Properties()
+            val localPropsFile = File(rootDir, "local.properties")
+            if (localPropsFile.exists()) {
+                props.load(localPropsFile.inputStream())
+                props.getProperty("sonar.token")
+            } else null
+        }
+}
 println("sonar token: ${sonarToken?.take(4)}****")
 
 sonarqube {
