@@ -6,7 +6,6 @@ plugins {
     id("org.sonarqube") version "3.3" apply true
 }
 val sonarToken = System.getenv("SONAR_TOKEN")
-//val sonarToken = findProperty("sonar.token") as String?
 println("sonar token: ${sonarToken?.take(4)}****")
 
 sonarqube {

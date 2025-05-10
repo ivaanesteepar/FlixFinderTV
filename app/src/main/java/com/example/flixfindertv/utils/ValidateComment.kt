@@ -8,7 +8,7 @@ import kotlinx.coroutines.withContext
 // Inicializar el modelo correctamente
 private val generativeModel = GenerativeModel(
     modelName = "gemini-1.5-flash",
-    apiKey = BuildConfig.gemini_api_key
+    apiKey = BuildConfig.GEMINI_API_KEY
 )
 
 suspend fun validateComment(comment: String): Boolean {

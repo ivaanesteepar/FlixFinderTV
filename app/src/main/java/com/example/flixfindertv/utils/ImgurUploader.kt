@@ -30,7 +30,7 @@ object ImgurUploader {
         imageBytes: ByteArray,
         callback: (String?) -> Unit
     ) {
-        val clientId = BuildConfig.imgur_client_id
+        val clientId = BuildConfig.IMGUR_CLIENT_ID
 
         if (clientId.isNullOrEmpty()) {
             Log.e("ImgurUploader", "Client ID no encontrado en BuildConfig")

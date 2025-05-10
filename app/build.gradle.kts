@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -18,15 +20,27 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        val gemini_api_key: String = project.findProperty("gemini_api_key") as String? ?: ""
-        val imgur_client_id: String = project.findProperty("imgur_client_id") as String? ?: ""
+        // Cargar el archivo local.properties
+        val localProperties = Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+
+        // Si el archivo existe, cargarlo
+        if (localPropertiesFile.exists()) {
+            localProperties.load(localPropertiesFile.inputStream())
+        }
+
+        // Obtener las propiedades del archivo local.properties
+        val geminiApiKey = localProperties.getProperty("GEMINI_API_KEY") ?: ""
+        val imgurClientId = localProperties.getProperty("IMGUR_CLIENT_ID") ?: ""
 
         android {
             defaultConfig {
-                buildConfigField("String", "gemini_api_key", "\"$gemini_api_key\"")
-                buildConfigField("String", "imgur_client_id", "\"$imgur_client_id\"")
+                // Pasar las claves a BuildConfig
+                buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
+                buildConfigField("String", "IMGUR_CLIENT_ID", "\"$imgurClientId\"")
             }
         }
+
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

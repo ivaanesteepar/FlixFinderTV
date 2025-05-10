@@ -38,7 +38,7 @@ class TriviaViewModel(private val context: Context, lifecycleOwner: LifecycleOwn
     private val _languageState: MutableStateFlow<String> = MutableStateFlow(Locale.getDefault().language)
     private val languageState: StateFlow<String> = _languageState.asStateFlow()
 
-    private val apiKey = BuildConfig.gemini_api_key
+    private val apiKey = BuildConfig.GEMINI_API_KEY
     var explanation: String? = null
 
     private val generativeModel = GenerativeModel(
