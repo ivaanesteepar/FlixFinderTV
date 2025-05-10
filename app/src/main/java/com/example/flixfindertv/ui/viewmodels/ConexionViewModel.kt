@@ -52,14 +52,14 @@ class ConexionViewModel(application: Application) : AndroidViewModel(application
     suspend fun isInternetAvailable(): Boolean {
         return try {
             withContext(Dispatchers.IO) {
-                val url = URL("https://www.google.com")  // Usar HTTP para mayor compatibilidad
+                val url = URL("https://www.google.com")
                 val connection = url.openConnection() as HttpURLConnection
-                connection.connectTimeout = 5000  // Timeout de 5 segundos
-                connection.readTimeout = 5000  // Timeout de 5 segundos
+                connection.connectTimeout = 5000
+                connection.readTimeout = 5000
 
                 try {
                     connection.connect()  // Intentar la conexión
-                    connection.responseCode == HttpURLConnection.HTTP_OK  // Verificar si la respuesta fue OK
+                    connection.responseCode == HttpURLConnection.HTTP_OK
                 } catch (e: Exception) {
                     false  // Si hay un error de conexión, devolver false
                 }
