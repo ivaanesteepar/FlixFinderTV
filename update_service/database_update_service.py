@@ -37,7 +37,7 @@ if doc.exists:
     # Desencripta la API key
     API_KEY = cipher.decrypt(encrypted_bytes).decode('utf-8')
     
-    print("API Key recuperada:", API_KEY)
+    print("API Key recuperada:", API_KEY[:4] + '***')
 else:
     print("No se encontró el documento o la clave API no está almacenada.")
 
