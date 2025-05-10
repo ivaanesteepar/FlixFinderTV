@@ -18,7 +18,6 @@ db = firestore.client()
 with open('config.json', 'r') as config_file:
     config = json.load(config_file)
     key = bytes(config['clave_encriptacion'], 'utf-8')
-print(key)
 
 # Inicializa el objeto Fernet con la clave
 cipher = Fernet(key)
