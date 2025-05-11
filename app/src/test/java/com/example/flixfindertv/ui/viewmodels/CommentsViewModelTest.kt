@@ -13,6 +13,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.QuerySnapshot
 import io.mockk.*
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
@@ -45,6 +46,11 @@ class CommentsViewModelTest {
 
         // Inicializa el ViewModel después de configurar todos los mocks
         viewModel = CommentsViewModel()
+    }
+
+    @After
+    fun tearDown() {
+        unmockkAll() // Limpia todos los mocks configurados con MockK
     }
 
     @Test

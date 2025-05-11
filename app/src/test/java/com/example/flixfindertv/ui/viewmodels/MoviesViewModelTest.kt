@@ -1,11 +1,8 @@
 package com.example.flixfindertv.ui.viewmodels
 
-import android.app.Application
 import android.util.Log
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.example.flixfindertv.models.Peliculas
-import com.example.flixfindertv.room.entities.PeliculasEntity
-import com.example.flixfindertv.room.repository.MovieRepository
 import com.google.android.gms.common.util.ProcessUtils
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.FirebaseApp
@@ -13,18 +10,12 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.QuerySnapshot
 import io.mockk.MockKAnnotations
-import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
-import io.mockk.slot
-import io.mockk.spyk
-import io.mockk.verify
 import io.mockk.unmockkAll
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
-import junit.framework.TestCase.fail
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -47,7 +38,6 @@ class MoviesViewModelTest {
     private lateinit var firebaseApp: FirebaseApp
     private lateinit var viewModel: MoviesViewModel
     private lateinit var testDispatcher: TestDispatcher
-    private lateinit var repository: MovieRepository
 
 
     @Before

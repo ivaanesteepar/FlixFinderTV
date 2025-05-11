@@ -235,7 +235,7 @@ fun LoginScreen(navController: NavController) {
     }
 }
 
-// Componente de campo de texto personalizado
+// Campos de texto
 @Composable
 fun LoginTextField(
     value: TextFieldValue,

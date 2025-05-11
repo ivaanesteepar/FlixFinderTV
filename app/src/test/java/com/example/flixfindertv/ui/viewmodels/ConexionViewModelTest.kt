@@ -50,6 +50,7 @@ class ConexionViewModelTest {
     fun tearDown() {
         Dispatchers.resetMain()
         testDispatcher.cleanupTestCoroutines()
+        unmockkAll()
     }
 
     @Test
