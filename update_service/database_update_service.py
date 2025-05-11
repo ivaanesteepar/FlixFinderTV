@@ -18,7 +18,6 @@ db = firestore.client()
 with open('config.json', 'r') as config_file:
     config = json.load(config_file)
     key = bytes(config['clave_encriptacion'], 'utf-8')
-print(key)
 
 # Inicializa el objeto Fernet con la clave
 cipher = Fernet(key)
@@ -37,9 +36,9 @@ if doc.exists:
     # Desencripta la API key
     API_KEY = cipher.decrypt(encrypted_bytes).decode('utf-8')
     
-    print("API Key recuperada:", API_KEY[:4] + "***")
+    print("API Key recuperada:", API_KEY[:4] + '***')
 else:
-    print("No se encontró el documento o la clave API no está almacenada")
+    print("No se encontró el documento o la clave API no está almacenada.")
 
 
 # Colecciones de Firestore
@@ -126,9 +125,9 @@ def guardar_generos(generos):
                 'id': genero['id'],
                 'name': genero['name']
             })
-            print(f"Género {genero['name']} guardado correctamente")
+            print(f"Género {genero['name']} guardado correctamente.")
         else:
-            print(f"Género {genero['name']} ya existe, no se duplicará")
+            print(f"Género {genero['name']} ya existe, no se duplicará.")
             
 
 def obtener_y_guardar_generos(api_key):
@@ -136,7 +135,7 @@ def obtener_y_guardar_generos(api_key):
     if generos:
         guardar_generos(generos)
     else:
-        print("No se obtuvieron géneros")
+        print("No se obtuvieron géneros.")
 
 
 def obtener_pagina_actual():
@@ -243,7 +242,7 @@ def guardar_en_db(datos, coleccion, peliculas_eliminadas):
 
     for item in datos:
         if str(item['id']) in peliculas_eliminadas:
-            print(f"La {coleccion.id[:-1]} con ID {item['id']} ya fue eliminada y no se guardará")
+            print(f"La {coleccion.id[:-1]} con ID {item['id']} ya fue eliminada y no se guardará.")
             continue
 
         if 'title' in item:  # Película
@@ -288,7 +287,7 @@ def guardar_en_db(datos, coleccion, peliculas_eliminadas):
 
         contador += 1
 
-    print(f"Se han guardado {contador} elementos")
+    print(f"Se han guardado {contador} elementos.")
 
 
 
@@ -303,7 +302,7 @@ def obtener_todas_las_peliculas_y_series_firebase():
     todas_las_series = [doc.to_dict() for doc in series_docs]
 
     # Mostrar el número de películas y series obtenidas
-    print(f"Se han obtenido {len(todas_las_peliculas)} películas y {len(todas_las_series)} series de Firebase")
+    print(f"Se han obtenido {len(todas_las_peliculas)} películas y {len(todas_las_series)} series de Firebase.")
 
     return todas_las_peliculas, todas_las_series
 
@@ -341,7 +340,7 @@ def eliminar_5_antiguas(coleccion, peliculas_o_series_ordenadas):
     print(f"IDs a eliminar: {ids}")
     print(f"IDs únicos a eliminar: {set(ids)}")
     if len(ids) != len(set(ids)):
-        print("¡Alerta! Hay IDs duplicados en la lista de eliminación")
+        print("¡Alerta! Hay IDs duplicados en la lista de eliminación.")
 
     # Inicializar un contador de eliminaciones
     contador_eliminaciones = 0
@@ -392,7 +391,7 @@ def eliminar_5_antiguas(coleccion, peliculas_o_series_ordenadas):
         time.sleep(1)
 
     # Al final, imprimir cuántos elementos fueron eliminados
-    print(f"Se eliminaron {contador_eliminaciones} elementos")
+    print(f"Se eliminaron {contador_eliminaciones} elementos.")
 
 
 def contar_duplicados(coleccion):
@@ -412,7 +411,7 @@ def contar_duplicados(coleccion):
     
     # Contar cuántos duplicados hay (es decir, aquellos que tienen más de 1 ocurrencia)
     duplicados = {key: value for key, value in ids.items() if value > 1}
-    print(f"Se encontraron {len(duplicados)} duplicados en la colección")
+    print(f"Se encontraron {len(duplicados)} duplicados en la colección.")
     for doc_id, count in duplicados.items():
         print(f"ID duplicado: {doc_id} - Contador: {count}")
 
@@ -428,7 +427,7 @@ def obtener_y_guardar():
         print("La colección de géneros está vacía. Guardando los géneros...")
         obtener_y_guardar_generos(API_KEY)
     else:
-        print("La colección de géneros ya tiene datos. No se guardarán los géneros")
+        print("La colección de géneros ya tiene datos. No se guardarán los géneros.")
 
     # Obtener el número de documentos en la colección de películas y series
     peliculas_count = len(peliculas_collection.get())
@@ -452,7 +451,7 @@ def obtener_y_guardar():
         guardar_en_db(todas_las_peliculas, peliculas_collection, peliculas_eliminadas)
         guardar_en_db(todas_las_series, series_collection, series_eliminadas)
 
-        print("Películas y Series de las primeras 50 páginas guardadas correctamente")
+        print("Películas y Series de las primeras 50 páginas guardadas correctamente.")
 
         contar_duplicados(peliculas_collection)
         contar_duplicados(series_collection)
@@ -496,7 +495,7 @@ def obtener_y_guardar():
     guardar_en_db(peliculas_recientes, peliculas_collection, peliculas_eliminadas)
     guardar_en_db(series_recientes, series_collection, series_eliminadas)
 
-    print("Películas y Series actualizadas correctamente")
+    print("Películas y Series actualizadas correctamente.")
 
     # Obtener el número de documentos en la colección de películas y series
     peliculas_count = len(peliculas_collection.get())
@@ -512,10 +511,10 @@ def obtener_y_guardar():
     # Aumentar la página actual en Firestore
     pagina_actual += 1  # Incrementar la página en 1
     config_collection.document('pagina_actual').set({'pagina': pagina_actual})
-    print(f"Página actual actualizada a {pagina_actual}")
+    print(f"Página actual actualizada a {pagina_actual}.")
 
     
 if __name__ == "__main__":
     print("Ejecutando script...")
     obtener_y_guardar()
-    print("Script finalizado")
+    print("Script finalizado.")
