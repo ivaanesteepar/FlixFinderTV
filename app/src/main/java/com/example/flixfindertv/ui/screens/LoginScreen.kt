@@ -135,7 +135,6 @@ fun LoginScreen(navController: NavController) {
         if (!isLandscape) {
             Box(modifier = Modifier.fillMaxSize().padding(24.dp)) {
                 Column(verticalArrangement = Arrangement.Center, modifier = Modifier.fillMaxSize()) {
-                    // Logo en el centro
                     Image(
                         painter = painterResource(id = R.drawable.app_logo),
                         contentDescription = null,
@@ -154,7 +153,6 @@ fun LoginScreen(navController: NavController) {
                             .padding(bottom = 16.dp)
                             .align(Alignment.CenterHorizontally)
                     )
-                    // Campos de texto del login
                     textFields()
                 }
             }
@@ -200,7 +198,6 @@ fun LoginScreen(navController: NavController) {
                             verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            // Título "Iniciar sesión"
                             Text(
                                 text = "Iniciar sesión",
                                 color = Color.White,

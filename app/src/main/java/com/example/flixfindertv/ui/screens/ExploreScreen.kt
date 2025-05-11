@@ -280,7 +280,6 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
         }
     }
 
-
     // Detectar cuando el usuario llega a la película 20, 40, 60, etc. y cargar más películas
     val movieListState = rememberLazyListState()
     val actionMovieListState = rememberLazyListState()
@@ -989,20 +988,22 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                                     .height(300.dp) // Ajustamos el tamaño para que el fondo sea más grande
                                                     .padding(16.dp) // Añadimos padding para que haya espacio alrededor del contenido
                                             ) {
-                                                // Fondo de la caja con drawable
                                                 Box(
                                                     modifier = Modifier
-                                                        .fillMaxSize()
+                                                        .fillMaxWidth()
+                                                        .height(250.dp)
                                                 ) {
                                                     Image(
-                                                        painter = painterResource(id = R.drawable.fondo_estrellas), // Aplica el fondo drawable
+                                                        painter = painterResource(id = R.drawable.fondo_estrellas),
                                                         contentDescription = null,
                                                         modifier = Modifier
-                                                            .fillMaxSize() // La imagen se ajusta a toda la caja
+                                                            .fillMaxWidth()
+                                                            .fillMaxHeight()
                                                             .graphicsLayer(
                                                                 scaleX = 1.2f, // Escalar un poco la imagen para que cubra más espacio
                                                                 scaleY = 1.4f
-                                                            )
+                                                            ),
+                                                        contentScale = ContentScale.Crop
                                                     )
                                                 }
                                                 // Contenido sobre el fondo
@@ -1021,7 +1022,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                                 }
                                             }
                                         }
-                                        item { Spacer(modifier = Modifier.height(25.dp)) }
+                                        item { Spacer(modifier = Modifier.height(35.dp)) }
                                     }
 
                                     if (recentMovies.isNotEmpty() || peliculasUltimosLanzamientosOffline.isNotEmpty()) {
@@ -1179,17 +1180,20 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                                 // Fondo de la caja con drawable
                                                 Box(
                                                     modifier = Modifier
-                                                        .fillMaxSize()
+                                                        .fillMaxWidth()
+                                                        .height(250.dp)
                                                 ) {
                                                     Image(
-                                                        painter = painterResource(id = R.drawable.fondo_estrellas), // Aplica el fondo drawable
+                                                        painter = painterResource(id = R.drawable.fondo_estrellas),
                                                         contentDescription = null,
                                                         modifier = Modifier
-                                                            .fillMaxSize() // La imagen se ajusta a toda la caja
+                                                            .fillMaxWidth()
+                                                            .fillMaxHeight()
                                                             .graphicsLayer(
                                                                 scaleX = 1.2f, // Escalar un poco la imagen para que cubra más espacio
                                                                 scaleY = 1.4f
-                                                            )
+                                                            ),
+                                                        contentScale = ContentScale.Crop
                                                     )
                                                 }
                                                 // Contenido sobre el fondo
@@ -1208,7 +1212,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                                 }
                                             }
                                         }
-                                        item { Spacer(modifier = Modifier.height(25.dp)) }
+                                        item { Spacer(modifier = Modifier.height(35.dp)) }
                                     }
                                     if (recentSeries.isNotEmpty() || seriesUltimosLanzamientosOffline.isNotEmpty()) {
                                         item {
