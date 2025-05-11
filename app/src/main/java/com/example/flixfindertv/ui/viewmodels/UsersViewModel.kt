@@ -173,6 +173,7 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun updateFavoriteGenre(movieGenre: String) {
+        println("movie genres que recibe el update: $movieGenre")
         val firstGenre = movieGenre.split(",").first().trim()
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
         val userDocRef = FirebaseFirestore.getInstance().collection("usuarios").document(userId)
@@ -182,8 +183,6 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
             if (document.exists()) {
                 val generosFavoritos = document.get("generosFavoritos") as? Map<String, Number> ?: emptyMap()
                 val nuevosGeneros = HashMap(generosFavoritos) // Asegura que sea mutable y compatible
-
-                println("Géneros actuales: $nuevosGeneros")
 
                 if (nuevosGeneros.containsKey(firstGenre)) {
                     // El género ya existe, actualizamos el timestamp

@@ -51,7 +51,7 @@ class GenresViewModel : ViewModel() {
 
     fun fetchGenreNames(genreIds: List<Int>, onResult: (List<String>) -> Unit) {
         val firestore = FirebaseFirestore.getInstance()
-        val genreNames = mutableListOf<String>()
+        val genreNameMap = mutableMapOf<Int, String>()
         var count = 0
 
         if (genreIds.isEmpty()) {
@@ -64,17 +64,20 @@ class GenresViewModel : ViewModel() {
                 .addOnSuccessListener { document ->
                     val genreName = document.getString("name")
                     genreName?.let {
-                        genreNames.add(it)
+                        genreNameMap[genreId] = it
                     }
                 }
                 .addOnCompleteListener {
                     count++
                     if (count == genreIds.size) {
-                        onResult(genreNames)
+                        // Nos aseguramos que el orden sea correcto
+                        val orderedNames = genreIds.mapNotNull { genreNameMap[it] }
+                        onResult(orderedNames)
                     }
                 }
         }
     }
+
 
     fun createPeliculaEntityWithGeneros(pelicula: Peliculas, onResult: (PeliculasEntity) -> Unit) {
         fetchGenreNames(pelicula.genre_ids) { genreNames ->
