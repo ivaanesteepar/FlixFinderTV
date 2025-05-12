@@ -85,10 +85,10 @@ jacoco {
 tasks.register<JacocoReport>("jacocoTestReport") {
     dependsOn("testDebugUnitTest")
 
-    group = "Reporting"
-    description = "Generates Jacoco coverage reports for the debug build."
+    group = "Informes"
+    description = "Genera informes de cobertura de Jacoco para la compilación de depuración."
 
-    doNotTrackState("State tracking disabled for Jacoco report task")
+    doNotTrackState("El seguimiento de estado está deshabilitado para la tarea de informe Jacoco")
 
     val reportsDir = file("build/reports/jacoco/test")
 
@@ -127,6 +127,7 @@ tasks.register<JacocoReport>("jacocoTestReport") {
         "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec"
     ))
 }
+
 
 
 dependencies {
