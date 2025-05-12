@@ -499,7 +499,7 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(
                         context,
-                        "Solo puedes guardar hasta 20 ${if (pelicula.esSerie) "series" else "películas"} favoritas localmente.",
+                        "You can only save up to 20 ${if (pelicula.esSerie) "series" else "movies"} locally.",
                         Toast.LENGTH_SHORT
                     ).show()
                 }

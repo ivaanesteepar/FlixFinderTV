@@ -84,28 +84,48 @@ jacoco {
 
 tasks.register<JacocoReport>("jacocoTestReport") {
     dependsOn("testDebugUnitTest")
+
+    group = "Reporting"
+    description = "Generates Jacoco coverage reports for the debug build."
+
+    doNotTrackState("State tracking disabled for Jacoco report task")
+
+    val reportsDir = file("build/reports/jacoco/test")
+
     reports {
         xml.required.set(true)
-        xml.outputLocation.set(file("$buildDir/reports/jacoco/jacocoTestReport/jacocoTestReport.xml"))
-
         html.required.set(true)
-        html.outputLocation.set(file("$buildDir/reports/jacoco/jacocoTestReport/html"))
+        xml.outputLocation.set(file("${reportsDir}/jacocoTestReport.xml"))
+        html.outputLocation.set(file("${reportsDir}/html"))
     }
 
-    classDirectories.setFrom(
-        fileTree("build/tmp/kotlin-classes/debug") {
-            exclude(
-                "**/R.class",
-                "*/R$.class",
-                "*/BuildConfig.",
-                "*/Manifest.*",
-                "*/*Test.*"
-            )
-        }
+    val fileFilter = listOf(
+        "**/R.class",
+        "*/R$.class",
+        "*/BuildConfig.",
+        "*/Manifest.*",
+        "*/*Test.*",
+        "*/Hilt.*",
+        "*/di/*"
     )
 
-    sourceDirectories.setFrom(files("src/main/java", "src/main/kotlin"))
-    executionData.setFrom(fileTree(buildDir).include("jacoco/testDebugUnitTest.exec"))
+    // Directorios con clases compiladas (Java + Kotlin)
+    val debugTree = fileTree("${layout.buildDirectory.get().asFile}/tmp/kotlin-classes/debug") {
+        exclude(fileFilter)
+    }
+
+    // Fuentes
+    sourceDirectories.setFrom(files(
+        "${project.projectDir}/src/main/java",
+        "${project.projectDir}/src/main/kotlin"
+    ))
+
+    classDirectories.setFrom(files(debugTree))
+
+    // Ruta para executionData
+    executionData.setFrom(fileTree(layout.buildDirectory.get().asFile).include(
+        "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec"
+    ))
 }
 
 
