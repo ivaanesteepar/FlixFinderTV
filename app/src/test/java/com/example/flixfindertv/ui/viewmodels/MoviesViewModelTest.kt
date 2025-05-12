@@ -76,39 +76,39 @@ class MoviesViewModelTest {
         unmockkAll()
     }
 
-//    @Test
-//    fun `test obtenerPeliculasFamily exito`() = runTest {
-//        mockkStatic(Log::class)
-//        every { Log.e(any(), any()) } returns 0
-//        every { Log.e(any(), any(), any()) } returns 0
-//
-//        // Mock de la película
-//        val mockPeliculas = listOf(mockPelicula("Pelicula 1", "id1"))
-//
-//        // Mock del género
-//        every {
-//            firestore.collection("generos").whereEqualTo("name", "Family").get()
-//        } returns Tasks.forResult(mockGenerosQuerySnapshot("Family", 1L))
-//
-//        // Mock de las películas
-//        every {
-//            firestore.collection("peliculas").whereArrayContains("genre_ids", 1L).limit(20).get()
-//        } returns Tasks.forResult(mockPeliculasQuerySnapshot(mockPeliculas))
-//
-//        // Ejecutar la función
-//        viewModel.obtenerPeliculasFamily()
-//        advanceUntilIdle()  // Esto asegura que los resultados estén completamente cargados
-//
-//        // Imprimir el valor esperado y el obtenido
-//        println("Valor esperado: $mockPeliculas")
-//        println("Valor obtenido: ${viewModel.listaPeliculasFamily.value}")
-//
-//        // Verificar que las películas sean las mismas que las mockeadas
-//        assertEquals(mockPeliculas, viewModel.listaPeliculasFamily.value)
-//
-//        // Verificar que la carga haya terminado
-//        assertFalse(viewModel.isLoadingFamily.value == true)
-//    }
+    @Test
+    fun `test obtenerPeliculasFamily exito`() = runTest {
+        mockkStatic(Log::class)
+        every { Log.e(any(), any()) } returns 0
+        every { Log.e(any(), any(), any()) } returns 0
+
+        // Mock de la película
+        val mockPeliculas = listOf(mockPelicula("Pelicula 1", "id1"))
+
+        // Mock del género
+        every {
+            firestore.collection("generos").whereEqualTo("name", "Family").get()
+        } returns Tasks.forResult(mockGenerosQuerySnapshot("Family", 1L))
+
+        // Mock de las películas
+        every {
+            firestore.collection("peliculas").whereArrayContains("genre_ids", 1L).limit(20).get()
+        } returns Tasks.forResult(mockPeliculasQuerySnapshot(mockPeliculas))
+
+        // Ejecutar la función
+        viewModel.obtenerPeliculasFamily()
+        advanceUntilIdle()  // Esto asegura que los resultados estén completamente cargados
+
+        // Imprimir el valor esperado y el obtenido
+        println("Valor esperado: $mockPeliculas")
+        println("Valor obtenido: ${viewModel.listaPeliculasFamily.value}")
+
+        // Verificar que las películas sean las mismas que las mockeadas
+        assertEquals(mockPeliculas, viewModel.listaPeliculasFamily.value)
+
+        // Verificar que la carga haya terminado
+        assertFalse(viewModel.isLoadingFamily.value == true)
+    }
 
     @Test
     fun `test obtenerPeliculasFamily con error en Firestore`() = runTest {
