@@ -10,6 +10,7 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.QuerySnapshot
 import io.mockk.MockKAnnotations
+import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
@@ -72,12 +73,13 @@ class MoviesViewModelTest {
 
     @After
     fun tearDown() {
+        clearAllMocks()
         Dispatchers.resetMain()
         unmockkAll()
     }
 
     @Test
-    fun `test obtenerPeliculasFamily exito`() = runTest {
+    fun `test obtenerPeliculasFamily exito`() = runTest(testDispatcher) {
         mockkStatic(Log::class)
         every { Log.e(any(), any()) } returns 0
         every { Log.e(any(), any(), any()) } returns 0
@@ -111,7 +113,7 @@ class MoviesViewModelTest {
     }
 
     @Test
-    fun `test obtenerPeliculasFamily con error en Firestore`() = runTest {
+    fun `test obtenerPeliculasFamily con error en Firestore`() = runTest(testDispatcher) {
         mockkStatic(Log::class)
         every { Log.e(any(), any()) } returns 0
         every { Log.e(any(), any(), any()) } returns 0
