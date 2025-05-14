@@ -12,5 +12,4 @@
 /captures
 .externalNativeBuild
 .cxx
-config.json
-flixfindertv-1f381-firebase-adminsdk-fbsvc-b62fc4096c.json
+update_service/*.json
