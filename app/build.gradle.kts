@@ -93,6 +93,8 @@ tasks.register<JacocoReport>("jacocoTestReport") {
     reports {
         xml.required.set(true)
         html.required.set(true)
+        xml.outputLocation.set(file("${reportsDir}/jacocoTestReport.xml"))
+        html.outputLocation.set(file("${reportsDir}/html"))
     }
 
     val fileFilter = listOf(
