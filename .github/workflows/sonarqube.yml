@@ -36,8 +36,8 @@ jobs:
       - name: Verificar permisos de gradlew
         run: ls -l gradlew
 
-      #- name: Generar reporte de cobertura
-       # run: ./gradlew jacocoTestReport
+      - name: Generar reporte de cobertura
+        run: ./gradlew jacocoTestReport
 
       - name: Ejecutar SonarCloud
         env:
