@@ -2,9 +2,6 @@
 
 <p align="center">
   <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV">
-    <img src="https://sonarcloud.io/api/project_badges/measure?project=ivaanesteepar_FlixFinderTV&metric=alert_status" alt="Quality Gate Status"/>
-  </a>
-  <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV">
     <img src="https://sonarcloud.io/api/project_badges/measure?project=ivaanesteepar_FlixFinderTV&metric=security_rating" alt="Security Rating"/>
   </a>
   <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV">
