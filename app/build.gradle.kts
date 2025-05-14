@@ -88,13 +88,9 @@ tasks.register<JacocoReport>("jacocoTestReport") {
     group = "Informes"
     description = "Genera informes de cobertura de Jacoco para la compilación de depuración."
 
-    val reportsDir = file("build/reports/jacoco/test")
-
     reports {
         xml.required.set(true)
         html.required.set(true)
-        xml.outputLocation.set(file("${reportsDir}/jacocoTestReport.xml"))
-        html.outputLocation.set(file("${reportsDir}/html"))
     }
 
     val fileFilter = listOf(
