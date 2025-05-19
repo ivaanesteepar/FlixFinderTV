@@ -1,3 +1,9 @@
+<p align="right">
+  <a href="README_es.md" title="Spanish README">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/9/9a/Flag_of_Spain.svg" alt="Spanish" width="30" height="20" style="border:1px solid #ddd;"/>
+  </a>
+</p>
+
 # Recomendador de Películas y Series con Jetpack Compose y Firebase
 
 <p align="center">
