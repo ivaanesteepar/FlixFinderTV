@@ -5,7 +5,7 @@
 </p>
 
 
-# Recomendador de Películas y Series con Jetpack Compose y Firebase
+# Aplicación Recomendadora de Películas y Series
 
 <p align="center">
   <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV">
