@@ -28,28 +28,31 @@
 </p>
 
 
-**Trabajo de Fin de Grado**  
-Grado de Ingeniería Informática - Universidad de Burgos
+<p><strong>Final Degree Project</strong><br/>
+Bachelor's Degree in Computer Engineering - University of Burgos</p>
 
-## Descripción
+<h2>Description</h2>
 
-Este proyecto consiste en el desarrollo de una aplicación Android para la recomendación de películas y series, utilizando tecnologías modernas como **Jetpack Compose** para la interfaz de usuario y **Firebase** como backend. La app ofrece recomendaciones personalizadas basadas en un conjunto de datos de películas y series almacenados en Firebase.
+<p>This project involves the development of an Android application for recommending movies and TV shows, using modern technologies such as <strong>Jetpack Compose</strong> for the user interface and <strong>Firebase</strong> as the backend. The app offers personalized recommendations based on a dataset of movies and TV shows stored in Firebase.</p>
 
-La aplicación cuenta con una **interfaz de usuario intuitiva y agradable**, diseñada para ofrecer una experiencia fluida y moderna. Aprovechando las ventajas de Jetpack Compose, la navegación entre las pantallas es simple y accesible. Además, el diseño se adapta de manera eficiente a diferentes tamaños de pantalla, brindando una experiencia consistente en dispositivos móviles y tablets. 
+<p>The application features an <strong>intuitive and pleasant user interface</strong>, designed to provide a smooth and modern experience. Leveraging the advantages of Jetpack Compose, navigation between screens is simple and accessible. Additionally, the design adapts efficiently to different screen sizes, providing a consistent experience across mobile devices and tablets.</p>
 
-La aplicación está pensada para que los usuarios puedan descubrir nuevas películas y series de forma cómoda y personalizada, según sus gustos y preferencias.
+<p>The app is designed to allow users to comfortably and personally discover new movies and TV shows according to their tastes and preferences.</p>
 
+<h2>Technologies Used</h2>
 
-## Tecnologías utilizadas
+<ul>
+  <li><strong>Jetpack Compose</strong>: For designing and building the user interface in a modern and efficient way.</li>
+  <li><strong>Firebase</strong>: For cloud storage of movie/TV show data and user authentication if needed.</li>
+  <li><strong>Gemini AI</strong>: For implementing a small Trivia feature.</li>
+  <li><strong>TMDB API</strong>: To access a large database of movies and TV shows, improving the variety and quality of suggestions.</li>
+  <li><strong>Kotlin</strong>: Programming language used for Android app development.</li>
+</ul>
 
-- **Jetpack Compose**: Para el diseño y la creación de la interfaz de usuario de manera moderna y eficiente.
-- **Firebase**: Para el almacenamiento en la nube de los datos de películas/series y para la autenticación de usuarios si es necesario.
-- **IA de Gemini**: Para la implementación de un pequeño Trivia.
-- **API de TMDB**: Para acceder a una extensa base de datos de películas y series, mejorando la variedad y calidad de las sugerencias.
-- **Kotlin**: Lenguaje de programación utilizado para el desarrollo de la app Android.
+<h2>Main Features</h2>
 
-## Funcionalidades principales
-
-- **Recomendaciones personalizadas**: Ofrece sugerencias de películas y series basadas en un conjunto de datos.
-- **Interfaz fluida y moderna**: Usando Jetpack Compose, se ha logrado una interfaz de usuario intuitiva y atractiva.
-- **Búsqueda avanzada**: Permite a los usuarios buscar películas y series por título y género, gracias a la integración con la API de TMDB.
+<ul>
+  <li><strong>Personalized Recommendations</strong>: Provides movie and TV show suggestions based on a dataset.</li>
+  <li><strong>Smooth and Modern Interface</strong>: Using Jetpack Compose, it achieves an intuitive and attractive user interface.</li>
+  <li><strong>Advanced Search</strong>: Allows users to search movies and TV shows by title and genre, thanks to integration with the TMDB API.</li>
+</ul>
