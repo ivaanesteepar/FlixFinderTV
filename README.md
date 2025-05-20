@@ -4,7 +4,13 @@
   </a>
 </p>
 
-# Movie and Series Recommender Application
+<div align="center">
+  <img src="media/app_logo.png" alt="App logo" width="250">
+</div>
+
+<div align="center">
+  <h1>Movie and Series Recommender Application</h1>
+</div>
 
 <p align="center">
   <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV">
