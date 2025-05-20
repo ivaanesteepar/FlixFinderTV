@@ -4,8 +4,13 @@
   </a>
 </p>
 
+<div align="center">
+  <img src="media/app_logo.png" alt="App logo" width="250">
+</div>
 
-# Aplicación Recomendadora de Películas y Series
+<div align="center">
+  <h1>Aplicación Recomendadora de Películas y Series</h1>
+</div>
 
 <p align="center">
   <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV">
