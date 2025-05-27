@@ -186,6 +186,7 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                     modifier = Modifier.fillMaxSize()
                 )
 
+                println("valor hayConexion aqui: $hayConexion")
                 if (hayConexion) {
                     // Corazón en la esquina superior derecha
                     IconButton(

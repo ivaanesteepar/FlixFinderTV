@@ -64,14 +64,13 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
 
-        // 1. Create credentials with email and current password entered
         val credential = EmailAuthProvider.getCredential(email, passwordActual)
 
-        // 2. Reauthenticate
+        // Reautenticar
         user.reauthenticate(credential)
             .addOnCompleteListener { authTask ->
                 if (authTask.isSuccessful) {
-                    // Current password correct, now update the password
+                    // Contraseña actual correcta, permite un cambio de contraseña
                     user.updatePassword(passwordNueva)
                         .addOnCompleteListener { updateTask ->
                             if (updateTask.isSuccessful) {
@@ -81,7 +80,6 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
                             }
                         }
                 } else {
-                    // Reauthentication failed -> current password incorrect
                     callback(false, "Current password is incorrect")
                 }
             }

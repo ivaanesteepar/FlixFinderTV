@@ -686,10 +686,66 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                         Box(
                             modifier = Modifier.fillMaxSize()
                         ) {
-                            // Variables de estado para el menú desplegable
-                            val selectedTextSearch by rememberSaveable { mutableStateOf("Unordered") }
+                            // Variable de estado para el menú desplegable
+                            var selectedTextSearchOffline by rememberSaveable { mutableStateOf("Unordered") }
 
                             if (!hayConexion) {  // Verifica si no hay conexión
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp)
+                                        .align(Alignment.TopCenter)
+                                ) {
+                                    ExposedDropdownMenuBox(
+                                        expanded = expanded,
+                                        onExpandedChange = {
+                                            expanded = !expanded
+                                        } // Se encarga de abrir y cerrar el menú
+                                    ) {
+                                        OutlinedTextField(
+                                            value = selectedTextSearchOffline,
+                                            onValueChange = {},
+                                            readOnly = true,
+                                            label = {
+                                                Text(
+                                                    "Sort by popularity",
+                                                    color = Color.White // Texto del label en blanco
+                                                )
+                                            },
+                                            textStyle = LocalTextStyle.current.copy(color = Color.White),
+                                            shape = MaterialTheme.shapes.large,
+                                            colors = TextFieldDefaults.outlinedTextFieldColors(
+                                                focusedBorderColor = Color.White,    // Borde blanco cuando está enfocado
+                                                unfocusedBorderColor = Color.White,  // Borde blanco cuando no está enfocado
+                                            ),
+                                            trailingIcon = {
+                                                Icon(
+                                                    imageVector = Icons.Default.ArrowDropDown,
+                                                    tint = Color.White,
+                                                    contentDescription = "Expandir"
+                                                )
+                                            },
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .menuAnchor()
+                                        )
+
+                                        ExposedDropdownMenu(
+                                            expanded = expanded,
+                                            onDismissRequest = { expanded = false }
+                                        ) {
+                                            options.forEach { option ->
+                                                DropdownMenuItem(
+                                                    text = { Text(option) },
+                                                    onClick = {
+                                                        selectedTextSearchOffline = option
+                                                        expanded = false
+                                                    }
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
                                 val filteredRoomMovies = peliculas.value.filter { movieEntity ->
                                     val movie = movieEntity.pelicula
 
@@ -721,7 +777,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                     matchesType && matchesQuery && matchesGenre
                                 }
 
-                                val sortedRoomMovies = when (selectedTextSearch) {
+                                val sortedRoomMovies = when (selectedTextSearchOffline) {
                                     "Ascending" -> filteredRoomMovies.sortedBy { it.pelicula.popularity }
                                     "Descending" -> filteredRoomMovies.sortedByDescending { it.pelicula.popularity }
                                     else -> filteredRoomMovies
@@ -748,6 +804,63 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                     }
                                 }
                             } else {
+                                var selectedTextSearchOnline by rememberSaveable { mutableStateOf("Unordered") }
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp)
+                                        .align(Alignment.TopCenter)
+                                ) {
+                                    ExposedDropdownMenuBox(
+                                        expanded = expanded,
+                                        onExpandedChange = {
+                                            expanded = !expanded
+                                        } // Se encarga de abrir y cerrar el menú
+                                    ) {
+                                        OutlinedTextField(
+                                            value = selectedTextSearchOnline,
+                                            onValueChange = {},
+                                            readOnly = true,
+                                            label = {
+                                                Text(
+                                                    "Sort by popularity",
+                                                    color = Color.White // Texto del label en blanco
+                                                )
+                                            },
+                                            textStyle = LocalTextStyle.current.copy(color = Color.White),
+                                            shape = MaterialTheme.shapes.large,
+                                            colors = TextFieldDefaults.outlinedTextFieldColors(
+                                                focusedBorderColor = Color.White,    // Borde blanco cuando está enfocado
+                                                unfocusedBorderColor = Color.White,  // Borde blanco cuando no está enfocado
+                                            ),
+                                            trailingIcon = {
+                                                Icon(
+                                                    imageVector = Icons.Default.ArrowDropDown,
+                                                    tint = Color.White,
+                                                    contentDescription = "Expandir"
+                                                )
+                                            },
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .menuAnchor()
+                                        )
+
+                                        ExposedDropdownMenu(
+                                            expanded = expanded,
+                                            onDismissRequest = { expanded = false }
+                                        ) {
+                                            options.forEach { option ->
+                                                DropdownMenuItem(
+                                                    text = { Text(option) },
+                                                    onClick = {
+                                                        selectedTextSearchOnline = option
+                                                        expanded = false
+                                                    }
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
                                 // Si hay conexión, realiza la búsqueda
                                 val filteredSearchResults = movieResults.filter { movie ->
                                     // Filtro por tipo: película o serie
@@ -781,7 +894,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                     matchesType && matchesQuery && matchesGenre // Se deben cumplir las 3 para mostrar la pelicula o serie
                                 }
 
-                                val sortedSearchResults = when (selectedTextSearch) {
+                                val sortedSearchResults = when (selectedTextSearchOnline) {
                                     "Ascending" -> filteredSearchResults.sortedBy { it.popularity }
                                     "Descending" -> filteredSearchResults.sortedByDescending { it.popularity }
                                     else -> filteredSearchResults
