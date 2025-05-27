@@ -126,8 +126,8 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
     var movieResults by rememberSaveable { mutableStateOf<List<Peliculas>>(emptyList()) }
     var isSearching by remember { mutableStateOf(false) }
     var filterExpanded by remember { mutableStateOf(false) }
-    var filterMovie by remember { mutableStateOf(false) }
-    var filterSerie by remember { mutableStateOf(false) }
+    var filterMovie by rememberSaveable { mutableStateOf(false) }
+    var filterSerie by rememberSaveable { mutableStateOf(false) }
     val firestore = FirebaseFirestore.getInstance()
 
     var selectedGenre by rememberSaveable { mutableStateOf<String?>(null) }
@@ -638,6 +638,12 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                                         }
                                                     }
                                                 }
+                                            }
+                                        }
+                                        LaunchedEffect(selectedGenreId) {
+                                            if (selectedGenreId == null) {
+                                                filterMovie = false
+                                                filterSerie = false
                                             }
                                         }
                                         // Mostrar el filtro por tipo solo si hay un género seleccionado
