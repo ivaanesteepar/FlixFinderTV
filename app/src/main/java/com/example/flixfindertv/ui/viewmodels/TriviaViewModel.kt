@@ -31,7 +31,7 @@ class TriviaViewModelFactory(
 }
 
 
-class TriviaViewModel(private val context: Context, lifecycleOwner: LifecycleOwner) : ViewModel() {
+open class TriviaViewModel(private val context: Context, lifecycleOwner: LifecycleOwner) : ViewModel() {
     val _uiState: MutableStateFlow<UiState> = MutableStateFlow(UiState.Initial)
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
@@ -41,7 +41,7 @@ class TriviaViewModel(private val context: Context, lifecycleOwner: LifecycleOwn
     private val apiKey = BuildConfig.GEMINI_API_KEY
     var explanation: String? = null
 
-    private val generativeModel = GenerativeModel(
+    open var generativeModel = GenerativeModel(
         modelName = "gemini-1.5-flash",
         apiKey = apiKey
     )

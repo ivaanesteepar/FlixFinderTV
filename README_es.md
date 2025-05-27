@@ -5,7 +5,7 @@
 </p>
 
 <div align="center">
-  <img src="media/app_logo.png" alt="App logo" width="250">
+  <img src="docs/app_logo.png" alt="App logo" width="250">
 </div>
 
 <div align="center">

@@ -14,14 +14,11 @@ import org.junit.Before
 import org.junit.Test
 import android.content.res.Resources
 import android.os.Looper
-import com.example.flixfindertv.models.Peliculas
-import com.example.flixfindertv.room.entities.FavoritoEntity
 import com.example.flixfindertv.room.repository.MovieRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 
 class UsersViewModelTest {

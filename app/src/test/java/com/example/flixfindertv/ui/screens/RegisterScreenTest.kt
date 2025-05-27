@@ -16,8 +16,7 @@ import org.junit.Test
 import io.mockk.every
 import kotlinx.coroutines.test.runTest
 
-
-class RegisterLogicTest {
+class RegisterScreenTest {
 
     private lateinit var mockAuth: FirebaseAuth
     private lateinit var mockFirestore: FirebaseFirestore
