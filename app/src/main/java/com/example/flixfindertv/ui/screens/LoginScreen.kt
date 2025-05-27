@@ -164,7 +164,7 @@ fun LoginScreen(navController: NavController) {
                     .padding(bottom = 50.dp)
             ) {
                 Text(
-                    text = "App desarrollada por Iván Estépar © 2025",
+                    text = "App developed by Iván Estépar © 2025",
                     color = Color.LightGray,
                     fontSize = 15.sp,
                     fontStyle = FontStyle.Italic,
@@ -219,7 +219,7 @@ fun LoginScreen(navController: NavController) {
                                     .padding(top = 20.dp) // Espacio entre los campos de texto y el footer
                             ) {
                                 Text(
-                                    text = "App desarrollada por Iván Estépar © 2025",
+                                    text = "App developed by Iván Estépar © 2025",
                                     color = Color.LightGray,
                                     fontSize = 15.sp,
                                     fontStyle = FontStyle.Italic,

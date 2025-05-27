@@ -10,7 +10,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
@@ -23,7 +25,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -39,6 +45,7 @@ import com.example.flixfindertv.utils.ImgurUploader
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditProfileScreen(navController: NavHostController) {
+    var errorMessage by remember { mutableStateOf<String?>(null) }
     val auth = FirebaseAuth.getInstance()
     val firestore = FirebaseFirestore.getInstance()
     val context = LocalContext.current
@@ -50,7 +57,8 @@ fun EditProfileScreen(navController: NavHostController) {
     var userName by remember { mutableStateOf("") }
     var userEmail by remember { mutableStateOf("") }
     var profileImageUri by remember { mutableStateOf<String?>(null) }
-
+    var passwordActual by remember { mutableStateOf("") }
+    var passwordNueva by remember { mutableStateOf("") }
     var deleteImageInUI by remember { mutableStateOf(false) }
 
     val pickImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -94,7 +102,7 @@ fun EditProfileScreen(navController: NavHostController) {
             firestore.collection("usuarios").document(uid).get()
                 .addOnSuccessListener { document ->
                     userName = document.getString("nombre") ?: ""
-                    userEmail = document.getString("email") ?: ""  // Aquí cargamos el correo actual
+                    userEmail = document.getString("email") ?: ""
                     profileImageUri = document.getString("fotoPerfil")
                 }
                 .addOnFailureListener {
@@ -141,6 +149,7 @@ fun EditProfileScreen(navController: NavHostController) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
                     .padding(16.dp)
                     .padding(paddingValues),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -241,104 +250,158 @@ fun EditProfileScreen(navController: NavHostController) {
                         unfocusedTrailingIconColor = Color(0xFFB0B0B0)
                     ),
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = false // Deshabilitar el campo para que sea solo lectura
                 )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                Text(
+                    text = "Change Password",
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Start
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Campo contraseña actual (editable)
+                OutlinedTextField(
+                    value = passwordActual,
+                    onValueChange = { passwordActual = it },
+                    label = { Text("Current Password", color = Color(0xFFB0B0B0)) },
+                    textStyle = LocalTextStyle.current.copy(color = Color.White),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color.White,
+                        unfocusedBorderColor = Color.White,
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        cursorColor = Color.White
+                    ),
+                    modifier = Modifier.fillMaxWidth(),
+                    visualTransformation = PasswordVisualTransformation()
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Mostrar campo nueva contraseña solo si el usuario ha escrito algo en la contraseña actual
+                if (passwordActual.isNotEmpty()) {
+                    OutlinedTextField(
+                        value = passwordNueva,
+                        onValueChange = { passwordNueva = it },
+                        label = { Text("New Password", color = Color(0xFFB0B0B0)) },
+                        textStyle = LocalTextStyle.current.copy(color = Color.White),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color.White,
+                            unfocusedBorderColor = Color.White,
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            cursorColor = Color.White
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                        visualTransformation = PasswordVisualTransformation()
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Button(
                     onClick = {
-                        if (hayConexion) {
-                            currentUser?.uid?.let { uid ->
-                                val userUpdates = mutableMapOf<String, Any?>("nombre" to userName)
+                        // Validación: si passwordActual no está vacío pero passwordNueva sí, error
+                        if (passwordActual.isNotEmpty() && passwordNueva.isEmpty()) {
+                            errorMessage = "You must enter the new password"
+                            return@Button
+                        } else {
+                            errorMessage = null // limpiar error si ya no hay problema
+                        }
 
-                                if (deleteImageInUI) {
-                                    userUpdates["fotoPerfil"] = null
-                                } else if (!profileImageUri.isNullOrEmpty()) {
-                                    val imageUri = profileImageUri
-                                    val isRemoteUrl = imageUri?.startsWith("http") == true
+                        // Validación: si ambas contraseñas coinciden, error
+                        if (passwordActual.isNotEmpty() && passwordNueva.isNotEmpty() && passwordActual == passwordNueva) {
+                            errorMessage = "The new password cannot be the same as the current password"
+                            return@Button
+                        }
 
-                                    if (!isRemoteUrl) {
-                                        try {
-                                            val inputStream = context.contentResolver.openInputStream(
-                                                android.net.Uri.parse(imageUri)
-                                            )
-                                            val imageBytes = inputStream?.readBytes()
+                        if (!hayConexion) {
+                            Toast.makeText(context, "You need an internet connection to update your profile", Toast.LENGTH_SHORT).show()
+                            return@Button
+                        }
 
-                                            if (imageBytes != null) {
-                                                ImgurUploader.uploadImage(imageBytes) { imageUrl ->
-                                                    if (imageUrl != null) {
-                                                        userUpdates["fotoPerfil"] = imageUrl
-                                                        // Guardar con imagen subida
-                                                        firestore.collection("usuarios").document(uid)
-                                                            .update(userUpdates)
-                                                            .addOnSuccessListener {
-                                                                Toast.makeText(
-                                                                    context,
-                                                                    "Profile updated",
-                                                                    Toast.LENGTH_SHORT
-                                                                ).show()
-                                                                navController.popBackStack()
-                                                            }
-                                                            .addOnFailureListener {
-                                                                Toast.makeText(
-                                                                    context,
-                                                                    "Error updating",
-                                                                    Toast.LENGTH_SHORT
-                                                                ).show()
-                                                            }
-                                                    } else {
-                                                        Toast.makeText(
-                                                            context,
-                                                            "Error uploading the image",
-                                                            Toast.LENGTH_SHORT
-                                                        ).show()
-                                                    }
+                        currentUser?.uid?.let { uid ->
+
+                            val userUpdates = mutableMapOf<String, Any?>("nombre" to userName)
+
+                            fun actualizarFirestoreYPopBack() {
+                                firestore.collection("usuarios").document(uid)
+                                    .update(userUpdates)
+                                    .addOnSuccessListener {
+                                        if (passwordActual.isNotEmpty()) {
+                                            usersViewModel.cambiarContrasena(passwordActual, passwordNueva) { success, mensaje ->
+                                                if (success) {
+                                                    errorMessage = null
+                                                    Toast.makeText(context, "Profile updated and password changed", Toast.LENGTH_SHORT).show()
+                                                    navController.popBackStack()
+                                                } else {
+                                                    errorMessage = mensaje
                                                 }
-                                                return@Button // Evita doble llamada si subimos imagen
                                             }
-                                        } catch (e: Exception) {
-                                            Toast.makeText(
-                                                context,
-                                                "Error processing the image",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        }
-                                    }
-                                }
-
-                                // Si no subimos imagen o solo cambiamos el nombre
-                                if (userUpdates.isNotEmpty()) {
-                                    firestore.collection("usuarios").document(uid)
-                                        .update(userUpdates)
-                                        .addOnSuccessListener {
-                                            Toast.makeText(
-                                                context,
-                                                "Profile updated",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
+                                        } else {
+                                            Toast.makeText(context, "Profile updated", Toast.LENGTH_SHORT).show()
                                             navController.popBackStack()
                                         }
-                                        .addOnFailureListener {
-                                            Toast.makeText(
-                                                context,
-                                                "Error updating",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        }
-                                }
+                                    }
+                                    .addOnFailureListener {
+                                        Toast.makeText(context, "Error updating profile", Toast.LENGTH_SHORT).show()
+                                    }
                             }
-                        } else {
-                            Toast.makeText(
-                                context,
-                                "You need an internet connection to update your profile",
-                                Toast.LENGTH_SHORT
-                            ).show()
+
+                            if (deleteImageInUI) {
+                                userUpdates["fotoPerfil"] = null
+                                actualizarFirestoreYPopBack()
+                            } else if (!profileImageUri.isNullOrEmpty()) {
+                                val imageUri = profileImageUri
+                                val isRemoteUrl = imageUri?.startsWith("http")
+
+                                if (!isRemoteUrl!!) {
+                                    try {
+                                        val inputStream = context.contentResolver.openInputStream(android.net.Uri.parse(imageUri))
+                                        val imageBytes = inputStream?.readBytes()
+
+                                        if (imageBytes != null) {
+                                            ImgurUploader.uploadImage(imageBytes) { imageUrl ->
+                                                if (imageUrl != null) {
+                                                    userUpdates["fotoPerfil"] = imageUrl
+                                                    actualizarFirestoreYPopBack()
+                                                } else {
+                                                    Toast.makeText(context, "Error uploading the image", Toast.LENGTH_SHORT).show()
+                                                }
+                                            }
+                                            return@Button // upload async
+                                        }
+                                    } catch (e: Exception) {
+                                        Toast.makeText(context, "Error processing the image", Toast.LENGTH_SHORT).show()
+                                    }
+                                } else {
+                                    userUpdates["fotoPerfil"] = imageUri
+                                    actualizarFirestoreYPopBack()
+                                }
+                            } else {
+                                actualizarFirestoreYPopBack()
+                            }
                         }
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Save Changes")
+                }
+
+                if (!errorMessage.isNullOrEmpty()) {
+                    Text(
+                        text = errorMessage ?: "",
+                        color = Color.Red,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
                 }
             }
         }

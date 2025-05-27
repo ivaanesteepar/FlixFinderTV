@@ -15,6 +15,7 @@ import com.example.flixfindertv.models.Usuarios
 import com.example.flixfindertv.room.database.AppDatabase
 import com.example.flixfindertv.room.entities.FavoritoEntity
 import com.example.flixfindertv.room.repository.MovieRepository
+import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.CoroutineScope
@@ -45,6 +46,46 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
     val favouriteMovies = mutableStateOf<List<Peliculas>>(emptyList())
     val favouriteSeries = mutableStateOf<List<Peliculas>>(emptyList())
 
+
+    fun cambiarContrasena(
+        passwordActual: String,
+        passwordNueva: String,
+        callback: (success: Boolean, mensaje: String) -> Unit
+    ) {
+        val user = FirebaseAuth.getInstance().currentUser
+        if (user == null) {
+            callback(false, "User not authenticated")
+            return
+        }
+
+        val email = user.email
+        if (email.isNullOrEmpty()) {
+            callback(false, "User email not found")
+            return
+        }
+
+        // 1. Create credentials with email and current password entered
+        val credential = EmailAuthProvider.getCredential(email, passwordActual)
+
+        // 2. Reauthenticate
+        user.reauthenticate(credential)
+            .addOnCompleteListener { authTask ->
+                if (authTask.isSuccessful) {
+                    // Current password correct, now update the password
+                    user.updatePassword(passwordNueva)
+                        .addOnCompleteListener { updateTask ->
+                            if (updateTask.isSuccessful) {
+                                callback(true, "Password changed successfully")
+                            } else {
+                                callback(false, "The new password must be at least 6 characters long")
+                            }
+                        }
+                } else {
+                    // Reauthentication failed -> current password incorrect
+                    callback(false, "Current password is incorrect")
+                }
+            }
+    }
 
 
     fun register(email: String, password: String, confirmPassword: String, username: String, onSuccess: (String) -> Unit, onFailure: (String) -> Unit) {
