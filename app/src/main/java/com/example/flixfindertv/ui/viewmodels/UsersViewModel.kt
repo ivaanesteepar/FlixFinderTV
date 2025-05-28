@@ -345,26 +345,48 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun unfollowUser(currentUid: String, targetUid: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit) {
-        if (currentUid != targetUid) {
-            viewModelScope.launch {
-                try {
-                    val userRef = firestore.collection("usuarios").document(targetUid)
-                    val document = userRef.get().await()
-                    if (document.exists()) {
-                        val seguidores = document.get("seguidores") as? List<String> ?: emptyList()
-                        if (seguidores.contains(currentUid)) {
-                            val updatedSeguidores = seguidores - currentUid
-                            userRef.update("seguidores", updatedSeguidores).await()
-                            onSuccess() // Notifica éxito
-                        }
-                    }
-                } catch (e: Exception) {
-                    onFailure(e) // Notifica error
+    fun unfollowUser(
+        currentUid: String,
+        targetUid: String,
+        onSuccess: () -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        if (currentUid == targetUid) return
+
+        viewModelScope.launch {
+            try {
+                val userRefTarget = firestore.collection("usuarios").document(targetUid)
+                val userRefCurrent = firestore.collection("usuarios").document(currentUid)
+
+                // Obtener documentos
+                val targetDoc = userRefTarget.get().await()
+                val currentDoc = userRefCurrent.get().await()
+
+                if (targetDoc.exists() && currentDoc.exists()) {
+                    val seguidores = targetDoc.get("seguidores") as? List<String> ?: emptyList()
+                    val following = currentDoc.get("siguiendo") as? List<String> ?: emptyList()
+
+                    val updatedSeguidores = seguidores - currentUid
+                    val updatedFollowing = following - targetUid
+
+                    // Actualizar ambos documentos en paralelo
+                    val updateTarget = userRefTarget.update("seguidores", updatedSeguidores)
+                    val updateCurrent = userRefCurrent.update("siguiendo", updatedFollowing)
+
+                    // Esperar ambos updates
+                    updateTarget.await()
+                    updateCurrent.await()
+
+                    onSuccess()
+                } else {
+                    onFailure(Exception("User documents not found"))
                 }
+            } catch (e: Exception) {
+                onFailure(e)
             }
         }
     }
+
 
     fun checkIfFollowing(currentUid: String, targetUid: String, callback: (Boolean) -> Unit) {
         viewModelScope.launch {

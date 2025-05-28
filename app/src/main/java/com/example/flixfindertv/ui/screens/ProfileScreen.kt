@@ -331,7 +331,7 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                             onClick = {
                                 if (hayConexion) {
                                     if (isFollowing.value) {
-                                        // Si ya sigue al usuario, hacer "dejar de seguir"
+                                        // Si ya sigue al usuario, dejar se seguir
                                         usersViewModel.unfollowUser(currentUid, uid,
                                             onSuccess = {
                                                 // Acción cuando se deja de seguir exitosamente
