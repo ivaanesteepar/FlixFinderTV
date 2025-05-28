@@ -28,8 +28,8 @@ import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.flixfindertv.R
 import com.example.flixfindertv.models.Peliculas
-import com.example.flixfindertv.ui.screens.contieneCaracteresNoLatinos
 import com.example.flixfindertv.ui.viewmodels.GenresViewModel
+import com.example.flixfindertv.ui.viewmodels.MoviesViewModel
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 
 @Composable
@@ -38,6 +38,7 @@ fun ContentListExplore(
     navController: NavController,
     listState: LazyListState,
 ) {
+    val moviesViewModel: MoviesViewModel = viewModel()
     val genresViewModel: GenresViewModel = viewModel()
     var movieGenre by remember { mutableStateOf("") }
     val usersViewModel: UsersViewModel = viewModel()
@@ -51,7 +52,7 @@ fun ContentListExplore(
         state = listState,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        itemsIndexed(movies.filter { !contieneCaracteresNoLatinos(it.titulo) }) { index, movie ->
+        itemsIndexed(movies.filter { !moviesViewModel.containsNonLatinCharacters(it.titulo) }) { index, movie ->
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.width(120.dp)

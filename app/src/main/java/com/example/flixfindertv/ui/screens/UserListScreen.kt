@@ -44,7 +44,6 @@ fun UserListScreen(navController: NavController, uid: String, isFollowing: Boole
     LaunchedEffect(uid, isFollowing) {
         coroutineScope.launch {
             userList = if (isFollowing) {
-                println("aquillega")
                 usersViewModel.getFollowingUsers(uid)
             } else {
                 usersViewModel.getFollowersUsers(uid)

@@ -47,7 +47,7 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
     val favouriteSeries = mutableStateOf<List<Peliculas>>(emptyList())
 
 
-    fun cambiarContrasena(
+    fun changePassword(
         passwordActual: String,
         passwordNueva: String,
         callback: (success: Boolean, mensaje: String) -> Unit
@@ -364,14 +364,14 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
 
                 if (targetDoc.exists() && currentDoc.exists()) {
                     val seguidores = targetDoc.get("seguidores") as? List<String> ?: emptyList()
-                    val following = currentDoc.get("siguiendo") as? List<String> ?: emptyList()
+                    val siguiendo = currentDoc.get("siguiendo") as? List<String> ?: emptyList()
 
                     val updatedSeguidores = seguidores - currentUid
-                    val updatedFollowing = following - targetUid
+                    val updatedSiguiendo = siguiendo - targetUid
 
                     // Actualizar ambos documentos en paralelo
                     val updateTarget = userRefTarget.update("seguidores", updatedSeguidores)
-                    val updateCurrent = userRefCurrent.update("siguiendo", updatedFollowing)
+                    val updateCurrent = userRefCurrent.update("siguiendo", updatedSiguiendo)
 
                     // Esperar ambos updates
                     updateTarget.await()

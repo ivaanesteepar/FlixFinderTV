@@ -1,7 +1,6 @@
 package com.example.flixfindertv.ui.screens
 
 import android.app.Activity
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -48,12 +47,6 @@ import com.example.flixfindertv.utils.ContentListExplore
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.delay
-
-// Expresión regular para detectar caracteres en chino, japonés, coreano o ruso
-fun contieneCaracteresNoLatinos(titulo: String): Boolean {
-    val regex = "[\\u4E00-\\u9FFF\\u3040-\\u30FF\\uAC00-\\uD7AF\\u0400-\\u04FF]".toRegex()
-    return regex.containsMatchIn(titulo)
-}
 
 // Pantalla que muestra películas y series, y permite la búsqueda y filtrado de contenido
 @OptIn(ExperimentalMaterial3Api::class)

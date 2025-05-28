@@ -27,7 +27,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
@@ -345,7 +344,7 @@ fun EditProfileScreen(navController: NavHostController) {
                                     .update(userUpdates)
                                     .addOnSuccessListener {
                                         if (passwordActual.isNotEmpty()) {
-                                            usersViewModel.cambiarContrasena(passwordActual, passwordNueva) { success, mensaje ->
+                                            usersViewModel.changePassword(passwordActual, passwordNueva) { success, mensaje ->
                                                 if (success) {
                                                     errorMessage = null
                                                     Toast.makeText(context, "Profile updated and password changed", Toast.LENGTH_SHORT).show()

@@ -11,7 +11,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import com.example.flixfindertv.room.repository.MovieRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.text.SimpleDateFormat
@@ -102,6 +101,11 @@ class MoviesViewModel : ViewModel() {
     private val _voteCount = MutableStateFlow("")
     val voteCount = _voteCount.asStateFlow()
 
+    // Expresión regular para detectar caracteres en chino, japonés, coreano o ruso
+    fun containsNonLatinCharacters(titulo: String): Boolean {
+        val regex = "[\\u4E00-\\u9FFF\\u3040-\\u30FF\\uAC00-\\uD7AF\\u0400-\\u04FF]".toRegex()
+        return regex.containsMatchIn(titulo)
+    }
 
     fun incrementUserCommentCount(userId: String) {
         val userRef = FirebaseFirestore.getInstance().collection("usuarios").document(userId)
