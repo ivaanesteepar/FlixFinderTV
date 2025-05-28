@@ -25,9 +25,8 @@ import com.example.flixfindertv.R
 import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 
 // Pantalla que muestra el contenido favorito del usuario, ya sean películas o series
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun FavouriteContent(navController: NavController, uid:String, esSerie: Boolean) {
+fun FavouriteContent(navController: NavController, uid: String, esSerie: Boolean) {
     val userViewModel: UsersViewModel = viewModel()
     val conexionViewModel: ConexionViewModel = viewModel()
 
@@ -36,30 +35,17 @@ fun FavouriteContent(navController: NavController, uid:String, esSerie: Boolean)
     var favoriteMoviesOffline by remember { mutableStateOf<List<Peliculas>>(emptyList()) }
     var favoriteSeriesOffline by remember { mutableStateOf<List<Peliculas>>(emptyList()) }
 
-    // Estado para manejar errores
     val errorMessage = remember { mutableStateOf<String?>(null) }
     val hayConexion by conexionViewModel.conexionEstablecida.collectAsState()
 
-    // Obtener las películas favoritas
     LaunchedEffect(Unit) {
-        userViewModel.getFavoriteMovies(
-            uid,
-            onSuccess = { movies ->
-                favoriteMovies.value = movies
-            },
-            onFailure = { exception ->
-                errorMessage.value = "Error getting favorite movies: ${exception.message}"
-            },
+        userViewModel.getFavoriteMovies(uid,
+            onSuccess = { movies -> favoriteMovies.value = movies },
+            onFailure = { e -> errorMessage.value = "Error getting favorite movies: ${e.message}" }
         )
-
-        userViewModel.getFavoriteSeries(
-            uid,
-            onSuccess = { series ->
-                favoriteSeries.value = series
-            },
-            onFailure = { exception ->
-                errorMessage.value = "Error getting favorite series: ${exception.message}"
-            }
+        userViewModel.getFavoriteSeries(uid,
+            onSuccess = { series -> favoriteSeries.value = series },
+            onFailure = { e -> errorMessage.value = "Error getting favorite series: ${e.message}" }
         )
         userViewModel.getPeliculasFavoritasDesdeRoom()
         userViewModel.getSeriesFavoritasDesdeRoom()
@@ -68,13 +54,8 @@ fun FavouriteContent(navController: NavController, uid:String, esSerie: Boolean)
     favoriteMoviesOffline = userViewModel.favouriteMovies.value
     favoriteSeriesOffline = userViewModel.favouriteSeries.value
 
-    // Mostrar mensaje de error si lo hay
     errorMessage.value?.let {
-        Text(
-            text = it,
-            style = MaterialTheme.typography.bodyMedium,
-            color = Color.Red
-        )
+        Text(text = it, style = MaterialTheme.typography.bodyMedium, color = Color.Red)
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -84,7 +65,6 @@ fun FavouriteContent(navController: NavController, uid:String, esSerie: Boolean)
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
-        // Mostrar la flecha atrás y el contenido
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -92,12 +72,9 @@ fun FavouriteContent(navController: NavController, uid:String, esSerie: Boolean)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Botón de flecha atrás
             IconButton(
                 onClick = { navController.popBackStack() },
-                modifier = Modifier
-                    .padding(top = 16.dp, start = 8.dp)
-                    .align(Alignment.Start)
+                modifier = Modifier.padding(top = 16.dp, start = 8.dp).align(Alignment.Start)
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -105,97 +82,65 @@ fun FavouriteContent(navController: NavController, uid:String, esSerie: Boolean)
                     tint = Color.White
                 )
             }
-            Spacer(modifier = Modifier.height(16.dp)) // Espacio entre el botón y las portadas
-            // Mostrar las portadas de acuerdo al tipo (películas o series)
-            if (esSerie) {
-                val seriesToShow = if (hayConexion) favoriteSeries.value else favoriteSeriesOffline
-                if (seriesToShow.isNotEmpty()) {
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        seriesToShow.chunked(3).forEach { chunk ->
-                            FlowRow(
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                chunk.forEach { series ->
-                                    Box(
-                                        modifier = Modifier
-                                            .width(120.dp)
-                                            .height(160.dp)
-                                            .clickable {
-                                                navController.navigate("detalles/${series.id}/${true}")
-                                            }
-                                    ) {
-                                        val imageUrl =
-                                            "https://image.tmdb.org/t/p/w500${series.poster_path}"
-                                        Image(
-                                            painter = rememberAsyncImagePainter(imageUrl),
-                                            contentDescription = "Imagen de la serie",
-                                            modifier = Modifier.fillMaxSize(),
-                                            contentScale = ContentScale.Crop
-                                        )
-                                    }
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(16.dp)) // Espacio entre las filas de las portadas
-                        }
-                    }
-                } else {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "You have no favorite series",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Gray
-                        )
-                    }
-                }
+            Spacer(modifier = Modifier.height(16.dp))
+
+            val itemsToShow = if (esSerie) {
+                if (hayConexion) favoriteSeries.value else favoriteSeriesOffline
             } else {
-                val moviesToShow = if (hayConexion) favoriteMovies.value else favoriteMoviesOffline
-                if (moviesToShow.isNotEmpty()) {
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        moviesToShow.chunked(3).forEach { chunk ->
-                            FlowRow(
-                                horizontalArrangement = Arrangement.Start,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                chunk.forEach { movie ->
-                                    Box(
-                                        modifier = Modifier
-                                            .width(120.dp)
-                                            .height(160.dp)
-                                            .clickable {
-                                                navController.navigate("detalles/${movie.id}/${false}")
-                                            }
-                                    ) {
-                                        val imageUrl =
-                                            "https://image.tmdb.org/t/p/w500${movie.poster_path}"
-                                        Image(
-                                            painter = rememberAsyncImagePainter(imageUrl),
-                                            contentDescription = "Imagen de la película",
-                                            modifier = Modifier.fillMaxSize(),
-                                            contentScale = ContentScale.Crop
-                                        )
-                                    }
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(16.dp)) // Espacio entre las filas de las portadas
-                        }
-                    }
-                } else {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "You have no favorite movies",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Gray
-                        )
-                    }
-                }
+                if (hayConexion) favoriteMovies.value else favoriteMoviesOffline
             }
+
+            val emptyText = if (esSerie) "You have no favorite series" else "You have no favorite movies"
+            val isSerieFlag = esSerie
+
+            FavouriteGrid(
+                items = itemsToShow,
+                navController = navController,
+                emptyText = emptyText,
+                esSerie = isSerieFlag
+            )
         }
     }
-
 }
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun FavouriteGrid(
+    items: List<Peliculas>,
+    navController: NavController,
+    emptyText: String,
+    esSerie: Boolean
+) {
+    if (items.isNotEmpty()) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            items.chunked(3).forEach { chunk ->
+                FlowRow(modifier = Modifier.fillMaxWidth()) {
+                    chunk.forEach { item ->
+                        Box(
+                            modifier = Modifier
+                                .width(120.dp)
+                                .height(160.dp)
+                                .clickable {
+                                    navController.navigate("detalles/${item.id}/$esSerie")
+                                }
+                        ) {
+                            val imageUrl = "https://image.tmdb.org/t/p/w500${item.poster_path}"
+                            Image(
+                                painter = rememberAsyncImagePainter(imageUrl),
+                                contentDescription = if (esSerie) "Imagen de la serie" else "Imagen de la película",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+    } else {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text(text = emptyText, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+        }
+    }
+}
+
