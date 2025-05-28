@@ -1,6 +1,7 @@
 package com.example.flixfindertv.ui.screens
 
 import android.app.Activity
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -754,6 +755,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                 }
                                 val filteredRoomMovies = peliculas.value.filter { movieEntity ->
                                     val movie = movieEntity.pelicula
+                                    println("Las peliculas en offline: $movie")
 
                                     val matchesType = if (filterMovie || filterSerie) {
                                         (filterMovie && !movie.esSerie) || (filterSerie && movie.esSerie)
@@ -869,16 +871,16 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                 }
                                 // Si hay conexión, realiza la búsqueda
                                 val filteredSearchResults = movieResults.filter { movie ->
-                                    // Filtro por tipo: película o serie
+                                    println("Las peliculas en online: $movie")
+
                                     val matchesType = if (filterMovie || filterSerie) {
                                         (filterMovie && !movie.esSerie) || (filterSerie && movie.esSerie)
                                     } else {
-                                        true // Si no se aplica filtro de tipo, permitimos cualquier tipo (película o serie)
+                                        true
                                     }
 
-                                    // Filtro por búsqueda de título: si searchQuery está vacío, no aplicamos filtro
                                     val matchesQuery = if (searchQuery.isNullOrEmpty()) {
-                                        true // No filtramos por título si la búsqueda está vacía
+                                        true
                                     } else {
                                         (movie.title?.contains(
                                             searchQuery,
@@ -890,14 +892,13 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                                 ) == true)
                                     }
 
-                                    // Filtro por género: si no hay género seleccionado, no filtramos por género
                                     val matchesGenre = if (selectedGenreId == null) {
-                                        true // Si no se ha seleccionado un género, no se filtra por género
+                                        true
                                     } else {
-                                        movie.genre_ids.contains(selectedGenreId) // Si se seleccionó un género, lo filtramos
+                                        movie.genre_ids.contains(selectedGenreId)
                                     }
 
-                                    matchesType && matchesQuery && matchesGenre // Se deben cumplir las 3 para mostrar la pelicula o serie
+                                    matchesType && matchesQuery && matchesGenre
                                 }
 
                                 val sortedSearchResults = when (selectedTextSearchOnline) {
@@ -909,7 +910,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
                                 // Mostrar mensaje si no se encuentran resultados y no se está buscando
                                 if (sortedSearchResults.isEmpty() && !isSearching) {
                                     Text(
-                                        text = "No results found",
+                                        text = "No results found for title: $searchQuery",
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = Color.White,
                                         modifier = Modifier.align(Alignment.Center)
