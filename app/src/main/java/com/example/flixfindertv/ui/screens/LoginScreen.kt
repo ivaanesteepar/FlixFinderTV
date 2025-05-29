@@ -54,7 +54,7 @@ fun LoginScreen(navController: NavController) {
     // Función para realizar el login
     fun loginAction() {
         if (!hayConexion) {
-            Toast.makeText(context, "Se necesita una conexión a internet para iniciar sesión", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "An internet connection is required to log in", Toast.LENGTH_SHORT).show()
         } else {
             isLoading = true
             usersViewModel.login(email.text, password.text,
@@ -98,7 +98,7 @@ fun LoginScreen(navController: NavController) {
             LoginTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = "Contraseña",
+                label = "Password",
                 keyboardType = KeyboardType.Password,
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = if (isLandscape) Modifier.width(500.dp) else Modifier.fillMaxWidth()
@@ -118,15 +118,15 @@ fun LoginScreen(navController: NavController) {
                     contentColor = Color.White
                 )
             ) {
-                Text(text = if (isLoading) "Iniciando sesión..." else "Iniciar sesión")
+                Text(text = if (isLoading) "Logging in..." else "Log in")
             }
             Spacer(modifier = Modifier.height(16.dp))
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
                 TextButton(onClick = { navController.navigate("forgot_password") }) {
-                    Text("¿Olvidaste tu contraseña?", color = Color.White)
+                    Text("Forgot your password?", color = Color.White)
                 }
                 TextButton(onClick = { navController.navigate("register") }) {
-                    Text("¿No tienes cuenta? Regístrate", color = Color.White)
+                    Text("Don't have an account? Register", color = Color.White)
                 }
             }
         }
@@ -146,7 +146,7 @@ fun LoginScreen(navController: NavController) {
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "Iniciar sesión",
+                        text = "Log in",
                         color = Color.White,
                         fontSize = 24.sp,
                         modifier = Modifier
@@ -199,7 +199,7 @@ fun LoginScreen(navController: NavController) {
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = "Iniciar sesión",
+                                text = "Log in",
                                 color = Color.White,
                                 fontSize = 24.sp,
                                 modifier = Modifier.padding(bottom = 16.dp)

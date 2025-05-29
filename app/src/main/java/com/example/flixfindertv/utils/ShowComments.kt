@@ -145,18 +145,14 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                         }
                         likedCommentsState.value = updatedLikedComments
                     } else {
-                        // Si nombreUsuario es null, no hacemos nada
-                        println("nombreUsuario es null, esperando actualización")
                     }
                 }
 
 
-
-                // Cambiar el color del Card si el comentario tiene revision == true
-                Card(modifier = Modifier.background(Color.White)) {
+                Card(modifier = Modifier.background(Color.Transparent)) {
                     Column(modifier = Modifier
                         //.padding(8.dp)
-                        .background( // ESTE PADDING PONE EL BORDE GRIS DE LAS CARDS
+                        .background(
                             if (isUserAdmin && comentario.revision) Color(0xFFFFCDD2)
                             else Color.White
                         )){

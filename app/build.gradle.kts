@@ -54,6 +54,8 @@ android {
         debug {
             enableUnitTestCoverage = true // cobertura para tests unitarios
             enableAndroidTestCoverage = true // cobertura para tests instrumentados
+
+
         }
         release {
             isMinifyEnabled = false
@@ -85,12 +87,18 @@ jacoco {
 tasks.register<JacocoReport>("jacocoTestReport") {
     dependsOn("testDebugUnitTest")
 
-    group = "Informes"
-    description = "Genera informes de cobertura de Jacoco para la compilación de depuración."
+    group = "Reporting"
+    description = "Generates Jacoco coverage reports for the debug build."
+
+    doNotTrackState("State tracking disabled for Jacoco report task")
+
+    val reportsDir = file("build/reports/jacoco/test")
 
     reports {
         xml.required.set(true)
         html.required.set(true)
+        xml.outputLocation.set(file("${reportsDir}/jacocoTestReport.xml"))
+        html.outputLocation.set(file("${reportsDir}/html"))
     }
 
     val fileFilter = listOf(
@@ -99,6 +107,8 @@ tasks.register<JacocoReport>("jacocoTestReport") {
         "*/BuildConfig.",
         "*/Manifest.*",
         "*/*Test.*",
+        "*/Hilt.*",
+        "*/di/*"
     )
 
     // Directorios con clases compiladas (Java + Kotlin)
