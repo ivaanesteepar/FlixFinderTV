@@ -406,7 +406,7 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                             if (hayConexion) favoriteMovies else favoriteMoviesOffline
                         val moviesNotEmpty = moviesToShow.isNotEmpty()
                         val noFavoritesMessageMovies =
-                            if (uid == currentUid) "You don't have favourite movies." else "He has no favourite movies"
+                            if (uid == currentUid) "This user has no favorite movies" else "This user has no favorite TV shows"
 
                         Column(modifier = Modifier.fillMaxWidth()) {
                             if (moviesNotEmpty) {
@@ -479,20 +479,22 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
 
                         Spacer(modifier = Modifier.height(20.dp))
 
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End
-                        ) {
-                            Text(
-                                text = "View More",
-                                style = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
-                                modifier = Modifier.clickable {
-                                    navController.navigate("favourite_movies/$uid/false") {
-                                        popUpTo("favourite_movies") { inclusive = true }
-                                        launchSingleTop = true
+                        if (moviesNotEmpty) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End
+                            ) {
+                                Text(
+                                    text = "View More",
+                                    style = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
+                                    modifier = Modifier.clickable {
+                                        navController.navigate("favourite_movies/$uid/false") {
+                                            popUpTo("favourite_movies") { inclusive = true }
+                                            launchSingleTop = true
+                                        }
                                     }
-                                }
-                            )
+                                )
+                            }
                         }
                         Spacer(modifier = Modifier.height(40.dp))
                         Text(
@@ -572,20 +574,22 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
 
                             Spacer(modifier = Modifier.height(20.dp))
 
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.End
-                            ) {
-                                Text(
-                                    text = "View More",
-                                    style = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
-                                    modifier = Modifier.clickable {
-                                        navController.navigate("favourite_movies/$uid/true") {
-                                            popUpTo("favourite_movies") { inclusive = true }
-                                            launchSingleTop = true
+                            if (moviesNotEmpty) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.End
+                                ) {
+                                    Text(
+                                        text = "View More",
+                                        style = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
+                                        modifier = Modifier.clickable {
+                                            navController.navigate("favourite_movies/$uid/true") {
+                                                popUpTo("favourite_movies") { inclusive = true }
+                                                launchSingleTop = true
+                                            }
                                         }
-                                    }
-                                )
+                                    )
+                                }
                             }
                         }
 

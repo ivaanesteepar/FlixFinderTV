@@ -90,7 +90,7 @@ fun FavouriteContent(navController: NavController, uid: String, esSerie: Boolean
                 if (hayConexion) favoriteMovies.value else favoriteMoviesOffline
             }
 
-            val emptyText = if (esSerie) "You have no favorite series" else "You have no favorite movies"
+            val emptyText = if (esSerie) "There are no favorite series" else "There are no favorite movies"
             val isSerieFlag = esSerie
 
             FavouriteGrid(
