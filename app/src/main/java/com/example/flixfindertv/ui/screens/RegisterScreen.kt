@@ -8,19 +8,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.LocalTextStyle
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,6 +22,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -49,104 +39,47 @@ fun RegisterScreen(navController: NavController) {
     var confirmPassword by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
+
     val context = LocalContext.current
     val usersViewModel: UsersViewModel = viewModel()
     val conexionViewModel: ConexionViewModel = viewModel()
     val hayConexion by conexionViewModel.conexionEstablecida.collectAsState()
+    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 
-    val configuration = LocalConfiguration.current
-    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
         Image(
             painter = painterResource(id = R.drawable.fondo_app),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
-        if (!isLandscape) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(24.dp)
-            ) {
+
+        Box(modifier = Modifier.fillMaxSize().padding(24.dp)) {
+            if (!isLandscape) {
                 Column(
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .padding(bottom = 16.dp)
+                        .padding(bottom = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.app_logo),
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(120.dp)
-                            .clip(CircleShape)
-                            .align(Alignment.CenterHorizontally)
-                    )
+                    Logo(size = 120.dp)
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = "Register",
-                        color = Color.White,
-                        fontSize = 24.sp,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                            .align(Alignment.CenterHorizontally)
-                    )
-
-                    // Llamamos a la función para los campos de texto
-                    InputField(
-                        label = "Username",
-                        value = username,
-                        onValueChange = { username = it },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    InputField(
-                        label = "Email",
-                        value = email,
-                        onValueChange = { email = it },
-                        keyboardType = KeyboardType.Email,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    InputField(
-                        label = "Password",
-                        value = password,
-                        onValueChange = { password = it },
-                        isPassword = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    InputField(
-                        label = "Confirm Password",
-                        value = confirmPassword,
-                        onValueChange = { confirmPassword = it },
-                        isPassword = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    errorMessage?.let {
-                        Text(text = it, color = Color.Red, fontSize = 14.sp)
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-
-                    Button(
-                        onClick = {
+                    RegisterForm(
+                        username, email, password, confirmPassword,
+                        onUsernameChange = { username = it },
+                        onEmailChange = { email = it },
+                        onPasswordChange = { password = it },
+                        onConfirmPasswordChange = { confirmPassword = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        errorMessage = errorMessage,
+                        isLoading = isLoading,
+                        onRegisterClick = {
                             if (!hayConexion) {
-                                Toast.makeText(
-                                    context,
-                                    "You need an internet connection to log in",
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                                Toast.makeText(context, "You need an internet connection to log in", Toast.LENGTH_SHORT).show()
                             } else {
                                 isLoading = true
                                 usersViewModel.register(
-                                    email = email,
-                                    password = password,
-                                    confirmPassword = confirmPassword,
-                                    username = username,
+                                    email, password, confirmPassword, username,
                                     onSuccess = { screen ->
                                         isLoading = false
                                         navController.navigate(screen)
@@ -158,147 +91,99 @@ fun RegisterScreen(navController: NavController) {
                                 )
                             }
                         },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .then(if (isLoading) Modifier.pointerInput(Unit) {} else Modifier),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.Blue,
-                            contentColor = Color.White
-                        )
-                    ) {
-                        Text(text = if (isLoading) "Registering..." else "Register")
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Box(
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    ) {
-                        TextButton(onClick = { navController.popBackStack() }) {
-                            Text("Back to login", color = Color.White)
-                        }
-                    }
+                        onBackClick = { navController.popBackStack() }
+                    )
                 }
-            }
-        } else {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(24.dp)
-            ) {
-                Column(
-                    modifier = Modifier.verticalScroll(rememberScrollState())
-                ) {
+            } else {
+                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 16.dp),
+                        modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.app_logo),
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .size(170.dp)
-                                .clip(CircleShape)
-                                .padding(start = 26.dp)
-                        )
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Column(
-                            modifier = Modifier
-                                .fillMaxHeight()
-                                .weight(1f),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = "Register",
-                                color = Color.White,
-                                fontSize = 24.sp,
-                                modifier = Modifier.padding(bottom = 16.dp)
-                            )
-
-                            // Llamamos a la función para los campos de texto con ancho de 500 dp en landscape
-                            InputField(
-                                label = "Username",
-                                value = username,
-                                onValueChange = { username = it },
-                                modifier = Modifier.width(500.dp)
-                            )
-                            InputField(
-                                label = "Email",
-                                value = email,
-                                onValueChange = { email = it },
-                                keyboardType = KeyboardType.Email,
-                                modifier = Modifier.width(500.dp)
-                            )
-                            InputField(
-                                label = "Password",
-                                value = password,
-                                onValueChange = { password = it },
-                                isPassword = true,
-                                modifier = Modifier.width(500.dp)
-                            )
-                            InputField(
-                                label = "Confirm Password",
-                                value = confirmPassword,
-                                onValueChange = { confirmPassword = it },
-                                isPassword = true,
-                                modifier = Modifier.width(500.dp)
-                            )
-
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            Button(
-                                onClick = {
-                                    if (!hayConexion) {
-                                        Toast.makeText(
-                                            context,
-                                            "You need an internet connection to log in",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    } else {
-                                        isLoading = true
-                                        usersViewModel.register(
-                                            email = email,
-                                            password = password,
-                                            confirmPassword = confirmPassword,
-                                            username = username,
-                                            onSuccess = { screen ->
-                                                isLoading = false
-                                                navController.navigate(screen)
-                                            },
-                                            onFailure = { error ->
-                                                isLoading = false
-                                                errorMessage = error
-                                            }
-                                        )
-                                    }
-                                },
-                                modifier = Modifier
-                                    .width(300.dp)
-                                    .then(if (isLoading) Modifier.pointerInput(Unit) {} else Modifier),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color.Blue,
-                                    contentColor = Color.White
-                                )
-                            ) {
-                                Text(text = if (isLoading) "Registering..." else "Register")
-                            }
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Box(
-                                modifier = Modifier.align(Alignment.CenterHorizontally)
-                            ) {
-                                TextButton(onClick = { navController.popBackStack() }) {
-                                    Text("Back to login", color = Color.White)
+                        Logo(size = 170.dp, modifier = Modifier.padding(start = 26.dp))
+                        Spacer(modifier = Modifier.width(32.dp))
+                        RegisterForm(
+                            username, email, password, confirmPassword,
+                            onUsernameChange = { username = it },
+                            onEmailChange = { email = it },
+                            onPasswordChange = { password = it },
+                            onConfirmPasswordChange = { confirmPassword = it },
+                            modifier = Modifier.width(500.dp),
+                            errorMessage = errorMessage,
+                            isLoading = isLoading,
+                            onRegisterClick = {
+                                if (!hayConexion) {
+                                    Toast.makeText(context, "You need an internet connection to log in", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    isLoading = true
+                                    usersViewModel.register(
+                                        email, password, confirmPassword, username,
+                                        onSuccess = { screen ->
+                                            isLoading = false
+                                            navController.navigate(screen)
+                                        },
+                                        onFailure = { error ->
+                                            isLoading = false
+                                            errorMessage = error
+                                        }
+                                    )
                                 }
-                            }
-                        }
+                            },
+                            onBackClick = { navController.popBackStack() }
+                        )
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun RegisterForm(
+    username: String,
+    email: String,
+    password: String,
+    confirmPassword: String,
+    onUsernameChange: (String) -> Unit,
+    onEmailChange: (String) -> Unit,
+    onPasswordChange: (String) -> Unit,
+    onConfirmPasswordChange: (String) -> Unit,
+    modifier: Modifier,
+    errorMessage: String?,
+    isLoading: Boolean,
+    onRegisterClick: () -> Unit,
+    onBackClick: () -> Unit
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("Register", color = Color.White, fontSize = 24.sp, modifier = Modifier.padding(bottom = 16.dp))
+        InputField("Username", username, onUsernameChange, modifier = modifier)
+        InputField("Email", email, onEmailChange, keyboardType = KeyboardType.Email, modifier = modifier)
+        InputField("Password", password, onPasswordChange, isPassword = true, modifier = modifier)
+        InputField("Confirm Password", confirmPassword, onConfirmPasswordChange, isPassword = true, modifier = modifier)
+
+        errorMessage?.let {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = it, color = Color.Red, fontSize = 14.sp)
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(
+            onClick = onRegisterClick,
+            modifier = modifier.then(if (isLoading) Modifier.pointerInput(Unit) {} else Modifier),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Blue,
+                contentColor = Color.White
+            )
+        ) {
+            Text(if (isLoading) "Registering..." else "Register")
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+        TextButton(onClick = onBackClick) {
+            Text("Back to login", color = Color.White)
         }
     }
 }
@@ -314,7 +199,7 @@ fun InputField(
 ) {
     OutlinedTextField(
         value = value,
-        onValueChange = { onValueChange(it) },
+        onValueChange = onValueChange,
         label = { Text(label, color = Color.White) },
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
@@ -332,3 +217,12 @@ fun InputField(
     Spacer(modifier = Modifier.height(16.dp))
 }
 
+@Composable
+fun Logo(size: Dp, modifier: Modifier = Modifier) {
+    Image(
+        painter = painterResource(id = R.drawable.app_logo),
+        contentDescription = null,
+        contentScale = ContentScale.Crop,
+        modifier = modifier.size(size).clip(CircleShape)
+    )
+}

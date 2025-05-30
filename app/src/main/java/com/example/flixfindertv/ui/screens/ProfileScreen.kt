@@ -469,21 +469,21 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                     }
                     Spacer(modifier = Modifier.height(25.dp))
 
-                    // SECTION: Favourite Movies
+                    // SECCIÓN: Favourite Movies
                     FavouritesSection(
                         title = "Favourite Movies",
                         items = if (hayConexion) favoriteMovies else favoriteMoviesOffline,
-                        noFavoritesMessage = if (uid == currentUid) "This user has no favorite movies" else "This user has no favorite TV shows",
+                        noFavoritesMessage = if (uid == currentUid) "You don't have favourite movies" else "This user has no favourite movies",
                         onItemClick = { movie -> navController.navigate("detalles/${movie.id}/false") { launchSingleTop = true } },
                         onViewMore = { navController.navigate("favourite_movies/$uid/false") { popUpTo("favourite_movies") { inclusive = true }; launchSingleTop = true } },
                         isSerie = false
                     )
 
-                    // SECTION: Favourite TV Shows
+                    // SECCIÓN: Favourite TV Shows
                     FavouritesSection(
                         title = "Favourite TV shows",
                         items = if (hayConexion) favoriteSeries else favoriteSeriesOffline,
-                        noFavoritesMessage = if (uid == currentUid) "You don't have favourite movies." else "He has no favourite movies",
+                        noFavoritesMessage = if (uid == currentUid) "You don't have favourite TV shows" else "This user has no favourite TV shows",
                         onItemClick = { series -> navController.navigate("detalles/${series.id}/true") { launchSingleTop = true } },
                         onViewMore = { navController.navigate("favourite_movies/$uid/true") { popUpTo("favourite_movies") { inclusive = true }; launchSingleTop = true } },
                         isSerie = true
@@ -491,7 +491,7 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
 
                     if (currentUser == null) {
                         Text(
-                            text = "You must log in to access this section.",
+                            text = "You must log in to access this section",
                             style = MaterialTheme.typography.bodyLarge,
                             color = Color.Red
                         )

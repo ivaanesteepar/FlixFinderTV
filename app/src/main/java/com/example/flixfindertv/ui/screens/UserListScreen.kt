@@ -97,8 +97,12 @@ fun UserListScreen(navController: NavController, uid: String, isFollowing: Boole
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "This user has no ${if (isFollowing) "following" else "followers"}.",
-                                textAlign = TextAlign.Center, // Esto asegura que el texto esté centrado
+                                text = if (isFollowing) {
+                                    "No following users found"
+                                } else {
+                                    "No followers found"
+                                },
+                                textAlign = TextAlign.Center,
                                 color = Color.Gray
                             )
                         }
