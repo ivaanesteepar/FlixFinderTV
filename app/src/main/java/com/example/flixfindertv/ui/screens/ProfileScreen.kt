@@ -62,6 +62,138 @@ import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 import com.example.flixfindertv.utils.BottomNavigationBar
 
+@Composable
+fun UserAvatar(userProfilePic: String) {
+    Box(
+        modifier = Modifier
+            .padding(top = 24.dp)
+            .size(150.dp)
+            .background(Color.White, shape = CircleShape)
+            .border(2.dp, Color.Black, shape = CircleShape)
+    ) {
+        val modifier = Modifier
+            .fillMaxSize()
+            .align(Alignment.Center)
+            .clip(CircleShape)
+            .border(5.dp, Color.White, CircleShape)
+        if (userProfilePic.isEmpty()) {
+            Image(
+                painter = painterResource(id = R.drawable.no_profile_icon),
+                contentDescription = "Sin icono",
+                modifier = modifier,
+                contentScale = ContentScale.Crop
+            )
+        } else {
+            Image(
+                painter = rememberAsyncImagePainter(userProfilePic),
+                contentDescription = "Foto de perfil",
+                modifier = modifier,
+                contentScale = ContentScale.Crop
+            )
+        }
+    }
+}
+
+@Composable
+fun FavoriteItemCard(
+    item: Peliculas,
+    isSerie: Boolean,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        elevation = CardDefaults.cardElevation(4.dp)
+    ) {
+        Column {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(160.dp)
+            ) {
+                Image(
+                    painter = rememberAsyncImagePainter("https://image.tmdb.org/t/p/w500${item.poster_path}"),
+                    contentDescription = "Imagen",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(if (isSerie) Color(0xFF4DB6AC) else Color(0xFF42A5F5))
+                    .padding(4.dp)
+            ) {
+                Text(
+                    text = item.titulo,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = Color.White
+                    ),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun FavouritesSection(
+    title: String,
+    items: List<Peliculas>,
+    noFavoritesMessage: String,
+    onItemClick: (Peliculas) -> Unit,
+    onViewMore: () -> Unit,
+    isSerie: Boolean
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodyLarge,
+            color = Color.White,
+            modifier = Modifier.align(Alignment.Start) // Alineado a la izquierda
+        )
+        Spacer(modifier = Modifier.height(15.dp))
+        if (items.isNotEmpty()) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                items.take(3).forEach { item ->
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.width(120.dp)
+                    ) {
+                        FavoriteItemCard(item, isSerie) { onItemClick(item) }
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(20.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                Text(
+                    text = "View More",
+                    style = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
+                    modifier = Modifier.clickable { onViewMore() }
+                )
+            }
+        } else {
+            Text(
+                text = noFavoritesMessage,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Gray
+            )
+        }
+        Spacer(modifier = Modifier.height(40.dp))
+    }
+}
+
 // Pantalla que muestra el perfil del usuario
 @Composable
 fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean) {
@@ -85,7 +217,6 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
     var favoriteMoviesOffline by remember { mutableStateOf<List<Peliculas>>(emptyList()) }
     var favoriteSeriesOffline by remember { mutableStateOf<List<Peliculas>>(emptyList()) }
 
-    // BackHandler para manejar el retroceso
     BackHandler {
         if (!isComment) {
             activity?.finish()
@@ -117,8 +248,6 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                             usuario?.let { usuarioData ->
                                 userName = usuarioData.nombre ?: "Usuario desconocido"
                                 userProfilePic = usuarioData.fotoPerfil ?: ""
-
-                                // Actualizamos los valores de las listas y comentarios
                                 followingCount = usuarioData.siguiendo.size ?: 0
                                 followersCount = usuarioData.seguidores.size ?: 0
                                 commentsCount = usuarioData.numComentarios ?: 0
@@ -136,17 +265,13 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
         }
 
         LaunchedEffect(key1 = uid) {
-            // Para obtener las películas favoritas
             usersViewModel.getFavoriteMovies(uid, onSuccess = { peliculasFavoritas ->
-                // Asignamos la lista de películas favoritas directamente
                 favoriteMovies = peliculasFavoritas
             }, onFailure = { exception ->
                 Toast.makeText(context, "Error: ${exception.message}", Toast.LENGTH_SHORT).show()
             })
 
-            // Para obtener las series favoritas
             usersViewModel.getFavoriteSeries(uid, onSuccess = { seriesFavoritas ->
-                // Asignamos la lista de series favoritas directamente
                 favoriteSeries = seriesFavoritas
             }, onFailure = { exception ->
                 Toast.makeText(context, "Error: ${exception.message}", Toast.LENGTH_SHORT).show()
@@ -159,7 +284,6 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
         favoriteMoviesOffline = usersViewModel.favouriteMovies.value
         favoriteSeriesOffline = usersViewModel.favouriteSeries.value
 
-        // Scaffold para envolver el contenido y añadir el BottomNavigationBar
         Scaffold(
             bottomBar = {
                 if (!isComment) {
@@ -188,61 +312,30 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                     if (isComment) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Start // Alinea el contenido a la izquierda
+                            horizontalArrangement = Arrangement.Start
                         ) {
                             IconButton(
                                 onClick = {
-                                    navController.popBackStack()// Esto permite volver atrás en la navegación
+                                    navController.popBackStack()
                                 },
-                                modifier = Modifier
-                                    .size(48.dp) // Tamaño total del botón (círculo)
+                                modifier = Modifier.size(48.dp)
                             ) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                     contentDescription = "Volver atrás",
-                                    tint = Color.White // Color del ícono
+                                    tint = Color.White
                                 )
                             }
                         }
                     }
 
-                    Box(
-                        modifier = Modifier
-                            .padding(top = 24.dp)
-                            .size(150.dp)  // Tamaño del contenedor circular
-                            .background(Color.White, shape = CircleShape)
-                            .border(2.dp, Color.Black, shape = CircleShape)
-                    ) {
-                        if (userProfilePic.isEmpty()) {
-                            Image(
-                                painter = painterResource(id = R.drawable.no_profile_icon),
-                                contentDescription = "Sin icono",
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .align(Alignment.Center)
-                                    .clip(CircleShape)
-                                    .border(5.dp, Color.White, CircleShape), // Borde blanco de 2dp
-                                contentScale = ContentScale.Crop
-                            )
-                        } else {
-                            Image(
-                                painter = rememberAsyncImagePainter(userProfilePic),
-                                contentDescription = "Foto de perfil",
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .align(Alignment.Center)
-                                    .clip(CircleShape)
-                                    .border(5.dp, Color.White, CircleShape), // Borde blanco de 2dp
-                                contentScale = ContentScale.Crop
-                            )
-                        }
-                    }
+                    UserAvatar(userProfilePic)
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = userName,
                         style = MaterialTheme.typography.bodyLarge.copy(
-                            fontWeight = FontWeight.Bold,  // Pone el texto en negrita
-                            fontSize = 20.sp  // Ajusta el tamaño del texto a 20sp (puedes ajustarlo según lo necesites)
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
                         ),
                         color = Color.White
                     )
@@ -270,16 +363,12 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                             .padding(horizontal = 16.dp),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        // Columna "Following"
                         Column(
                             modifier = if (uid == currentUid || isFollowing.value) {
                                 Modifier.clickable {
-                                    // Al pulsar en "Following", se navega con "true"
                                     navController.navigate("users_list/$uid/true")
                                 }
-                            } else {
-                                Modifier
-                            },
+                            } else Modifier,
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
                             Text(text = "Following", color = Color.White)
@@ -290,17 +379,12 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                                 color = Color.White
                             )
                         }
-
-                        // Columna "Followers"
                         Column(
                             modifier = if (uid == currentUid || isFollowing.value) {
                                 Modifier.clickable {
-                                    // Al pulsar en "Followers", se navega con "false"
                                     navController.navigate("users_list/$uid/false")
                                 }
-                            } else {
-                                Modifier
-                            },
+                            } else Modifier,
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
                             Text(text = "Followers", color = Color.White)
@@ -311,8 +395,6 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                                 color = Color.White
                             )
                         }
-
-                        // Columna "Comments"
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
@@ -331,20 +413,16 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                             onClick = {
                                 if (hayConexion) {
                                     if (isFollowing.value) {
-                                        // Si ya sigue al usuario, dejar se seguir
                                         usersViewModel.unfollowUser(currentUid, uid,
                                             onSuccess = {
-                                                // Acción cuando se deja de seguir exitosamente
                                                 Toast.makeText(
                                                     context,
                                                     "You have unfollowed this user",
                                                     Toast.LENGTH_SHORT
                                                 ).show()
-                                                isFollowing.value =
-                                                    false // Cambia el estado a "no siguiendo"
+                                                isFollowing.value = false
                                             },
                                             onFailure = { exception ->
-                                                // Acción cuando ocurre un error
                                                 Toast.makeText(
                                                     context,
                                                     "Error: ${exception.message}",
@@ -353,20 +431,16 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                                             }
                                         )
                                     } else {
-                                        // Si no sigue al usuario, hacer "seguir"
                                         usersViewModel.followUser(currentUid, uid,
                                             onSuccess = {
-                                                // Acción cuando se sigue exitosamente al usuario
                                                 Toast.makeText(
                                                     context,
                                                     "You are now following this user!",
                                                     Toast.LENGTH_SHORT
                                                 ).show()
-                                                isFollowing.value =
-                                                    true // Cambia el estado a "siguiendo"
+                                                isFollowing.value = true
                                             },
                                             onFailure = { exception ->
-                                                // Acción cuando ocurre un error
                                                 Toast.makeText(
                                                     context,
                                                     "Error: ${exception.message}",
@@ -384,7 +458,7 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                                 }
                             },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isFollowing.value) Color(0xFF87CEEB) else Color.Blue // Azul claro si ya sigues al usuario, azul actual si no
+                                containerColor = if (isFollowing.value) Color(0xFF87CEEB) else Color.Blue
                             )
                         ) {
                             Text(
@@ -395,264 +469,72 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                     }
                     Spacer(modifier = Modifier.height(25.dp))
 
-                    Column(modifier = Modifier.fillMaxWidth()) {
+                    // SECTION: Favourite Movies
+                    FavouritesSection(
+                        title = "Favourite Movies",
+                        items = if (hayConexion) favoriteMovies else favoriteMoviesOffline,
+                        noFavoritesMessage = if (uid == currentUid) "This user has no favorite movies" else "This user has no favorite TV shows",
+                        onItemClick = { movie -> navController.navigate("detalles/${movie.id}/false") { launchSingleTop = true } },
+                        onViewMore = { navController.navigate("favourite_movies/$uid/false") { popUpTo("favourite_movies") { inclusive = true }; launchSingleTop = true } },
+                        isSerie = false
+                    )
+
+                    // SECTION: Favourite TV Shows
+                    FavouritesSection(
+                        title = "Favourite TV shows",
+                        items = if (hayConexion) favoriteSeries else favoriteSeriesOffline,
+                        noFavoritesMessage = if (uid == currentUid) "You don't have favourite movies." else "He has no favourite movies",
+                        onItemClick = { series -> navController.navigate("detalles/${series.id}/true") { launchSingleTop = true } },
+                        onViewMore = { navController.navigate("favourite_movies/$uid/true") { popUpTo("favourite_movies") { inclusive = true }; launchSingleTop = true } },
+                        isSerie = true
+                    )
+
+                    if (currentUser == null) {
                         Text(
-                            text = "Favourite Movies",
+                            text = "You must log in to access this section.",
                             style = MaterialTheme.typography.bodyLarge,
-                            color = Color.White
+                            color = Color.Red
                         )
-                        Spacer(modifier = Modifier.height(15.dp))
-                        val moviesToShow =
-                            if (hayConexion) favoriteMovies else favoriteMoviesOffline
-                        val moviesNotEmpty = moviesToShow.isNotEmpty()
-                        val noFavoritesMessageMovies =
-                            if (uid == currentUid) "This user has no favorite movies" else "This user has no favorite TV shows"
-
-                        Column(modifier = Modifier.fillMaxWidth()) {
-                            if (moviesNotEmpty) {
-                                Row(
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    // Limitar a las 3 primeras películas
-                                    moviesToShow.take(3).forEach { movie ->
-                                        Column(
-                                            horizontalAlignment = Alignment.CenterHorizontally,
-                                            modifier = Modifier.width(120.dp)
-                                        ) {
-                                            Card(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .clickable {
-                                                        navController.navigate("detalles/${movie.id}/false") {
-                                                            launchSingleTop = true
-                                                        }
-                                                    },
-                                                elevation = CardDefaults.cardElevation(4.dp)
-                                            ) {
-                                                Column {
-                                                    Box(
-                                                        modifier = Modifier
-                                                            .fillMaxWidth()
-                                                            .height(160.dp)
-                                                    ) {
-                                                        Image(
-                                                            painter = rememberAsyncImagePainter("https://image.tmdb.org/t/p/w500${movie.poster_path}"),
-                                                            contentDescription = "Imagen de la película",
-                                                            modifier = Modifier.fillMaxSize(),
-                                                            contentScale = ContentScale.Crop
-                                                        )
-                                                    }
-                                                    Box(
-                                                        modifier = Modifier
-                                                            .fillMaxWidth()
-                                                            .background(
-                                                                if (movie.esSerie) Color(
-                                                                    0xFF4DB6AC
-                                                                ) else Color(0xFF42A5F5)
-                                                            )
-                                                            .padding(4.dp)
-                                                    ) {
-                                                        Text(
-                                                            text = movie.titulo,
-                                                            style = MaterialTheme.typography.bodyMedium.copy(
-                                                                color = Color.White
-                                                            ),
-                                                            maxLines = 1,
-                                                            overflow = TextOverflow.Ellipsis,
-                                                            modifier = Modifier.padding(horizontal = 8.dp)
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        }
+                    } else {
+                        if (!isComment) {
+                            var errorMessage by remember { mutableStateOf("") }
+                            Button(
+                                onClick = {
+                                    try {
+                                        auth.signOut()
+                                        usersViewModel.saveSession(
+                                            context,
+                                            false,
+                                            uid
+                                        )
+                                        Toast.makeText(
+                                            context,
+                                            "Session closed",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        navController.navigate("login")
+                                    } catch (e: Exception) {
+                                        errorMessage = "Error: ${e.message}"
                                     }
-                                }
-                            } else {
-                                Text(
-                                    text = noFavoritesMessageMovies,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = Color.Gray
-                                )
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(20.dp))
-
-                        if (moviesNotEmpty) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.End
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
                             ) {
                                 Text(
-                                    text = "View More",
-                                    style = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
-                                    modifier = Modifier.clickable {
-                                        navController.navigate("favourite_movies/$uid/false") {
-                                            popUpTo("favourite_movies") { inclusive = true }
-                                            launchSingleTop = true
-                                        }
-                                    }
+                                    text = "Log out",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = Color.White
                                 )
                             }
-                        }
-                        Spacer(modifier = Modifier.height(40.dp))
-                        Text(
-                            text = "Favourite TV shows",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = Color.White
-                        )
-                        Spacer(modifier = Modifier.height(15.dp))
-                        val seriesToShow =
-                            if (hayConexion) favoriteSeries else favoriteSeriesOffline
-                        val seriesNotEmpty = seriesToShow.isNotEmpty()
-                        val noFavoritesMessageSeries =
-                            if (uid == currentUid) "You don't have favourite movies." else "He has no favourite movies"
-
-                        Column(modifier = Modifier.fillMaxWidth()) {
-                            if (seriesNotEmpty) {
-                                Row(
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    seriesToShow.take(3).forEach { series ->
-                                        Column(
-                                            horizontalAlignment = Alignment.CenterHorizontally,
-                                            modifier = Modifier.width(120.dp)
-                                        ) {
-                                            Card(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .clickable {
-                                                        navController.navigate("detalles/${series.id}/true") {
-                                                            launchSingleTop = true
-                                                        }
-                                                    },
-                                                elevation = CardDefaults.cardElevation(4.dp)
-                                            ) {
-                                                Column {
-                                                    Box(
-                                                        modifier = Modifier
-                                                            .fillMaxWidth()
-                                                            .height(160.dp)
-                                                    ) {
-                                                        Image(
-                                                            painter = rememberAsyncImagePainter("https://image.tmdb.org/t/p/w500${series.poster_path}"),
-                                                            contentDescription = "Imagen de la serie",
-                                                            modifier = Modifier.fillMaxSize(),
-                                                            contentScale = ContentScale.Crop
-                                                        )
-                                                    }
-                                                    Box(
-                                                        modifier = Modifier
-                                                            .fillMaxWidth()
-                                                            .background(Color(0xFF4DB6AC)) // Color para las series
-                                                            .padding(4.dp)
-                                                    ) {
-                                                        Text(
-                                                            text = series.titulo,
-                                                            style = MaterialTheme.typography.bodyMedium.copy(
-                                                                color = Color.White
-                                                            ),
-                                                            maxLines = 1,
-                                                            overflow = TextOverflow.Ellipsis,
-                                                            modifier = Modifier.padding(horizontal = 8.dp)
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            } else {
+                            if (errorMessage.isNotEmpty()) {
                                 Text(
-                                    text = noFavoritesMessageSeries,
+                                    text = errorMessage,
+                                    color = Color.Red,
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = Color.Gray
+                                    modifier = Modifier.padding(16.dp)
                                 )
-                            }
-
-                            Spacer(modifier = Modifier.height(20.dp))
-
-                            if (moviesNotEmpty) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.End
-                                ) {
-                                    Text(
-                                        text = "View More",
-                                        style = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
-                                        modifier = Modifier.clickable {
-                                            navController.navigate("favourite_movies/$uid/true") {
-                                                popUpTo("favourite_movies") { inclusive = true }
-                                                launchSingleTop = true
-                                            }
-                                        }
-                                    )
-                                }
-                            }
-                        }
-
-
-                        Spacer(modifier = Modifier.height(40.dp))
-                        if (currentUser == null) {
-                            Text(
-                                text = "You must log in to access this section.",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = Color.Red
-                            )
-                        } else {
-                            if (!isComment) {
-                                var errorMessage by remember { mutableStateOf("") }
-
-                                Button(
-                                    onClick = {
-                                        try {
-                                            // Cerrar sesión de Firebase
-                                            auth.signOut()
-
-                                            // Eliminar la sesión guardada en SharedPreferences
-                                            usersViewModel.saveSession(
-                                                context,
-                                                false,
-                                                uid
-                                            )  // false indica que el usuario ya no está logueado
-
-                                            // Mostrar un mensaje de sesión cerrada
-                                            Toast.makeText(
-                                                context,
-                                                "Session closed",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-
-                                            // Navegar a la pantalla de login
-                                            navController.navigate("login")
-                                        } catch (e: Exception) {
-                                            // Si ocurre un error, asignar el mensaje de error
-                                            errorMessage = "Error: ${e.message}"
-                                        }
-                                    },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp),
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
-                                ) {
-                                    Text(
-                                        text = "Log out",
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        color = Color.White
-                                    )
-                                }
-
-                                // Si hay un mensaje de error, mostrarlo
-                                if (errorMessage.isNotEmpty()) {
-                                    Text(
-                                        text = errorMessage,
-                                        color = Color.Red, // Color rojo para el mensaje de error
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        modifier = Modifier.padding(16.dp)
-                                    )
-                                }
                             }
                         }
                     }
