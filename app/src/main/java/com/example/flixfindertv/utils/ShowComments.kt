@@ -616,7 +616,7 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                                                     .border(2.dp, Color.Black, CircleShape)
                                                     .background(Color.White)
                                                     .clickable {
-                                                        usersViewModel.fetchUserId(comentario.usuario)
+                                                        usersViewModel.fetchUserId(res.usuario)
                                                         usersViewModel.userIdComment.observeForever { userId ->
                                                             if (userId != "ID_DESCONOCIDO") {
                                                                 navController.navigate("profile/$userId/$comment") {

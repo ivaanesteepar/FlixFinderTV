@@ -21,8 +21,11 @@ import com.example.flixfindertv.utils.ImgurUploader
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -51,6 +54,33 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
 
     var errorMessage by mutableStateOf<String?>(null)
         private set
+
+    private val _usuarioState = MutableStateFlow<Usuarios?>(null)
+    val usuarioState: StateFlow<Usuarios?> = _usuarioState
+
+    private var listenerRegistration: ListenerRegistration? = null
+
+    fun startListening(uid: String) {
+        listenerRegistration?.remove() // Quitar listener anterior si existía
+
+        listenerRegistration = firestore.collection("usuarios")
+            .document(uid)
+            .addSnapshotListener { documentSnapshot, exception ->
+                if (exception != null) {
+                    // Aquí podrías exponer un estado de error si quieres
+                    return@addSnapshotListener
+                }
+                if (documentSnapshot != null && documentSnapshot.exists()) {
+                    val usuario = documentSnapshot.toObject(Usuarios::class.java)
+                    _usuarioState.value = usuario
+                }
+            }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        listenerRegistration?.remove()
+    }
 
     fun actualizarPerfil(
         uid: String,
@@ -523,6 +553,7 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun fetchUserId(nombreUsuario: String) {
+        println("el nombre del usuario del comentario es: $nombreUsuario")
         val db = FirebaseFirestore.getInstance()
         db.collection("usuarios")
             .whereEqualTo("nombre", nombreUsuario)

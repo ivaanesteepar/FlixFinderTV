@@ -7,7 +7,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.example.flixfindertv.models.Usuarios
 import androidx.compose.material3.Text
 import androidx.compose.foundation.Image
 import androidx.compose.ui.layout.ContentScale
@@ -61,6 +60,7 @@ import com.example.flixfindertv.models.Peliculas
 import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 import com.example.flixfindertv.utils.BottomNavigationBar
+
 
 @Composable
 fun UserAvatar(userProfilePic: String) {
@@ -198,7 +198,6 @@ fun FavouritesSection(
 @Composable
 fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean) {
     val auth = FirebaseAuth.getInstance()
-    val firestore = FirebaseFirestore.getInstance()
     val usersViewModel: UsersViewModel = viewModel()
     val conexionViewModel: ConexionViewModel = viewModel()
     val hayConexion by conexionViewModel.conexionEstablecida.collectAsState()
@@ -217,6 +216,11 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
     var favoriteMoviesOffline by remember { mutableStateOf<List<Peliculas>>(emptyList()) }
     var favoriteSeriesOffline by remember { mutableStateOf<List<Peliculas>>(emptyList()) }
 
+    val usuario by usersViewModel.usuarioState.collectAsState()
+
+    println("Profile: userId: $uid")
+    println("Profile: isComment: $isComment")
+
     BackHandler {
         if (!isComment) {
             activity?.finish()
@@ -228,37 +232,18 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
     if (currentUser != null) {
         val currentUid = currentUser.uid
 
-        // Recuperar los datos del usuario desde Firestore
-        LaunchedEffect(uid) {
-            firestore.collection("usuarios")
-                .document(uid)
-                .addSnapshotListener { documentSnapshot, exception ->
-                    if (exception != null) {
-                        Toast.makeText(
-                            context,
-                            "Error retrieving data: ${exception.message}",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        return@addSnapshotListener
-                    }
-
-                    documentSnapshot?.let { document ->
-                        if (document.exists()) {
-                            val usuario = document.toObject(Usuarios::class.java)
-                            usuario?.let { usuarioData ->
-                                userName = usuarioData.nombre ?: "Usuario desconocido"
-                                userProfilePic = usuarioData.fotoPerfil ?: ""
-                                followingCount = usuarioData.siguiendo.size ?: 0
-                                followersCount = usuarioData.seguidores.size ?: 0
-                                commentsCount = usuarioData.numComentarios ?: 0
-                            }
-                        }
-                    }
-                }
+        LaunchedEffect(usuario) {
+            usuario?.let { user ->
+                userName = user.nombre
+                userProfilePic = user.fotoPerfil ?: ""
+                followingCount = user.siguiendo.size
+                followersCount = user.seguidores.size
+                commentsCount = user.numComentarios
+            }
         }
 
-        // Llamada inicial para verificar si el usuario ya sigue al otro
         LaunchedEffect(uid) {
+            usersViewModel.startListening(uid)
             usersViewModel.checkIfFollowing(currentUid, uid) { following ->
                 isFollowing.value = following
             }
