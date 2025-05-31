@@ -5,7 +5,9 @@ import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -15,6 +17,7 @@ import com.example.flixfindertv.models.Usuarios
 import com.example.flixfindertv.room.database.AppDatabase
 import com.example.flixfindertv.room.entities.FavoritoEntity
 import com.example.flixfindertv.room.repository.MovieRepository
+import com.example.flixfindertv.utils.ImgurUploader
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -46,8 +49,122 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
     val favouriteMovies = mutableStateOf<List<Peliculas>>(emptyList())
     val favouriteSeries = mutableStateOf<List<Peliculas>>(emptyList())
 
+    var errorMessage by mutableStateOf<String?>(null)
+        private set
 
-    fun changePassword(
+    fun actualizarPerfil(
+        uid: String,
+        userName: String,
+        passwordActual: String,
+        passwordNueva: String,
+        profileImageUri: String?,
+        deleteImageInUI: Boolean,
+        hayConexion: Boolean,
+        context: Context,
+        onSuccess: () -> Unit,
+        onFailure: (String) -> Unit
+    ) {
+        // Validaciones locales
+        if (passwordActual.isNotEmpty() && passwordNueva.isEmpty()) {
+            errorMessage = "You must enter the new password"
+            return
+        } else {
+            errorMessage = null
+        }
+
+        if (passwordActual.isNotEmpty() && passwordNueva.isNotEmpty() && passwordActual == passwordNueva) {
+            errorMessage = "The new password cannot be the same as the current password"
+            return
+        }
+
+        if (!hayConexion) {
+            Toast.makeText(context, "You need an internet connection to update your profile", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // Comprobar nombre de usuario disponible (excluyendo el usuario actual)
+        firestore.collection("usuarios")
+            .whereEqualTo("nombre", userName)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                val nombreYaUsado = querySnapshot.documents.any { it.id != uid }
+                if (nombreYaUsado) {
+                    errorMessage = "That username is already taken"
+                } else {
+                    errorMessage = null
+                    val userUpdates = mutableMapOf<String, Any?>("nombre" to userName)
+
+                    fun actualizarFirestoreYTerminar() {
+                        firestore.collection("usuarios").document(uid)
+                            .update(userUpdates)
+                            .addOnSuccessListener {
+                                if (passwordActual.isNotEmpty()) {
+                                    changePassword(passwordActual, passwordNueva) { success, mensaje ->
+                                        if (success) {
+                                            errorMessage = null
+                                            Toast.makeText(context, "Profile updated and password changed", Toast.LENGTH_SHORT).show()
+                                            onSuccess()
+                                        } else {
+                                            errorMessage = mensaje
+                                            onFailure(mensaje)
+                                        }
+                                    }
+                                } else {
+                                    Toast.makeText(context, "Profile updated", Toast.LENGTH_SHORT).show()
+                                    onSuccess()
+                                }
+                            }
+                            .addOnFailureListener {
+                                Toast.makeText(context, "Error updating profile", Toast.LENGTH_SHORT).show()
+                                onFailure("Error updating profile")
+                            }
+                    }
+
+                    if (deleteImageInUI) {
+                        userUpdates["fotoPerfil"] = null
+                        actualizarFirestoreYTerminar()
+                    } else if (!profileImageUri.isNullOrEmpty()) {
+                        val imageUri = profileImageUri
+                        val isRemoteUrl = imageUri?.startsWith("http")
+
+                        if (!isRemoteUrl!!) {
+                            try {
+                                val inputStream = context.contentResolver.openInputStream(android.net.Uri.parse(imageUri))
+                                val imageBytes = inputStream?.readBytes()
+
+                                if (imageBytes != null) {
+                                    ImgurUploader.uploadImage(imageBytes) { imageUrl ->
+                                        if (imageUrl != null) {
+                                            userUpdates["fotoPerfil"] = imageUrl
+                                            actualizarFirestoreYTerminar()
+                                        } else {
+                                            Toast.makeText(context, "Error uploading the image", Toast.LENGTH_SHORT).show()
+                                            onFailure("Error uploading the image")
+                                        }
+                                    }
+                                    return@addOnSuccessListener
+                                }
+                            } catch (e: Exception) {
+                                Toast.makeText(context, "Error processing the image", Toast.LENGTH_SHORT).show()
+                                onFailure("Error processing the image")
+                            }
+                        } else {
+                            userUpdates["fotoPerfil"] = imageUri
+                            actualizarFirestoreYTerminar()
+                        }
+                    } else {
+                        actualizarFirestoreYTerminar()
+                    }
+                }
+            }
+            .addOnFailureListener {
+                Toast.makeText(context, "Error checking username availability", Toast.LENGTH_SHORT).show()
+                onFailure("Error checking username availability")
+            }
+    }
+
+
+    private fun changePassword(
         passwordActual: String,
         passwordNueva: String,
         callback: (success: Boolean, mensaje: String) -> Unit
