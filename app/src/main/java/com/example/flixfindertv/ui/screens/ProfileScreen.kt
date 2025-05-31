@@ -218,9 +218,6 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
 
     val usuario by usersViewModel.usuarioState.collectAsState()
 
-    println("Profile: userId: $uid")
-    println("Profile: isComment: $isComment")
-
     BackHandler {
         if (!isComment) {
             activity?.finish()

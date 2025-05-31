@@ -553,7 +553,6 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun fetchUserId(nombreUsuario: String) {
-        println("el nombre del usuario del comentario es: $nombreUsuario")
         val db = FirebaseFirestore.getInstance()
         db.collection("usuarios")
             .whereEqualTo("nombre", nombreUsuario)
