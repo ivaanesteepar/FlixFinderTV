@@ -316,15 +316,14 @@ fun EditProfileScreen(navController: NavHostController) {
 
                 Button(
                     onClick = {
-                        // Validación: si passwordActual no está vacío pero passwordNueva sí, error
+                        // Validación previa de passwords (igual que ya tienes)
                         if (passwordActual.isNotEmpty() && passwordNueva.isEmpty()) {
                             errorMessage = "You must enter the new password"
                             return@Button
                         } else {
-                            errorMessage = null // limpiar error si ya no hay problema
+                            errorMessage = null
                         }
 
-                        // Validación: si ambas contraseñas coinciden, error
                         if (passwordActual.isNotEmpty() && passwordNueva.isNotEmpty() && passwordActual == passwordNueva) {
                             errorMessage = "The new password cannot be the same as the current password"
                             return@Button
@@ -337,65 +336,83 @@ fun EditProfileScreen(navController: NavHostController) {
 
                         currentUser?.uid?.let { uid ->
 
-                            val userUpdates = mutableMapOf<String, Any?>("nombre" to userName)
+                            // Primero, comprobar si el nombre ya existe en la base de datos
+                            firestore.collection("usuarios")
+                                .whereEqualTo("nombre", userName)
+                                .get()
+                                .addOnSuccessListener { querySnapshot ->
+                                    // Filtrar resultados excluyendo al usuario actual (por si quiere mantener su mismo nombre)
+                                    val nombreYaUsado = querySnapshot.documents.any { it.id != uid }
 
-                            fun actualizarFirestoreYPopBack() {
-                                firestore.collection("usuarios").document(uid)
-                                    .update(userUpdates)
-                                    .addOnSuccessListener {
-                                        if (passwordActual.isNotEmpty()) {
-                                            usersViewModel.changePassword(passwordActual, passwordNueva) { success, mensaje ->
-                                                if (success) {
-                                                    errorMessage = null
-                                                    Toast.makeText(context, "Profile updated and password changed", Toast.LENGTH_SHORT).show()
-                                                    navController.popBackStack()
-                                                } else {
-                                                    errorMessage = mensaje
+                                    if (nombreYaUsado) {
+                                        errorMessage = "That username is already taken"
+                                    } else {
+                                        errorMessage = null
+
+                                        val userUpdates = mutableMapOf<String, Any?>("nombre" to userName)
+
+                                        fun actualizarFirestoreYPopBack() {
+                                            firestore.collection("usuarios").document(uid)
+                                                .update(userUpdates)
+                                                .addOnSuccessListener {
+                                                    if (passwordActual.isNotEmpty()) {
+                                                        usersViewModel.changePassword(passwordActual, passwordNueva) { success, mensaje ->
+                                                            if (success) {
+                                                                errorMessage = null
+                                                                Toast.makeText(context, "Profile updated and password changed", Toast.LENGTH_SHORT).show()
+                                                                navController.popBackStack()
+                                                            } else {
+                                                                errorMessage = mensaje
+                                                            }
+                                                        }
+                                                    } else {
+                                                        Toast.makeText(context, "Profile updated", Toast.LENGTH_SHORT).show()
+                                                        navController.popBackStack()
+                                                    }
                                                 }
+                                                .addOnFailureListener {
+                                                    Toast.makeText(context, "Error updating profile", Toast.LENGTH_SHORT).show()
+                                                }
+                                        }
+
+                                        if (deleteImageInUI) {
+                                            userUpdates["fotoPerfil"] = null
+                                            actualizarFirestoreYPopBack()
+                                        } else if (!profileImageUri.isNullOrEmpty()) {
+                                            val imageUri = profileImageUri
+                                            val isRemoteUrl = imageUri?.startsWith("http")
+
+                                            if (!isRemoteUrl!!) {
+                                                try {
+                                                    val inputStream = context.contentResolver.openInputStream(android.net.Uri.parse(imageUri))
+                                                    val imageBytes = inputStream?.readBytes()
+
+                                                    if (imageBytes != null) {
+                                                        ImgurUploader.uploadImage(imageBytes) { imageUrl ->
+                                                            if (imageUrl != null) {
+                                                                userUpdates["fotoPerfil"] = imageUrl
+                                                                actualizarFirestoreYPopBack()
+                                                            } else {
+                                                                Toast.makeText(context, "Error uploading the image", Toast.LENGTH_SHORT).show()
+                                                            }
+                                                        }
+                                                        return@addOnSuccessListener
+                                                    }
+                                                } catch (e: Exception) {
+                                                    Toast.makeText(context, "Error processing the image", Toast.LENGTH_SHORT).show()
+                                                }
+                                            } else {
+                                                userUpdates["fotoPerfil"] = imageUri
+                                                actualizarFirestoreYPopBack()
                                             }
                                         } else {
-                                            Toast.makeText(context, "Profile updated", Toast.LENGTH_SHORT).show()
-                                            navController.popBackStack()
+                                            actualizarFirestoreYPopBack()
                                         }
                                     }
-                                    .addOnFailureListener {
-                                        Toast.makeText(context, "Error updating profile", Toast.LENGTH_SHORT).show()
-                                    }
-                            }
-
-                            if (deleteImageInUI) {
-                                userUpdates["fotoPerfil"] = null
-                                actualizarFirestoreYPopBack()
-                            } else if (!profileImageUri.isNullOrEmpty()) {
-                                val imageUri = profileImageUri
-                                val isRemoteUrl = imageUri?.startsWith("http")
-
-                                if (!isRemoteUrl!!) {
-                                    try {
-                                        val inputStream = context.contentResolver.openInputStream(android.net.Uri.parse(imageUri))
-                                        val imageBytes = inputStream?.readBytes()
-
-                                        if (imageBytes != null) {
-                                            ImgurUploader.uploadImage(imageBytes) { imageUrl ->
-                                                if (imageUrl != null) {
-                                                    userUpdates["fotoPerfil"] = imageUrl
-                                                    actualizarFirestoreYPopBack()
-                                                } else {
-                                                    Toast.makeText(context, "Error uploading the image", Toast.LENGTH_SHORT).show()
-                                                }
-                                            }
-                                            return@Button // upload async
-                                        }
-                                    } catch (e: Exception) {
-                                        Toast.makeText(context, "Error processing the image", Toast.LENGTH_SHORT).show()
-                                    }
-                                } else {
-                                    userUpdates["fotoPerfil"] = imageUri
-                                    actualizarFirestoreYPopBack()
                                 }
-                            } else {
-                                actualizarFirestoreYPopBack()
-                            }
+                                .addOnFailureListener {
+                                    Toast.makeText(context, "Error checking username availability", Toast.LENGTH_SHORT).show()
+                                }
                         }
                     },
                     modifier = Modifier.fillMaxWidth()

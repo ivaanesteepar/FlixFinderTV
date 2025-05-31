@@ -245,7 +245,6 @@ class CommentsViewModel : ViewModel() {
                 emptyList()  // Si el comentario no existe, retornamos una lista vacía
             }
         } catch (e: Exception) {
-            // Manejo de excepciones en caso de que ocurra un error
             e.printStackTrace()
             emptyList()  // Si hay un error, retornamos una lista vacía
         }
