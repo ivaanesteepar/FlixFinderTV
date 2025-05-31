@@ -37,7 +37,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import com.example.flixfindertv.R
-import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.ui.viewmodels.MoviesViewModel
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -71,7 +70,7 @@ fun MovieDetailsContent(
         voteAverage < 5.0 -> Color(0xFFFF6F61) // Rojo
         voteAverage <= 7.5 -> Color(0xFF00B0FF) // Azul
         voteAverage <= 10.0 -> Color(0xFF2ECC71) // Verde
-        else -> Color(0xFF2ECC71) // Verde también para valores superiores a 10
+        else -> Color(0xFF2ECC71)
     }
 
     LaunchedEffect(movieId) {

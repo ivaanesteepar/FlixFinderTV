@@ -482,6 +482,14 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                             var errorMessage by remember { mutableStateOf("") }
                             Button(
                                 onClick = {
+                                    if (!hayConexion) {
+                                        Toast.makeText(
+                                            context,
+                                            "No internet connection. Cannot log out",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        return@Button
+                                    }
                                     try {
                                         auth.signOut()
                                         usersViewModel.saveSession(

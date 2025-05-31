@@ -75,7 +75,7 @@ fun RegisterScreen(navController: NavController) {
                         isLoading = isLoading,
                         onRegisterClick = {
                             if (!hayConexion) {
-                                Toast.makeText(context, "You need an internet connection to log in", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "You need an internet connection to register", Toast.LENGTH_SHORT).show()
                             } else {
                                 isLoading = true
                                 usersViewModel.register(
