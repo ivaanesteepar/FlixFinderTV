@@ -59,6 +59,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
     val context = LocalContext.current
     val activity = context as? Activity
     var listasGuardadas by rememberSaveable { mutableStateOf(false) }
+    var previousUid by rememberSaveable { mutableStateOf<String?>(null) }
 
     var expanded by remember { mutableStateOf(false) }
     var selectedTab by rememberSaveable { mutableStateOf("Movies") }
@@ -169,6 +170,18 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
     // BackHandler para manejar el retroceso
     BackHandler {
         activity?.finish()
+    }
+
+    // Comprobar si uid ha cambiado
+    LaunchedEffect(uid) {
+        if (previousUid != uid) {
+            selectedGenreId = null
+            searchQuery = ""
+            selectedGenre = null
+            filterMovie = false
+            filterSerie = false
+            previousUid = uid
+        }
     }
 
     LaunchedEffect(searchQuery) {

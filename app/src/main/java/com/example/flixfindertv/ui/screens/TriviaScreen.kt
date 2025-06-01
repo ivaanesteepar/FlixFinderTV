@@ -46,6 +46,7 @@ fun TriviaScreen(navController: NavHostController) {
     var result by rememberSaveable { mutableStateOf("") }
     val uiState by triviaViewModel.uiState.collectAsState()
     val uid = FirebaseAuth.getInstance().currentUser?.uid
+    var previousUid by rememberSaveable { mutableStateOf<String?>(null) }
 
     val conexionViewModel: ConexionViewModel = viewModel()
     val hayConexion by conexionViewModel.conexionEstablecida.collectAsState()
@@ -59,6 +60,15 @@ fun TriviaScreen(navController: NavHostController) {
 
     LaunchedEffect(true) {
         triviaViewModel.registerLanguageObserver(context as LifecycleOwner)
+    }
+
+    // Comprobar si uid ha cambiado
+    LaunchedEffect(uid) {
+        if (previousUid != uid) {
+            // Si cambia el uid (puede ser null o distinto), mostrar bienvenida
+            showWelcomeScreen = true
+            previousUid = uid
+        }
     }
 
     // BackHandler para manejar el retroceso
