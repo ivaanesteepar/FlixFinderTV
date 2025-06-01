@@ -57,6 +57,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.flixfindertv.R
 import com.example.flixfindertv.models.Peliculas
+import com.example.flixfindertv.room.database.AppDatabase
+import com.example.flixfindertv.room.repository.MovieRepository
 import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 import com.example.flixfindertv.utils.BottomNavigationBar
@@ -217,12 +219,21 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
     var favoriteSeriesOffline by remember { mutableStateOf<List<Peliculas>>(emptyList()) }
 
     val usuario by usersViewModel.usuarioState.collectAsState()
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
+    val movieDao = AppDatabase.getDatabase(context).movieDao()
+    val repository = MovieRepository(movieDao)
 
     BackHandler {
         if (!isComment) {
             activity?.finish()
         } else {
             navController.popBackStack()
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        if (userId != null) {
+            usersViewModel.cargarFavoritasDesdeFirestore(userId = userId, repository = repository)
         }
     }
 

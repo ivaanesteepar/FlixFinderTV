@@ -64,6 +64,7 @@ class MovieRepository(private val movieDao: MovieDao) {
 
 
     // ------------------------ FAVORITOS ------------------------
+
     suspend fun getSeriesFavoritas(userId: String): List<FavoritoEntity> {
         return movieDao.getSeriesFavoritas(userId)
     }
@@ -77,6 +78,11 @@ class MovieRepository(private val movieDao: MovieDao) {
         movieDao.insertFavorito(favorito)
     }
 
+    // Insertar varias películas o series en los favoritos
+    suspend fun insertFavoritos(favoritos: List<FavoritoEntity>) {
+        movieDao.insertFavoritos(favoritos)
+    }
+
     // Eliminar una película o serie de los favoritos
     suspend fun deleteFavorito(favorito: FavoritoEntity) {
         movieDao.deleteFavorito(favorito)
@@ -86,5 +92,6 @@ class MovieRepository(private val movieDao: MovieDao) {
     suspend fun getFavoritoById(id: String): FavoritoEntity? {
         return movieDao.getFavoritoById(id)
     }
+
 
 }

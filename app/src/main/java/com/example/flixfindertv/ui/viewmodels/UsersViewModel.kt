@@ -22,6 +22,7 @@ import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
+import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -63,6 +64,97 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
     val userId = FirebaseAuth.getInstance().currentUser?.uid
 
 
+    fun cargarFavoritasDesdeFirestore(
+        userId: String,
+        repository: MovieRepository
+    ) {
+        val db = FirebaseFirestore.getInstance()
+        val userDocRef = db.collection("usuarios").document(userId)
+
+        userDocRef.get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val peliculasFavoritasList = document.get("peliculasFavoritas") as? List<Map<String, Any>>
+                    val seriesFavoritasList = document.get("seriesFavoritas") as? List<Map<String, Any>>
+
+                    println("las peliculas favoritas son: $peliculasFavoritasList")
+                    println("las series favoritas son: $seriesFavoritasList")
+
+                    val favoritas = mutableListOf<Peliculas>()
+
+                    if (peliculasFavoritasList != null) {
+                        favoritas += peliculasFavoritasList.mapNotNull { mapa ->
+                            try {
+                                mapToPeliculas(mapa)
+                            } catch (e: Exception) {
+                                Log.e("Firestore", "Error al mapear película favorita", e)
+                                null
+                            }
+                        }
+                    } else {
+                        Log.d("Firestore", "Campo peliculasFavoritas vacío o nulo.")
+                    }
+
+                    if (seriesFavoritasList != null) {
+                        favoritas += seriesFavoritasList.mapNotNull { mapa ->
+                            try {
+                                mapToPeliculas(mapa)
+                            } catch (e: Exception) {
+                                Log.e("Firestore", "Error al mapear serie favorita", e)
+                                null
+                            }
+                        }
+                    } else {
+                        Log.d("Firestore", "Campo seriesFavoritas vacío o nulo.")
+                    }
+
+                    if (favoritas.isNotEmpty()) {
+                        val entidades = favoritas.map { pelicula ->
+                            FavoritoEntity(
+                                idMovieEntity = pelicula.id,
+                                pelicula = pelicula,
+                                userId = userId
+                            )
+                        }
+
+                        CoroutineScope(Dispatchers.IO).launch {
+                            repository.insertFavoritos(entidades)
+                        }
+                    }
+
+                } else {
+                    Log.d("Firestore", "No se encontró el documento del usuario.")
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("Firestore", "Error al obtener las favoritas desde Firestore", e)
+            }
+    }
+
+    fun mapToPeliculas(mapa: Map<String, Any>): Peliculas {
+        return Peliculas(
+            id = mapa["id"] as? String ?: "",
+            title = mapa["title"] as? String,
+            name = mapa["name"] as? String,
+            overview = mapa["overview"] as? String ?: "",
+            release_date = mapa["release_date"] as? String,
+            release_date_series = mapa["release_date_series"] as? String,
+            poster_path = mapa["poster_path"] as? String,
+            vote_average = (mapa["vote_average"]?.toString()) ?: "0.0",
+            vote_count = (mapa["vote_count"]?.toString()) ?: "0",
+            genre_ids = (mapa["genre_ids"] as? List<*>)?.mapNotNull { (it as? Number)?.toInt() } ?: emptyList(),
+            adult = mapa["adult"] as? Boolean ?: false,
+            backdrop_path = mapa["backdrop_path"] as? String,
+            popularity = (mapa["popularity"] as? Number)?.toDouble() ?: 0.0,
+            esSerie = mapa["esSerie"] as? Boolean ?: false,
+            comentarios = (mapa["comentarios"] as? List<*>)?.mapNotNull { it as? String } ?: emptyList(),
+            original_language = mapa["original_language"] as? String ?: "",
+            status = mapa["status"] as? String ?: "",
+            trailer = mapa["trailer"] as? String,
+            director_name = mapa["director_name"] as? String ?: "",
+            director_photo_url = mapa["director_photo_url"] as? String ?: ""
+        )
+    }
 
 
     fun startListening(uid: String) {
@@ -653,31 +745,47 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun saveToFavorites(context: Context, id: String, title: String, posterUrl: String, isSerie: Boolean) {
+    fun saveToFavorites(context: Context, pelicula: Peliculas) {
         val currentUser = auth.currentUser
         if (currentUser != null) {
             val userId = currentUser.uid
             val favoritesCollection = firestore.collection("usuarios").document(userId)
 
-            val fieldToUpdate = if (isSerie) "seriesFavoritas" else "peliculasFavoritas"
+            val fieldToUpdate = if (pelicula.esSerie) "seriesFavoritas" else "peliculasFavoritas"
 
             val movieData = mapOf(
-                "id" to id,
-                "title" to title,
-                "posterUrl" to posterUrl,
-                "esSerie" to isSerie
+                "id" to pelicula.id,
+                "title" to pelicula.title,
+                "name" to pelicula.name,
+                "overview" to pelicula.overview,
+                "poster_path" to pelicula.poster_path,
+                "vote_average" to pelicula.vote_average,
+                "vote_count" to pelicula.vote_count,
+                "genre_ids" to pelicula.genre_ids,
+                "adult" to pelicula.adult,
+                "release_date" to pelicula.release_date,
+                "release_Date_series" to pelicula.release_date_series,
+                "backdrop_path" to pelicula.backdrop_path,
+                "popularity" to pelicula.popularity,
+                "esSerie" to pelicula.esSerie,
+                "comentarios" to pelicula.comentarios,
+                "original_language" to pelicula.original_language,
+                "status" to pelicula.status,
+                "trailer" to pelicula.trailer,
+                "director_name" to pelicula.director_name,
+                "director_photo_url" to pelicula.director_photo_url
             )
 
             favoritesCollection.get().addOnSuccessListener { document ->
                 if (document.exists()) {
                     val existingFavorites = document.get(fieldToUpdate) as? List<Map<String, Any>> ?: emptyList()
 
-                    if (existingFavorites.any { it["id"] == id }) return@addOnSuccessListener
+                    if (existingFavorites.any { it["id"] == pelicula.id }) return@addOnSuccessListener
 
                     if (existingFavorites.size >= 20) {
                         Toast.makeText(
                             context,
-                            "You can only save up to 20 favorite ${if (isSerie) "TV shows" else "movies"}.",
+                            "You can only save up to 20 favorite ${if (pelicula.esSerie) "TV shows" else "movies"}.",
                             Toast.LENGTH_SHORT
                         ).show()
                         return@addOnSuccessListener
@@ -696,6 +804,7 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
+
 
     fun saveToLocalFavorites(context: Context, pelicula: Peliculas, userId: String?) {
         if (userId == null) return  // Si no hay usuario, no se guarda nada
@@ -784,7 +893,7 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
                     Peliculas(
                         id = movieData["id"] as? String ?: "",
                         title = movieData["title"] as? String ?: "",
-                        poster_path = movieData["posterUrl"] as? String ?: "",
+                        poster_path = movieData["poster_path"] as? String ?: "",
                         esSerie = movieData["esSerie"] as? Boolean ?: false
                     )
                 }
@@ -811,8 +920,8 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
                 val seriesFavoritas = favoriteItems.mapNotNull { movieData ->
                     Peliculas(
                         id = movieData["id"] as? String ?: "",
-                        title = movieData["title"] as? String ?: "",
-                        poster_path = movieData["posterUrl"] as? String ?: "",
+                        title = movieData["name"] as? String ?: "",
+                        poster_path = movieData["poster_path"] as? String ?: "",
                         esSerie = movieData["esSerie"] as? Boolean ?: true
                     )
                 }
