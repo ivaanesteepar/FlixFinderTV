@@ -152,6 +152,14 @@ fun HomeScreen(
         }
     }
 
+    LaunchedEffect(peliculasGenero1, peliculasGenero2, peliculasProximas) {
+        val todasPeliculas = peliculasGenero1 + peliculasGenero2 + peliculasProximas
+        println("Todas las películas juntas:")
+        todasPeliculas.forEach { pelicula ->
+            println("Título: ${pelicula.titulo} - Poster: ${pelicula.poster_path}")
+        }
+    }
+
     fun guardarPeliculasEnRoom() {
         // Limpiar las tablas antes de insertar nuevas películas
         offlineViewModel.limpiarPeliculasGenero1()

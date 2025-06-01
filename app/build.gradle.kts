@@ -160,6 +160,8 @@ dependencies {
     implementation(libs.firebase.database)
     implementation(libs.androidx.appcompat)
     implementation("com.pierfrancescosoffritti.androidyoutubeplayer:core:11.1.0")
+    implementation("com.github.bumptech.glide:glide:4.15.1")
+    kapt("com.github.bumptech.glide:compiler:4.15.1")
 
     // Dependencias de Room
     implementation("androidx.room:room-ktx:2.6.1")

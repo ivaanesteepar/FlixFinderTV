@@ -28,7 +28,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import coil.ImageLoader
 import coil.compose.rememberAsyncImagePainter
+import coil.disk.DiskCache
+import coil.request.CachePolicy
+import coil.request.ImageRequest
 import com.example.flixfindertv.R
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.flixfindertv.models.Peliculas
@@ -37,10 +41,12 @@ import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.ui.viewmodels.GenresViewModel
 import com.example.flixfindertv.ui.viewmodels.MoviesViewModel
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
+import com.example.flixfindertv.utils.ImageLoaderProvider
 import com.example.flixfindertv.utils.MovieDetailsContent
 import com.example.flixfindertv.utils.validateComment
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
+import java.io.File
 
 // Función que muestra la pantalla de detalles de una película o serie
 @Composable
@@ -82,6 +88,8 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
     var isUpdating = false
     val snackbarHostState = remember { SnackbarHostState() }
     val showOffensiveSnackbar = remember { mutableStateOf(false) }
+
+    val imageLoader = remember { ImageLoaderProvider.getImageLoader(context) }
 
 
     // Obtener el userId desde FirebaseAuth
@@ -174,16 +182,25 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(250.dp)
+                    .height(220.dp)
             ) {
+                val painter = if (!movieBannerUrl.isNullOrEmpty()) {
+                    rememberAsyncImagePainter(
+                        model = ImageRequest.Builder(context)
+                            .data(movieBannerUrl)
+                            .diskCachePolicy(CachePolicy.ENABLED)
+                            .build(),
+                        imageLoader = imageLoader
+                    )
+                } else {
+                    painterResource(id = R.drawable.banner_placeholder)
+                }
+
                 Image(
-                    painter = if (!movieBannerUrl.isNullOrEmpty()) {
-                        rememberAsyncImagePainter(model = movieBannerUrl)
-                    } else {
-                        painterResource(id = R.drawable.banner_placeholder)
-                    },
+                    painter = painter,
                     contentDescription = "Banner",
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
                 )
 
                 if (hayConexion) {
@@ -436,8 +453,7 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                                 errorMessage.value = "Please select at least one star."
                             } else if (commentText.value.isBlank()) {
                                 errorMessage.value = "Please write a comment."
-                            }
-                            else if (userId != null) {
+                            } else if (userId != null) {
                                 coroutineScope.launch {
                                     val isOffensive = validateComment(commentText.value)
                                     if (isOffensive) {

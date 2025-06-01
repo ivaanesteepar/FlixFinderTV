@@ -365,45 +365,45 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
         val userDocRef = FirebaseFirestore.getInstance().collection("usuarios").document(userId)
         val maxGeneros = 2
 
-        userDocRef.get().addOnSuccessListener { document ->
-            if (document.exists()) {
-                val generosFavoritos = document.get("generosFavoritos") as? Map<String, Number> ?: emptyMap()
-                val nuevosGeneros = HashMap(generosFavoritos) // Asegura que sea mutable y compatible
+        FirebaseFirestore.getInstance().runTransaction { transaction ->
+            val snapshot = transaction.get(userDocRef)
 
-                if (nuevosGeneros.containsKey(firstGenre)) {
-                    // El género ya existe, actualizamos el timestamp
+            val generosFavoritos = snapshot.get("generosFavoritos") as? Map<String, Number> ?: emptyMap()
+            val nuevosGeneros = generosFavoritos.toMutableMap()
+
+            if (nuevosGeneros.containsKey(firstGenre)) {
+                // Ya existe, actualizamos timestamp
+                nuevosGeneros[firstGenre] = System.currentTimeMillis()
+                println("Género ya existe, se actualiza timestamp: $firstGenre")
+            } else {
+                if (nuevosGeneros.size < maxGeneros) {
+                    // Hay espacio, agregamos nuevo género
                     nuevosGeneros[firstGenre] = System.currentTimeMillis()
-                    println("Género ya existe, se actualiza timestamp: $firstGenre")
+                    println("Género agregado: $firstGenre")
                 } else {
-                    if (nuevosGeneros.size < maxGeneros) {
-                        // Hay espacio, lo agregamos
+                    // Reemplazamos el más antiguo
+                    val generoMasAntiguo = nuevosGeneros.minByOrNull { (_, timestamp) -> timestamp.toLong() }?.key
+                    if (generoMasAntiguo != null) {
+                        nuevosGeneros.remove(generoMasAntiguo)
                         nuevosGeneros[firstGenre] = System.currentTimeMillis()
-                        println("Género agregado: $firstGenre")
-                    } else {
-                        // Reemplazamos el más antiguo
-                        val generoMasAntiguo = nuevosGeneros.minByOrNull { it.value.toLong() }?.key
-                        if (generoMasAntiguo != null) {
-                            nuevosGeneros.remove(generoMasAntiguo)
-                            nuevosGeneros[firstGenre] = System.currentTimeMillis()
-                            println("Género reemplazado: $generoMasAntiguo por $firstGenre")
-                        }
+                        println("Género reemplazado: $generoMasAntiguo por $firstGenre")
                     }
                 }
-
-                userDocRef.update("generosFavoritos", nuevosGeneros)
-                    .addOnSuccessListener {
-                        println("Géneros favoritos actualizados: $nuevosGeneros")
-                    }
-                    .addOnFailureListener { e ->
-                        Log.e("UpdateFavoriteGenre", "Error al actualizar géneros favoritos", e)
-                    }
-            } else {
-                println("Documento de usuario no existe.")
             }
+
+            // Actualizamos el documento dentro de la transacción
+            transaction.update(userDocRef, "generosFavoritos", nuevosGeneros)
+            println("Géneros favoritos actualizados dentro de la transacción: $nuevosGeneros")
+
+            // El bloque debe devolver algo, pero no nos interesa aquí.
+            null
+        }.addOnSuccessListener {
+            println("Transacción completada con éxito")
         }.addOnFailureListener { e ->
-            Log.e("UpdateFavoriteGenre", "Error al obtener el documento del usuario", e)
+            Log.e("UpdateFavoriteGenre", "Error en la transacción de actualización", e)
         }
     }
+
 
     suspend fun getFollowersUsers(uid: String): List<Pair<String, String>>? {
         return try {

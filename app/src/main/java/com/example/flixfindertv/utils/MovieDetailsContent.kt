@@ -22,11 +22,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -36,6 +38,8 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
+import coil.request.CachePolicy
+import coil.request.ImageRequest
 import com.example.flixfindertv.R
 import com.example.flixfindertv.ui.viewmodels.MoviesViewModel
 import java.text.SimpleDateFormat
@@ -54,6 +58,7 @@ fun MovieDetailsContent(
     director: String?,
     directorPhoto: String?
 ) {
+    val context = LocalContext.current
     val viewModel: MoviesViewModel = viewModel()
     val voteAverage by viewModel.voteAverage.collectAsState()
     val popularity by viewModel.popularity.collectAsState()
@@ -65,6 +70,8 @@ fun MovieDetailsContent(
     } else {
         String.format("%.1f", cappedVoteAvg)
     }
+
+    val imageLoader = remember { ImageLoaderProvider.getImageLoader(context) }
 
     val color = when {
         voteAverage < 5.0 -> Color(0xFFFF6F61) // Rojo
@@ -94,7 +101,8 @@ fun MovieDetailsContent(
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .width(160.dp)
-                    .height(235.dp)
+                    .height(255.dp)
+                    .padding(top = 20.dp)
             )
 
             Box(
@@ -228,13 +236,20 @@ fun MovieDetailsContent(
                     .fillMaxWidth()
                     .height(160.dp)
             ) {
+                val painter = rememberAsyncImagePainter(
+                    model = ImageRequest.Builder(context)
+                        .data(directorPhoto)
+                        .diskCachePolicy(CachePolicy.ENABLED)
+                        .placeholder(R.drawable.no_poster_image)
+                        .error(R.drawable.no_poster_image)
+                        .fallback(R.drawable.no_poster_image)
+                        .build(),
+                    imageLoader = imageLoader
+                )
+
                 Image(
-                    painter = if (!directorPhoto.isNullOrEmpty()) {
-                        rememberAsyncImagePainter(directorPhoto)
-                    } else {
-                        painterResource(id = R.drawable.no_poster_image) // Imagen predeterminada
-                    },
-                    contentDescription = "Foto director",
+                    painter = painter,
+                    contentDescription = "Foto del director",
                     modifier = Modifier.fillMaxSize(),
                     contentScale = if (!directorPhoto.isNullOrEmpty()) ContentScale.Fit else ContentScale.Crop
                 )

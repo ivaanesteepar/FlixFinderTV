@@ -455,7 +455,7 @@ fun ExploreScreen(navController: NavHostController, viewModel: MoviesViewModel) 
         recentSeries.isEmpty()) {
 
         if (!hayConexion){
-            println("no hay conexion, asi que accedemos a room en explore")
+            println("no hay conexion, asi que accedemos a Room")
             offlineViewModel.loadPeliculasPopulares()
             offlineViewModel.loadPeliculasUltimosLanzamientos()
             offlineViewModel.loadPeliculasAccion()
