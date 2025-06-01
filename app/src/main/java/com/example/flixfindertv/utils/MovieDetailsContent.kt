@@ -88,15 +88,23 @@ fun MovieDetailsContent(
         Box(
             modifier = Modifier
                 .width(160.dp)
-                .height(235.dp)
+                .height(255.dp)
                 .padding(end = 8.dp)
         ) {
+            val painter = rememberAsyncImagePainter(
+                model = ImageRequest.Builder(context)
+                    .data(movieCoverUrl)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .placeholder(R.drawable.no_poster_image)
+                    .error(R.drawable.no_poster_image)
+                    .fallback(R.drawable.no_poster_image)
+                    .build(),
+                imageLoader = imageLoader
+            )
+
+            // Portada
             Image(
-                painter = if (!movieCoverUrl.isNullOrEmpty()) {
-                    rememberAsyncImagePainter(movieCoverUrl)
-                } else {
-                    painterResource(id = R.drawable.no_poster_image)
-                },
+                painter = painter,
                 contentDescription = "Portada",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -105,6 +113,7 @@ fun MovieDetailsContent(
                     .padding(top = 20.dp)
             )
 
+            // Círculo justo debajo de la portada, alineado a la derecha
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
@@ -117,12 +126,13 @@ fun MovieDetailsContent(
                     text = voteAvgFormatted,
                     style = MaterialTheme.typography.bodyLarge.copy(
                         color = Color.White,
-                        fontWeight = FontWeight.Bold // Esto pone el texto en negrita
+                        fontWeight = FontWeight.Bold
                     ),
                     modifier = Modifier.padding(4.dp)
                 )
             }
         }
+
 
         Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f)) {
             Spacer(modifier = Modifier.height(16.dp))
@@ -251,7 +261,7 @@ fun MovieDetailsContent(
                     painter = painter,
                     contentDescription = "Foto del director",
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = if (!directorPhoto.isNullOrEmpty()) ContentScale.Fit else ContentScale.Crop
+                    contentScale = ContentScale.Crop
                 )
             }
 

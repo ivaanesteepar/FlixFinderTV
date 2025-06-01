@@ -64,13 +64,12 @@ class MovieRepository(private val movieDao: MovieDao) {
 
 
     // ------------------------ FAVORITOS ------------------------
-    suspend fun getSeriesFavoritas(): List<FavoritoEntity> {
-        return movieDao.getSeriesFavoritas()
+    suspend fun getSeriesFavoritas(userId: String): List<FavoritoEntity> {
+        return movieDao.getSeriesFavoritas(userId)
     }
 
-    // Obtener las películas favoritas
-    suspend fun getPeliculasFavoritas(): List<FavoritoEntity> {
-        return movieDao.getPeliculasFavoritas()
+    suspend fun getPeliculasFavoritas(userId: String): List<FavoritoEntity> {
+        return movieDao.getPeliculasFavoritas(userId)
     }
 
     // Insertar una película o serie en los favoritos

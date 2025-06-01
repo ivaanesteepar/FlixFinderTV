@@ -161,18 +161,25 @@ interface MovieDao {
 
 
     // FAVORITOS
-    @Query("SELECT * FROM favoritos WHERE esSerie = 1")
-    suspend fun getSeriesFavoritas(): List<FavoritoEntity>
+    @Query("SELECT * FROM favoritos WHERE esSerie = 1 AND userId = :userId")
+    suspend fun getSeriesFavoritas(userId: String): List<FavoritoEntity>
 
-    @Query("SELECT * FROM favoritos WHERE esSerie = 0")
-    suspend fun getPeliculasFavoritas(): List<FavoritoEntity>
+    @Query("SELECT * FROM favoritos WHERE esSerie = 0 AND userId = :userId")
+    suspend fun getPeliculasFavoritas(userId: String): List<FavoritoEntity>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertFavorito(favorito: FavoritoEntity)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertFavoritos(favoritos: List<FavoritoEntity>)
 
     @Delete
     suspend fun deleteFavorito(favorito: FavoritoEntity)
 
     @Query("SELECT * FROM favoritos WHERE id = :id")
     suspend fun getFavoritoById(id: String): FavoritoEntity?
+
+    @Query("DELETE FROM favoritos WHERE userId = :userId")
+    suspend fun borrarFavoritosDeUsuario(userId: String)
 }
+

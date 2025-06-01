@@ -60,6 +60,11 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
 
     private var listenerRegistration: ListenerRegistration? = null
 
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
+
+
+
+
     fun startListening(uid: String) {
         listenerRegistration?.remove() // Quitar listener anterior si existía
 
@@ -692,13 +697,14 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun saveToLocalFavorites(context: Context, pelicula: Peliculas) {
+    fun saveToLocalFavorites(context: Context, pelicula: Peliculas, userId: String?) {
+        if (userId == null) return  // Si no hay usuario, no se guarda nada
+
         CoroutineScope(Dispatchers.IO).launch {
-            // Aquí llamas al repositorio para obtener las películas/series favoritas
             val currentFavorites = if (pelicula.esSerie) {
-                movieRepository.getSeriesFavoritas()
+                movieRepository.getSeriesFavoritas(userId)
             } else {
-                movieRepository.getPeliculasFavoritas()
+                movieRepository.getPeliculasFavoritas(userId)
             }
 
             if (currentFavorites.any { it.pelicula.id == pelicula.id }) return@launch
@@ -714,7 +720,11 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
                 return@launch
             }
 
-            val favorito = FavoritoEntity(idMovieEntity = pelicula.id, pelicula = pelicula)
+            val favorito = FavoritoEntity(
+                idMovieEntity = pelicula.id,
+                pelicula = pelicula,
+                userId = userId
+            )
             movieRepository.insertFavorito(favorito)
         }
     }
@@ -819,15 +829,17 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
     fun getPeliculasFavoritasDesdeRoom() {
         viewModelScope.launch {
             // Obtener las películas favoritas desde Room
-            val favoritos = movieRepository.getPeliculasFavoritas()
+            val favoritos = userId?.let { movieRepository.getPeliculasFavoritas(it) }
 
             // Mapear la lista de FavoritoEntity a una lista de Peliculas
-            val peliculas = favoritos.map { favorito ->
+            val peliculas = favoritos?.map { favorito ->
                 favorito.pelicula // Accedemos directamente a la propiedad 'pelicula' de FavoritoEntity
             }
 
             // Actualizar el estado con la lista de películas favoritas
-            favouriteMovies.value = peliculas // Usamos .value para modificar el estado de la UI
+            if (peliculas != null) {
+                favouriteMovies.value = peliculas
+            } // Usamos .value para modificar el estado de la UI
         }
     }
 
@@ -835,15 +847,17 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
     fun getSeriesFavoritasDesdeRoom() {
         viewModelScope.launch {
             // Obtener las series favoritas desde Room
-            val favoritos = movieRepository.getSeriesFavoritas()
+            val favoritos = userId?.let { movieRepository.getSeriesFavoritas(it) }
 
             // Mapear la lista de FavoritoEntity a una lista de Peliculas (para series)
-            val series = favoritos.map { favorito ->
+            val series = favoritos?.map { favorito ->
                 favorito.pelicula // Accede directamente a la propiedad 'pelicula' de FavoritoEntity
             }
 
             // Actualizar el estado de la UI con la lista de series favoritas
-            favouriteSeries.value = series
+            if (series != null) {
+                favouriteSeries.value = series
+            }
         }
     }
 

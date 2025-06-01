@@ -28,9 +28,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import coil.ImageLoader
 import coil.compose.rememberAsyncImagePainter
-import coil.disk.DiskCache
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.example.flixfindertv.R
@@ -46,7 +44,7 @@ import com.example.flixfindertv.utils.MovieDetailsContent
 import com.example.flixfindertv.utils.validateComment
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
-import java.io.File
+
 
 // Función que muestra la pantalla de detalles de una película o serie
 @Composable
@@ -104,17 +102,6 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
         }
     }
 
-    LaunchedEffect(showOffensiveSnackbar.value) {
-        if (showOffensiveSnackbar.value) {
-            // Muestra el Snackbar con duración larga (7 segundos)
-            snackbarHostState.showSnackbar(
-                message = "Tu mensaje será revisado antes de publicarse.",
-                duration = SnackbarDuration.Long // 7 segundos
-            )
-            // Cuando el Snackbar termine, actualiza el estado
-            showOffensiveSnackbar.value = false
-        }
-    }
 
     LaunchedEffect(id) {
         firestore.collection(collectionName)
@@ -184,17 +171,16 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                     .fillMaxWidth()
                     .height(220.dp)
             ) {
-                val painter = if (!movieBannerUrl.isNullOrEmpty()) {
-                    rememberAsyncImagePainter(
-                        model = ImageRequest.Builder(context)
-                            .data(movieBannerUrl)
-                            .diskCachePolicy(CachePolicy.ENABLED)
-                            .build(),
-                        imageLoader = imageLoader
-                    )
-                } else {
-                    painterResource(id = R.drawable.banner_placeholder)
-                }
+                val painter = rememberAsyncImagePainter(
+                    model = ImageRequest.Builder(context)
+                        .data(movieBannerUrl)
+                        .diskCachePolicy(CachePolicy.ENABLED)
+                        .placeholder(R.drawable.banner_placeholder)
+                        .error(R.drawable.banner_placeholder)
+                        .fallback(R.drawable.banner_placeholder)
+                        .build(),
+                    imageLoader = imageLoader
+                )
 
                 Image(
                     painter = painter,
@@ -217,7 +203,7 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                                     movieCoverUrl,
                                     esSerie
                                 )
-                                movie?.let { usersViewModel.saveToLocalFavorites(context, it) }
+                                movie?.let { usersViewModel.saveToLocalFavorites(context, it, userId) }
                                 usersViewModel.updateFavoriteGenre(movieGenre)
                             } else {
                                 // Si ya está en favoritos, lo eliminamos de favoritos

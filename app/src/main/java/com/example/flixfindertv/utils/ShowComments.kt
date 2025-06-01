@@ -588,7 +588,7 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                                 ) {
                                     Column(
                                         modifier = Modifier
-                                            .padding(8.dp)
+                                            .padding(4.dp)
                                             .background(if (res.revision) Color(0xFFFFCDD2) else Color.Transparent)
                                     ) {
                                         var respuestaFotoPerfilUrl by remember { mutableStateOf("") }
