@@ -28,6 +28,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.flixfindertv.R
+import com.example.flixfindertv.room.database.AppDatabase
+import com.example.flixfindertv.room.repository.MovieRepository
 import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 import com.google.firebase.auth.FirebaseAuth
@@ -45,6 +47,8 @@ fun LoginScreen(navController: NavController) {
     val hayConexion by conexionViewModel.conexionEstablecida.collectAsState()
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val movieDao = AppDatabase.getDatabase(context).movieDao()
+    val repository = MovieRepository(movieDao)
 
     // Manejo del botón de retroceso para cerrar la actividad
     BackHandler {
@@ -59,12 +63,16 @@ fun LoginScreen(navController: NavController) {
             isLoading = true
             usersViewModel.login(email.text, password.text,
                 onSuccess = { screen ->
+                    val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+                    if (currentUserId != null) {
+                        usersViewModel.cargarFavoritasDesdeFirestore(currentUserId, repository)
+                    }
                     isLoading = false
                     navController.navigate(screen)
                     usersViewModel.saveSession(
                         context,
                         true,
-                        FirebaseAuth.getInstance().currentUser?.uid ?: ""
+                        currentUserId ?: ""
                     )
                 },
                 onFailure = { error ->
@@ -74,6 +82,7 @@ fun LoginScreen(navController: NavController) {
             )
         }
     }
+
 
     // Caja principal que contiene la imagen de fondo y los elementos de la UI
     Box(modifier = Modifier.fillMaxSize()) {

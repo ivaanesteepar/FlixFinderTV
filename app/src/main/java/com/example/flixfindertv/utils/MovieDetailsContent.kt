@@ -220,7 +220,7 @@ fun MovieDetailsContent(
     Spacer(modifier = Modifier.height(16.dp))
 
     Text(
-        text = movieDescription ?: "Descripción no disponible",
+        text = if (movieDescription.isNullOrEmpty()) "Description not available" else movieDescription,
         style = MaterialTheme.typography.bodyMedium,
         color = if (movieDescription.isNullOrEmpty()) Color.Gray else Color.White,
         modifier = Modifier.padding(start = 16.dp, end = 16.dp)

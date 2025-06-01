@@ -6,7 +6,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 import androidx.compose.material3.Text
 import androidx.compose.foundation.Image
 import androidx.compose.ui.layout.ContentScale
@@ -45,6 +44,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
@@ -223,6 +223,9 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
     val movieDao = AppDatabase.getDatabase(context).movieDao()
     val repository = MovieRepository(movieDao)
 
+    var previousUid by rememberSaveable { mutableStateOf<String?>(null) }
+
+
     BackHandler {
         if (!isComment) {
             activity?.finish()
@@ -232,8 +235,12 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
     }
 
     LaunchedEffect(Unit) {
-        if (userId != null) {
-            usersViewModel.cargarFavoritasDesdeFirestore(userId = userId, repository = repository)
+        if (userId != null && previousUid != userId) {
+            usersViewModel.cargarFavoritasDesdeFirestore(
+                userId = userId,
+                repository = repository
+            )
+            previousUid = userId
         }
     }
 

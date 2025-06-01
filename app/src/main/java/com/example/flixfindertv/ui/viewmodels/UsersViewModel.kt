@@ -22,7 +22,6 @@ import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
-import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -77,9 +76,6 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
                     val peliculasFavoritasList = document.get("peliculasFavoritas") as? List<Map<String, Any>>
                     val seriesFavoritasList = document.get("seriesFavoritas") as? List<Map<String, Any>>
 
-                    println("las peliculas favoritas son: $peliculasFavoritasList")
-                    println("las series favoritas son: $seriesFavoritasList")
-
                     val favoritas = mutableListOf<Peliculas>()
 
                     if (peliculasFavoritasList != null) {
@@ -131,7 +127,7 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
             }
     }
 
-    fun mapToPeliculas(mapa: Map<String, Any>): Peliculas {
+    private fun mapToPeliculas(mapa: Map<String, Any>): Peliculas {
         return Peliculas(
             id = mapa["id"] as? String ?: "",
             title = mapa["title"] as? String,
