@@ -14,6 +14,7 @@ import org.junit.Before
 import org.junit.Test
 import android.content.res.Resources
 import android.os.Looper
+import com.example.flixfindertv.models.Peliculas
 import com.example.flixfindertv.room.repository.MovieRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -58,6 +59,11 @@ class UsersViewModelTest {
         auth = mockk()
         every { FirebaseAuth.getInstance() } returns auth
 
+        // Mock del usuario actual
+        val firebaseUserMock = mockk<FirebaseUser>()
+        every { auth.currentUser } returns firebaseUserMock
+        every { firebaseUserMock.uid } returns "testUserId" // o el uid que necesites
+
         // Mock de FirebaseFirestore
         firestore = mockk()
         every { FirebaseFirestore.getInstance() } returns firestore
@@ -68,7 +74,6 @@ class UsersViewModelTest {
         val looperMock = mockk<Looper>()
         every { Looper.getMainLooper() } returns looperMock
         every { looperMock.thread } returns Thread.currentThread()
-
 
         // Inicializamos el ViewModel
         usersViewModel = UsersViewModel(application)
@@ -86,24 +91,30 @@ class UsersViewModelTest {
 
     @Test
     fun `saveToFavorites cuando el usuario es nulo no debe hacer nada`() {
-        // Configura el mock para devolver usuario null
+        // Mock del usuario nulo
         every { auth.currentUser } returns null
 
-        usersViewModel.saveToFavorites(context, "123", "Movie Title", "http://example.com/poster.jpg", false)
+        // Crear un objeto Peliculas dummy para pasarle a la función
+        val peliculaDummy = Peliculas(
+            id = "123",
+            title = "Movie Title",
+            poster_path = "http://example.com/poster.jpg"
+        )
 
-        // Verifica que no se llamó a Firestore
-        verify(exactly = 0) { firestore.collection(any<String>()) }
+        // Ejecutar la función
+        usersViewModel.saveToFavorites(context, peliculaDummy)
+
+        // Verificar que firestore.collection no se llamó
+        verify(exactly = 0) { firestore.collection(any()) }
     }
 
+
     @Test
-    fun `saveToFavorites cuando el usuario no es nulo debe actualizar los favoritos`() {
-        val userId = "testUserId"
-        val currentUser = mockk<FirebaseUser>()
-        every { auth.currentUser } returns currentUser
-        every { currentUser.uid } returns userId
+    fun test_saveToFavorites_actualizaFavoritos_siUsuarioNoNulo() {
+        // Usamos los mocks ya creados en setUp: auth, firestore, etc.
 
         val favoritesCollection = mockk<DocumentReference>()
-        every { firestore.collection("usuarios").document(userId) } returns favoritesCollection
+        every { firestore.collection("usuarios").document("testUserId") } returns favoritesCollection
 
         val documentSnapshot = mockk<DocumentSnapshot>()
         val mockTask = mockk<Task<DocumentSnapshot>>()
@@ -111,12 +122,10 @@ class UsersViewModelTest {
         every { mockTask.addOnSuccessListener(any()) } answers {
             val listener = firstArg<OnSuccessListener<DocumentSnapshot>>()
             listener.onSuccess(documentSnapshot)
-            mockk() // Regresamos el mockTask
+            mockTask
         }
-
-        // Simulamos que el documento existe y no tiene favoritos aún
         every { documentSnapshot.exists() } returns true
-        every { documentSnapshot.get("peliculasFavoritas") } returns listOf<Map<String, Any>>()
+        every { documentSnapshot.get("peliculasFavoritas") } returns emptyList<Map<String, Any>>()
 
         val updateTask = mockk<Task<Void>>()
         every { favoritesCollection.update(eq("peliculasFavoritas"), any()) } returns updateTask
@@ -126,11 +135,21 @@ class UsersViewModelTest {
             updateTask
         }
 
-        usersViewModel.saveToFavorites(context, "123", "Movie Title", "http://example.com/poster.jpg", false)
+        val pelicula = Peliculas(
+            id = "123",
+            title = "Movie Title",
+            poster_path = "http://example.com/poster.jpg",
+            esSerie = false
+        )
 
-        // Verificación de que se ha llamado a update en Firestore
+        // Llamamos al método que queremos probar
+        usersViewModel.saveToFavorites(application, pelicula)
+
+        // Verificamos que se haya llamado a update con la lista de favoritos actualizada
         verify { favoritesCollection.update(eq("peliculasFavoritas"), any()) }
     }
+
+
 
     @Test
     fun `saveToFavorites cuando se alcanza el máximo de favoritos no debe actualizar los favoritos`() {
@@ -148,28 +167,36 @@ class UsersViewModelTest {
         every { mockTask.addOnSuccessListener(any()) } answers {
             val listener = firstArg<OnSuccessListener<DocumentSnapshot>>()
             listener.onSuccess(documentSnapshot)
-            mockk() // Regresamos el mockTask
+            mockTask // Para permitir chaining
         }
 
-        // Simulamos que el documento existe y tiene 20 favoritos
+        // Documento existe y tiene 20 favoritos (simulamos 20 películas con distintos ids)
         every { documentSnapshot.exists() } returns true
-        every { documentSnapshot.get("peliculasFavoritas") } returns List(20) {
-            mapOf("id" to "id$it")
+        every { documentSnapshot.get("peliculasFavoritas") } returns List(20) { index ->
+            mapOf("id" to "id$index")
         }
 
-        // Simulamos el comportamiento de Toast.makeText() y mockeamos el show()
+        // Mockeamos Toast.makeText y show para evitar que falle
         mockkStatic(Toast::class)
         val toast = mockk<Toast>()
         every { Toast.makeText(any<Context>(), any<String>(), any<Int>()) } returns toast
-        every { toast.show() } returns Unit // Mockeamos show() para que no haga nada
+        every { toast.show() } just Runs
 
-        // Intentamos guardar una película cuando ya se alcanzó el máximo de 20
-        usersViewModel.saveToFavorites(context, "123", "Movie Title", "http://example.com/poster.jpg", false)
+        // Creamos un objeto Peliculas para pasar a la función
+        val pelicula = Peliculas(
+            id = "123",
+            title = "Movie Title",
+            poster_path = "http://example.com/poster.jpg",
+            esSerie = false
+        )
 
-        // Verificación de que no se realice la operación de update (guardar la película)
+        // Ejecutamos la función
+        usersViewModel.saveToFavorites(context, pelicula)
+
+        // Verificamos que NO se llamó update para guardar la película
         verify(exactly = 0) { favoritesCollection.update(eq("peliculasFavoritas"), any()) }
 
-        // Verificación de que se llamó a show() en el Toast
+        // Verificamos que sí se mostró el Toast
         verify { toast.show() }
     }
 
