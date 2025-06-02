@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,6 +39,7 @@ import com.example.flixfindertv.ui.viewmodels.CommentsViewModel
 import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.ui.viewmodels.GenresViewModel
 import com.example.flixfindertv.ui.viewmodels.MoviesViewModel
+import com.example.flixfindertv.ui.viewmodels.OfflineViewModel
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 import com.example.flixfindertv.utils.ImageLoaderProvider
 import com.example.flixfindertv.utils.MovieDetailsContent
@@ -84,9 +86,6 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
     var showTrailer by remember { mutableStateOf(false) }
     val context = LocalContext.current // Para mostrar el Toast
     var isUpdating = false
-    val snackbarHostState = remember { SnackbarHostState() }
-    val showOffensiveSnackbar = remember { mutableStateOf(false) }
-
     val imageLoader = remember { ImageLoaderProvider.getImageLoader(context) }
 
 
@@ -101,7 +100,6 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                 }
         }
     }
-
 
     LaunchedEffect(id) {
         firestore.collection(collectionName)

@@ -1,6 +1,8 @@
 package com.example.flixfindertv.ui.viewmodels
 
 import android.app.Application
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -102,6 +104,31 @@ class OfflineViewModel(application: Application) : AndroidViewModel(application)
         // Crear el repositorio con el DAO
         repository = MovieRepository(dao)
     }
+
+    fun guardarPeliculasEnRoom(
+        genero1: List<Peliculas>,
+        genero2: List<Peliculas>,
+        peliculasProximas: List<Peliculas>
+    ) {
+        // Limpiar las tablas antes de insertar nuevas películas
+        limpiarPeliculasGenero1()
+        limpiarPeliculasGenero2()
+        limpiarPeliculasProximas()
+
+        // Insertar las primeras 10 películas de cada categoría
+        insertPeliculasGenero1(
+            genero1.take(10).map { Genero1MovieEntity(idMovieEntity = it.id, pelicula = it) }
+        )
+
+        insertPeliculasGenero2(
+            genero2.take(10).map { Genero2MovieEntity(idMovieEntity = it.id, pelicula = it) }
+        )
+
+        insertPeliculasProximas(
+            peliculasProximas.take(10).map { ProximasMovieEntity(idMovieEntity = it.id, pelicula = it) }
+        )
+    }
+
 
     suspend fun getAllMovies(): List<PeliculasEntity> {
         return repository.getAllMovies()

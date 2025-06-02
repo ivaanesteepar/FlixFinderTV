@@ -38,15 +38,14 @@ fun BottomNavigationBar(navController: NavController, uid: String) {
                         imageVector = item.icono,
                         contentDescription = item.titulo,
                         modifier = Modifier.padding(top = 20.dp),
-                        tint = if (isSelected) Color.Blue else Color.White // Cambia el color según si está seleccionado
+                        tint = if (isSelected) Color(0xFF42A5F5) else Color.White
                     )
                 },
-                label = if (isSelected) {
-                    // Muestra el texto solo si el ítem está seleccionado
-                    { Text(item.titulo, color = Color.Blue) }
-                } else {
-                    // No mostrar texto cuando no está seleccionado
-                    null
+                label = {
+                    Text(
+                        item.titulo,
+                        color = if (isSelected) Color(0xFF42A5F5) else Color.White
+                    )
                 },
                 selected = isSelected, // Marca como seleccionado
                 colors = NavigationBarItemDefaults.colors(

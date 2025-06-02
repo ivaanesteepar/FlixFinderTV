@@ -118,8 +118,8 @@ fun FavouriteGrid(
                     chunk.forEach { item ->
                         Box(
                             modifier = Modifier
-                                .width(120.dp)
-                                .height(160.dp)
+                                .width(115.dp)
+                                .height(155.dp)
                                 .clickable {
                                     navController.navigate("detalles/${item.id}/$esSerie")
                                 }

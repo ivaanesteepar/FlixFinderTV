@@ -186,207 +186,189 @@ class GenresViewModel : ViewModel() {
         }
     }
 
-    fun obtenerPeliculasYSeriesGenero1(userId: String) {
+    fun obtenerPeliculasYSeriesGenero1(nombreGenero: String) {
         // Verifica si ya se está cargando para evitar carga repetida
         if (_isLoadingGenero1.value == true) return
 
         _isLoadingGenero1.value = true  // Inicia la carga
-        obtenerGenerosFavoritos(userId) { generos ->
-            if (generos.isNotEmpty()) {
-                val nuevoGenero = generos[0] // Tomamos el primer genero de la lista
 
-                // Restablecer lastVisibleGenero1 si cambiamos de género
-                if (nuevoGenero != prevGenero1.value) {
-                    prevGenero1.value = nuevoGenero
-                    lastVisibleGenero1 = null  // Restablecer lastVisible al cambiar de género
-                }
+        // Restablecer lastVisibleGenero1 si cambiamos de género
+        if (nombreGenero != prevGenero1.value) {
+            prevGenero1.value = nombreGenero
+            lastVisibleGenero1 = null  // Restablecer lastVisible al cambiar de género
+        }
 
-                obtenerIdGeneroPorNombre(nuevoGenero) { idGenero ->
-                    if (idGenero != null) {
-                        viewModelScope.launch {
-                            try {
-                                val peliculasList = mutableListOf<Peliculas>()
+        obtenerIdGeneroPorNombre(nombreGenero) { idGenero ->
+            if (idGenero != null) {
+                viewModelScope.launch {
+                    try {
+                        val peliculasList = mutableListOf<Peliculas>()
 
-                                // Construir la consulta para películas
-                                var query = db.collection("peliculas")
-                                    .whereArrayContains("genre_ids", idGenero)
-                                    .limit(10)
+                        // Construir la consulta para películas
+                        var query = db.collection("peliculas")
+                            .whereArrayContains("genre_ids", idGenero)
+                            .limit(10)
 
-                                // Agregar la paginación
-                                lastVisibleGenero1?.let {
-                                    query = query.startAfter(it)
-                                }
+                        // Agregar la paginación
+                        lastVisibleGenero1?.let {
+                            query = query.startAfter(it)
+                        }
 
-                                val peliculasSnapshot = query.get().await()
-                                peliculasSnapshot.documents.mapNotNullTo(peliculasList) {
-                                    it.toObject(
-                                        Peliculas::class.java
-                                    )
-                                }
+                        val peliculasSnapshot = query.get().await()
+                        peliculasSnapshot.documents.mapNotNullTo(peliculasList) {
+                            it.toObject(Peliculas::class.java)
+                        }
 
-                                // Consultar series
-                                var querySeries = db.collection("series")
-                                    .whereArrayContains("genre_ids", idGenero)
-                                    .limit(10)
+                        // Consultar series
+                        var querySeries = db.collection("series")
+                            .whereArrayContains("genre_ids", idGenero)
+                            .limit(10)
 
-                                lastVisibleGenero1?.let {
-                                    querySeries = querySeries.startAfter(it)
-                                }
+                        lastVisibleGenero1?.let {
+                            querySeries = querySeries.startAfter(it)
+                        }
 
-                                val seriesSnapshot = querySeries.get().await()
-                                seriesSnapshot.documents.mapNotNullTo(peliculasList) {
-                                    it.toObject(
-                                        Peliculas::class.java
-                                    )
-                                }
+                        val seriesSnapshot = querySeries.get().await()
+                        seriesSnapshot.documents.mapNotNullTo(peliculasList) {
+                            it.toObject(Peliculas::class.java)
+                        }
 
-                                // Actualizar lastVisibleGenero1 si se encontraron nuevos documentos
-                                if (peliculasSnapshot.documents.isNotEmpty()) {
-                                    lastVisibleGenero1 = peliculasSnapshot.documents.last()
-                                }
-                                if (seriesSnapshot.documents.isNotEmpty()) {
-                                    lastVisibleGenero1 = seriesSnapshot.documents.last()
-                                }
+                        // Actualizar lastVisibleGenero1 si se encontraron nuevos documentos
+                        if (peliculasSnapshot.documents.isNotEmpty()) {
+                            lastVisibleGenero1 = peliculasSnapshot.documents.last()
+                        }
+                        if (seriesSnapshot.documents.isNotEmpty()) {
+                            lastVisibleGenero1 = seriesSnapshot.documents.last()
+                        }
 
-                                // Mezclar películas y series
-                                val mezclada = mutableListOf<Peliculas>()
-                                val peliculasIterator =
-                                    peliculasList.filter { !it.esSerie }.iterator()
-                                val seriesIterator = peliculasList.filter { it.esSerie }.iterator()
+                        // Mezclar películas y series
+                        val mezclada = mutableListOf<Peliculas>()
+                        val peliculasIterator = peliculasList.filter { !it.esSerie }.iterator()
+                        val seriesIterator = peliculasList.filter { it.esSerie }.iterator()
 
-                                while (peliculasIterator.hasNext() || seriesIterator.hasNext()) {
-                                    if (peliculasIterator.hasNext()) {
-                                        mezclada.add(peliculasIterator.next())
-                                    }
-                                    if (seriesIterator.hasNext()) {
-                                        mezclada.add(seriesIterator.next())
-                                    }
-                                }
-
-                                // Obtener las películas actuales y filtrar duplicados
-                                val peliculasActuales =
-                                    _peliculasGenero1.value?.toList() ?: listOf()
-
-                                // Filtrar las películas duplicadas basándose en el ID
-                                val peliculasNoDuplicadas = mezclada.filterNot { nuevaPelicula ->
-                                    peliculasActuales.any { it.id == nuevaPelicula.id }
-                                }
-
-                                // Actualizar la lista sin duplicados
-                                _peliculasGenero1.value = peliculasActuales + peliculasNoDuplicadas
-
-                                // Verificar si hemos cargado suficientes elementos (100 en este caso)
-                                if (_peliculasGenero1.value!!.size >= 100) {
-                                    lastVisibleGenero1 =
-                                        null  // Restablecer lastVisible si cargamos suficientes elementos
-                                }
-                            } catch (e: Exception) {
-                                e.printStackTrace()
-                            } finally {
-                                _isLoadingGenero1.value =
-                                    false  // Siempre poner en false después de completar
+                        while (peliculasIterator.hasNext() || seriesIterator.hasNext()) {
+                            if (peliculasIterator.hasNext()) {
+                                mezclada.add(peliculasIterator.next())
+                            }
+                            if (seriesIterator.hasNext()) {
+                                mezclada.add(seriesIterator.next())
                             }
                         }
+
+                        // Obtener las películas actuales y filtrar duplicados
+                        val peliculasActuales = _peliculasGenero1.value?.toList() ?: listOf()
+
+                        val peliculasNoDuplicadas = mezclada.filterNot { nuevaPelicula ->
+                            peliculasActuales.any { it.id == nuevaPelicula.id }
+                        }
+
+                        // Actualizar la lista sin duplicados
+                        _peliculasGenero1.value = peliculasActuales + peliculasNoDuplicadas
+
+                        // Verificar si hemos cargado suficientes elementos (100 en este caso)
+                        if (_peliculasGenero1.value!!.size >= 100) {
+                            lastVisibleGenero1 = null
+                        }
+
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    } finally {
+                        _isLoadingGenero1.value = false
                     }
                 }
+            } else {
+                _isLoadingGenero1.value = false
             }
         }
     }
 
-    fun obtenerPeliculasYSeriesGenero2(userId: String) {
+
+    fun obtenerPeliculasYSeriesGenero2(nombreGenero: String) {
         if (_isLoadingGenero2.value == true) return
 
         _isLoadingGenero2.value = true
-        obtenerGenerosFavoritos(userId) { generos ->
-            if (generos.size >= 2) {
-                val nuevoGenero = generos[1] // Tomamos el segundo genero de la lista
 
-                // Restablecemos lastVisibleGenero2 a null cada vez que cambiamos de género
-                if (nuevoGenero != prevGenero2.value) {
-                    prevGenero2.value = nuevoGenero // Actualizamos el género anterior
-                    lastVisibleGenero2 = null // Restablecer lastVisible al cambiar de género
-                }
+        // Restablecemos lastVisibleGenero2 a null si cambiamos de género
+        if (nombreGenero != prevGenero2.value) {
+            prevGenero2.value = nombreGenero
+            lastVisibleGenero2 = null
+        }
 
-                obtenerIdGeneroPorNombre(nuevoGenero) { idGenero ->
-                    if (idGenero != null) {
-                        viewModelScope.launch {
-                            try {
-                                val peliculasList = mutableListOf<Peliculas>()
+        obtenerIdGeneroPorNombre(nombreGenero) { idGenero ->
+            if (idGenero != null) {
+                viewModelScope.launch {
+                    try {
+                        val peliculasList = mutableListOf<Peliculas>()
 
-                                // Obtener películas
-                                var query = db.collection("peliculas")
-                                    .whereArrayContains("genre_ids", idGenero)
-                                    .limit(20)
+                        // Obtener películas
+                        var query = db.collection("peliculas")
+                            .whereArrayContains("genre_ids", idGenero)
+                            .limit(20)
 
-                                lastVisibleGenero2?.let {
-                                    query = query.startAfter(it)
-                                }
+                        lastVisibleGenero2?.let {
+                            query = query.startAfter(it)
+                        }
 
-                                val peliculasSnapshot = query.get().await()
-                                peliculasSnapshot.documents.mapNotNullTo(peliculasList) {
-                                    it.toObject(
-                                        Peliculas::class.java
-                                    )
-                                }
+                        val peliculasSnapshot = query.get().await()
+                        peliculasSnapshot.documents.mapNotNullTo(peliculasList) {
+                            it.toObject(Peliculas::class.java)
+                        }
 
-                                // Obtener series
-                                var querySeries = db.collection("series")
-                                    .whereArrayContains("genre_ids", idGenero)
-                                    .limit(20)
+                        // Obtener series
+                        var querySeries = db.collection("series")
+                            .whereArrayContains("genre_ids", idGenero)
+                            .limit(20)
 
-                                lastVisibleGenero2?.let {
-                                    querySeries = querySeries.startAfter(it)
-                                }
+                        lastVisibleGenero2?.let {
+                            querySeries = querySeries.startAfter(it)
+                        }
 
-                                val seriesSnapshot = querySeries.get().await()
-                                seriesSnapshot.documents.mapNotNullTo(peliculasList) {
-                                    it.toObject(
-                                        Peliculas::class.java
-                                    )
-                                }
+                        val seriesSnapshot = querySeries.get().await()
+                        seriesSnapshot.documents.mapNotNullTo(peliculasList) {
+                            it.toObject(Peliculas::class.java)
+                        }
 
-                                // Si hay documentos, actualizamos lastVisible
-                                if (peliculasSnapshot.documents.isNotEmpty()) {
-                                    lastVisibleGenero2 = peliculasSnapshot.documents.last()
-                                }
-                                if (seriesSnapshot.documents.isNotEmpty()) {
-                                    lastVisibleGenero2 = seriesSnapshot.documents.last()
-                                }
+                        // Si hay documentos, actualizamos lastVisible
+                        if (peliculasSnapshot.documents.isNotEmpty()) {
+                            lastVisibleGenero2 = peliculasSnapshot.documents.last()
+                        }
+                        if (seriesSnapshot.documents.isNotEmpty()) {
+                            lastVisibleGenero2 = seriesSnapshot.documents.last()
+                        }
 
-                                // Mezclar películas y series
-                                val mezclada = mutableListOf<Peliculas>()
-                                val peliculasIterator =
-                                    peliculasList.filter { !it.esSerie }.iterator()
-                                val seriesIterator = peliculasList.filter { it.esSerie }.iterator()
+                        // Mezclar películas y series
+                        val mezclada = mutableListOf<Peliculas>()
+                        val peliculasIterator = peliculasList.filter { !it.esSerie }.iterator()
+                        val seriesIterator = peliculasList.filter { it.esSerie }.iterator()
 
-                                // Alternar entre películas y series
-                                while (peliculasIterator.hasNext() || seriesIterator.hasNext()) {
-                                    if (peliculasIterator.hasNext()) {
-                                        mezclada.add(peliculasIterator.next())
-                                    }
-                                    if (seriesIterator.hasNext()) {
-                                        mezclada.add(seriesIterator.next())
-                                    }
-                                }
-
-                                // Filtrar duplicados
-                                val peliculasActuales =
-                                    _peliculasGenero2.value?.toList() ?: listOf()
-                                val peliculasNoDuplicadas = mezclada.filterNot { nuevaPelicula ->
-                                    peliculasActuales.any { it.id == nuevaPelicula.id }
-                                }
-
-                                // Actualizar la lista sin duplicados
-                                _peliculasGenero2.value =
-                                    _peliculasGenero2.value.orEmpty() + peliculasNoDuplicadas
-                            } catch (e: Exception) {
-                                e.printStackTrace()
-                            } finally {
-                                _isLoadingGenero2.value = false
+                        // Alternar entre películas y series
+                        while (peliculasIterator.hasNext() || seriesIterator.hasNext()) {
+                            if (peliculasIterator.hasNext()) {
+                                mezclada.add(peliculasIterator.next())
+                            }
+                            if (seriesIterator.hasNext()) {
+                                mezclada.add(seriesIterator.next())
                             }
                         }
+
+                        // Filtrar duplicados
+                        val peliculasActuales = _peliculasGenero2.value?.toList() ?: listOf()
+                        val peliculasNoDuplicadas = mezclada.filterNot { nuevaPelicula ->
+                            peliculasActuales.any { it.id == nuevaPelicula.id }
+                        }
+
+                        // Actualizar la lista sin duplicados
+                        _peliculasGenero2.value =
+                            peliculasActuales + peliculasNoDuplicadas
+
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    } finally {
+                        _isLoadingGenero2.value = false
                     }
                 }
+            } else {
+                _isLoadingGenero2.value = false
             }
         }
     }

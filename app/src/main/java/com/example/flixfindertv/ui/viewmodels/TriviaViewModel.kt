@@ -69,6 +69,11 @@ open class TriviaViewModel(private val context: Context, lifecycleOwner: Lifecyc
         lifecycleOwner.lifecycle.addObserver(lifecycleObserver)
     }
 
+    fun getNextQuestionButtonText(): String {
+        return if (_languageState.value == "es") "Siguiente pregunta" else "Next question"
+    }
+
+
     private fun getPrompt(): String {
         val language = _languageState.value
         return if (language == "es") {

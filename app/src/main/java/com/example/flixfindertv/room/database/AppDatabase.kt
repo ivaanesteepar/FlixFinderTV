@@ -18,7 +18,7 @@ import com.example.flixfindertv.room.dao.MovieDao
         FavoritoEntity::class,
         PeliculasEntity::class
     ],
-    version = 25
+    version = 27
 )
 
 @TypeConverters(Converters::class)

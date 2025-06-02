@@ -301,7 +301,7 @@ fun TriviaScreen(navController: NavHostController) {
                                         },
                                         modifier = Modifier.fillMaxWidth()
                                     ) {
-                                        Text(text = "Next question")
+                                        Text(text = triviaViewModel.getNextQuestionButtonText())
                                     }
                                 }
                                 Spacer(modifier = Modifier.height(12.dp))

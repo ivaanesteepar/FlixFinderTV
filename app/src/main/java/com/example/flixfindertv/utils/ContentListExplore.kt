@@ -12,6 +12,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -49,6 +50,7 @@ fun ContentListExplore(
     var movieGenre by remember { mutableStateOf("") }
     val usersViewModel: UsersViewModel = viewModel()
 
+
     LazyRow(
         modifier = Modifier
             .fillMaxWidth()
@@ -65,11 +67,6 @@ fun ContentListExplore(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            val selectedMovieGenres = movie.genre_ids
-                            genresViewModel.fetchGenreNames(selectedMovieGenres) { genres ->
-                                movieGenre = genres.joinToString(", ")
-                                usersViewModel.updateFavoriteGenre(movieGenre)
-                            }
                             navController.navigate("detalles/${movie.id}/${movie.esSerie}")
                         },
                     elevation = CardDefaults.cardElevation(4.dp)

@@ -102,7 +102,7 @@ fun HomeScreen(
             if (!nuevoGenero.isNullOrEmpty()) {
                 genresViewModel.limpiarPeliculasGenero1()
                 if (uid != null) {
-                    genresViewModel.obtenerPeliculasYSeriesGenero1(uid)
+                    genresViewModel.obtenerPeliculasYSeriesGenero1(nombreGenero1)
                     listStateGenero1.scrollToItem(0)
                 }
             }
@@ -116,7 +116,7 @@ fun HomeScreen(
             if (!nuevoGenero.isNullOrEmpty()) {
                 genresViewModel.limpiarPeliculasGenero2()
                 if (uid != null) {
-                    genresViewModel.obtenerPeliculasYSeriesGenero2(uid)
+                    genresViewModel.obtenerPeliculasYSeriesGenero2(nombreGenero2)
                     listStateGenero1.scrollToItem(0)
                 }
             }
@@ -129,7 +129,7 @@ fun HomeScreen(
 
         if (listStateGenero1.firstVisibleItemIndex >= (peliculasGenero1.size - threshold) && !isLoadingGenero1 && peliculasGenero1.size < maxMovies && hayConexion) {
             if (uid != null) {
-                genresViewModel.obtenerPeliculasYSeriesGenero1(uid)
+                genresViewModel.obtenerPeliculasYSeriesGenero1(nombreGenero1)
             }
         }
     }
@@ -138,7 +138,7 @@ fun HomeScreen(
 
         if (listStateGenero2.firstVisibleItemIndex >= (peliculasGenero2.size - threshold) && !isLoadingGenero2 && peliculasGenero2.size < maxMovies && hayConexion) {
             if (uid != null) {
-                genresViewModel.obtenerPeliculasYSeriesGenero2(uid)
+                genresViewModel.obtenerPeliculasYSeriesGenero2(nombreGenero2)
             }
         }
     }
@@ -150,37 +150,6 @@ fun HomeScreen(
                 moviesViewModel.obtenerContenidoProximo()
             }
         }
-    }
-
-    LaunchedEffect(peliculasGenero1, peliculasGenero2, peliculasProximas) {
-        val todasPeliculas = peliculasGenero1 + peliculasGenero2 + peliculasProximas
-        println("Todas las películas juntas:")
-        todasPeliculas.forEach { pelicula ->
-            println("Título: ${pelicula.titulo} - Poster: ${pelicula.poster_path}")
-        }
-    }
-
-    fun guardarPeliculasEnRoom() {
-        // Limpiar las tablas antes de insertar nuevas películas
-        offlineViewModel.limpiarPeliculasGenero1()
-        offlineViewModel.limpiarPeliculasGenero2()
-        offlineViewModel.limpiarPeliculasProximas()
-
-        // Insertar las primeras 20 películas de cada categoría en las tablas correspondientes
-        offlineViewModel.insertPeliculasGenero1(
-            peliculasGenero1.take(10)
-                .map { Genero1MovieEntity(idMovieEntity = it.id, pelicula = it) }
-        )
-
-        offlineViewModel.insertPeliculasGenero2(
-            peliculasGenero2.take(10)
-                .map { Genero2MovieEntity(idMovieEntity = it.id, pelicula = it) }
-        )
-
-        offlineViewModel.insertPeliculasProximas(
-            peliculasProximas.take(10)
-                .map { ProximasMovieEntity(idMovieEntity = it.id, pelicula = it) }
-        )
     }
 
     LaunchedEffect(hayConexion) {
@@ -206,10 +175,12 @@ fun HomeScreen(
     LaunchedEffect(peliculasGenero1.isNotEmpty() && peliculasGenero2.isNotEmpty() && peliculasProximas.isNotEmpty()) {
         if (peliculasGenero1.isNotEmpty() && peliculasGenero2.isNotEmpty() && peliculasProximas.isNotEmpty()) {
             println("Listas completas. Guardando en Room...")
-            guardarPeliculasEnRoom()
+            offlineViewModel.guardarPeliculasEnRoom(peliculasGenero1, peliculasGenero2, peliculasProximas)
         }
     }
 
+    println("lista con conexion: $peliculasGenero1")
+    println("lista sin conexion: $peliculasGenero1Offline")
 
     Scaffold(
         bottomBar = {

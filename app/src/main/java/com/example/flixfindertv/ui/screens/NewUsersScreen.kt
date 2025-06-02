@@ -27,7 +27,7 @@ fun NewQuestionsScreen(navController: NavHostController) {
         "Action", "Adventure", "Animation",
         "Comedy", "Crime", "Family",
         "Fantasy", "History", "Horror",
-        "Kids", "Music", "Mistery",
+        "Kids", "Music", "Mystery",
         "Reality", "Romance", "Science Fiction",
         "Soap", "Talk", "Thriller",
         "Western"
