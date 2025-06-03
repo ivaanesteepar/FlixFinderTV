@@ -18,7 +18,6 @@ db = firestore.client()
 with open('config.json', 'r') as config_file:
     config = json.load(config_file)
     key = bytes(config['clave_encriptacion'], 'utf-8')
-print(key)
 
 # Inicializa el objeto Fernet con la clave
 cipher = Fernet(key)
@@ -37,7 +36,7 @@ if doc.exists:
     # Desencripta la API key
     API_KEY = cipher.decrypt(encrypted_bytes).decode('utf-8')
 
-    print("API Key recuperada:", API_KEY)
+    print("API Key recuperada")
 else:
     print("No se encontró el documento o la clave API no está almacenada.")
 
@@ -74,22 +73,29 @@ def obtener_director(tipo, id_contenido):
         if response.status_code == 200:
             data = response.json()
             crew = data.get("crew", [])
-            for persona in crew:
-                if persona.get("job") == "Director":
-                    nombre_director = persona.get("name")
-                    foto_director = persona.get("profile_path")
-                    if foto_director:
-                        # Construir la URL de la foto del director
-                        foto_director_url = f"https://image.tmdb.org/t/p/w500{foto_director}"
-                    else:
-                        foto_director_url = None
-                    return nombre_director, foto_director_url
+
+            # Buscar primero Director
+            persona = next((p for p in crew if p.get("job") == "Director"), None)
+
+            # Si no se encuentra Director, buscar Executive Producer
+            if not persona:
+                persona = next((p for p in crew if p.get("job") == "Executive Producer"), None)
+
+            if persona:
+                nombre_director = persona.get("name")
+                foto_director = persona.get("profile_path")
+                if foto_director:
+                    foto_director_url = f"https://image.tmdb.org/t/p/w500{foto_director}"
+                else:
+                    foto_director_url = None
+                return nombre_director, foto_director_url
         else:
             print(f"Error al obtener director para {tipo} ID {id_contenido}: {response.status_code}")
     except Exception as e:
         print(f"Excepción al obtener director: {e}")
 
     return None, None
+
 
 
 
