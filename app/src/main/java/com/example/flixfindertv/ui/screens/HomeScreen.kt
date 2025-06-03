@@ -26,11 +26,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavController
 import com.example.flixfindertv.R
+import com.example.flixfindertv.room.entities.Genero1MovieEntity
+import com.example.flixfindertv.room.entities.Genero2MovieEntity
+import com.example.flixfindertv.room.entities.ProximasMovieEntity
 import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.ui.viewmodels.OfflineViewModel
 import com.example.flixfindertv.ui.viewmodels.OfflineViewModelFactory
 import com.example.flixfindertv.utils.BottomNavigationBar
-
 
 // Pantalla que muestra recomendaciones al usuario según sus gustos
 @Composable
@@ -75,10 +77,6 @@ fun HomeScreen(
     val listStateGenero2 = rememberLazyListState()
     val listStatePeliculasProximas = rememberLazyListState()
 
-    val countProximas by offlineViewModel.countProximas.collectAsState()
-    val countGeneros1 by offlineViewModel.countGeneros1.collectAsState()
-    val countGeneros2 by offlineViewModel.countGeneros2.collectAsState()
-
     val prevGenero1 = remember { mutableStateOf(genresViewModel.nombreGenero1.value) }
     val prevGenero2 = remember { mutableStateOf(genresViewModel.nombreGenero2.value) }
 
@@ -96,43 +94,6 @@ fun HomeScreen(
     BackHandler {
         activity?.finish()
     }
-
-    LaunchedEffect(peliculasGenero1) {
-        if (peliculasGenero1.isNotEmpty()) {
-            offlineViewModel.loadGenero1Movies()
-        }
-    }
-
-    LaunchedEffect(peliculasGenero2) {
-        if (peliculasGenero2.isNotEmpty()) {
-            offlineViewModel.loadGenero2Movies()
-        }
-    }
-
-    LaunchedEffect(peliculasProximas) {
-        if (peliculasProximas.isNotEmpty()) {
-            offlineViewModel.loadProximasMovies()
-        }
-    }
-
-    LaunchedEffect(countGeneros1) {
-        if (countGeneros1 > 0) {
-            offlineViewModel.loadGenero1Movies()
-        }
-    }
-
-    LaunchedEffect(countGeneros2) {
-        if (countGeneros2 > 0) {
-            offlineViewModel.loadGenero2Movies()
-        }
-    }
-
-    LaunchedEffect(countProximas) {
-        if (countProximas > 0) {
-            offlineViewModel.loadProximasMovies()
-        }
-    }
-
 
     LaunchedEffect(key1 = genresViewModel.nombreGenero1.value) {
         val nuevoGenero = genresViewModel.nombreGenero1.value
@@ -156,7 +117,7 @@ fun HomeScreen(
                 genresViewModel.limpiarPeliculasGenero2()
                 if (uid != null) {
                     genresViewModel.obtenerPeliculasYSeriesGenero2(nombreGenero2)
-                    listStateGenero2.scrollToItem(0)
+                    listStateGenero1.scrollToItem(0)
                 }
             }
         }
@@ -192,6 +153,16 @@ fun HomeScreen(
     }
 
     LaunchedEffect(hayConexion) {
+        if (!contenidoOfflineCargado) {
+            println("no hay conexion asi que accedemos a room")
+            offlineViewModel.loadGenero1Movies()
+            offlineViewModel.loadGenero2Movies()
+            offlineViewModel.loadProximasMovies()
+            contenidoOfflineCargado = true
+        }
+    }
+
+    LaunchedEffect(hayConexion) {
         if (hayConexion != prevHayConexion) {
             listStateGenero1.scrollToItem(0)
             listStateGenero2.scrollToItem(0)
@@ -207,8 +178,6 @@ fun HomeScreen(
             offlineViewModel.guardarPeliculasEnRoom(peliculasGenero1, peliculasGenero2, peliculasProximas)
         }
     }
-
-    println("peliculas proximas offline: $peliculasProximasOffline")
 
     Scaffold(
         bottomBar = {

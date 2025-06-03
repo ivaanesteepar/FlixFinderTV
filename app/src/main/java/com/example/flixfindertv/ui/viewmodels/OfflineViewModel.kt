@@ -110,18 +110,6 @@ class OfflineViewModel(application: Application) : AndroidViewModel(application)
         repository = MovieRepository(dao)
     }
 
-    val countGeneros1: StateFlow<Int> = movieDao.countGenero1Movies()
-        .stateIn(viewModelScope, SharingStarted.Lazily, 0)
-
-    val countGeneros2: StateFlow<Int> = movieDao.countGenero2Movies()
-        .stateIn(viewModelScope, SharingStarted.Lazily, 0)
-
-    val countProximas: StateFlow<Int> = movieDao.countProximasMovies()
-        .stateIn(viewModelScope, SharingStarted.Lazily, 0)
-
-
-
-
 
     fun guardarPeliculasEnRoom(
         genero1: List<Peliculas>,
