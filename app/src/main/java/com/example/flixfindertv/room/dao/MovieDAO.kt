@@ -183,5 +183,15 @@ interface MovieDao {
     @Query("DELETE FROM favoritos WHERE userId = :userId")
     suspend fun borrarFavoritosDeUsuario(userId: String)
 
+
+    @Query("SELECT COUNT(*) FROM peliculas_genero1")
+    fun countGenero1Movies(): Flow<Int>
+
+    @Query("SELECT COUNT(*) FROM peliculas_genero2")
+    fun countGenero2Movies(): Flow<Int>
+
+    @Query("SELECT COUNT(*) FROM peliculas_proximas")
+    fun countProximasMovies(): Flow<Int>
+
 }
 

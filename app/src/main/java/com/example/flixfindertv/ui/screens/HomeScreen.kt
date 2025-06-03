@@ -26,9 +26,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavController
 import com.example.flixfindertv.R
-import com.example.flixfindertv.room.entities.Genero1MovieEntity
-import com.example.flixfindertv.room.entities.Genero2MovieEntity
-import com.example.flixfindertv.room.entities.ProximasMovieEntity
 import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.ui.viewmodels.OfflineViewModel
 import com.example.flixfindertv.ui.viewmodels.OfflineViewModelFactory
@@ -80,6 +77,15 @@ fun HomeScreen(
     val prevGenero1 = remember { mutableStateOf(genresViewModel.nombreGenero1.value) }
     val prevGenero2 = remember { mutableStateOf(genresViewModel.nombreGenero2.value) }
 
+    val countGenero1 by offlineViewModel.countGeneros1.collectAsState(initial = 0)
+    val countGenero2 by offlineViewModel.countGeneros1.collectAsState(initial = 0)
+    val countProximas by offlineViewModel.countProximas.collectAsState(initial = 0)
+
+    var genero1 by rememberSaveable { mutableStateOf(false) }
+    var genero2 by rememberSaveable { mutableStateOf(false) }
+    var proximas by rememberSaveable { mutableStateOf(false) }
+
+
     LaunchedEffect(Unit) {
         moviesViewModel.obtenerContenidoProximo()
     }
@@ -93,6 +99,36 @@ fun HomeScreen(
     // BackHandler para manejar el retroceso
     BackHandler {
         activity?.finish()
+    }
+
+    LaunchedEffect(countGenero1) {
+        if (countGenero1 > 0) {
+            if (!genero1) {
+                println("countProximas: $countProximas -> cargando próximas películas offline")
+                offlineViewModel.loadGenero1Movies()
+                genero1 = true
+            }
+        }
+    }
+
+    LaunchedEffect(countGenero2) {
+        if (countGenero2 > 0) {
+            if (!genero2) {
+                println("countProximas: $countProximas -> cargando próximas películas offline")
+                offlineViewModel.loadGenero2Movies()
+                genero2 = true
+            }
+        }
+    }
+
+    LaunchedEffect(countProximas) {
+        if (countProximas > 0) {
+            if (!proximas) {
+                println("countProximas: $countProximas -> cargando próximas películas offline")
+                offlineViewModel.loadProximasMovies()
+                proximas = true
+            }
+        }
     }
 
     LaunchedEffect(key1 = genresViewModel.nombreGenero1.value) {
@@ -178,6 +214,8 @@ fun HomeScreen(
             offlineViewModel.guardarPeliculasEnRoom(peliculasGenero1, peliculasGenero2, peliculasProximas)
         }
     }
+
+    println("peliculas proximas offline: $peliculasProximasOffline")
 
     Scaffold(
         bottomBar = {
