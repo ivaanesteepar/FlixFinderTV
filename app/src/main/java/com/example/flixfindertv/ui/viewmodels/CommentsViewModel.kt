@@ -17,6 +17,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.util.UUID
 
+
 class CommentsViewModel : ViewModel() {
     private val firestore = FirebaseFirestore.getInstance()
 

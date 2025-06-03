@@ -13,6 +13,7 @@ import kotlinx.coroutines.withContext
 import java.net.HttpURLConnection
 import java.net.URL
 
+
 class ConexionViewModel(application: Application) : AndroidViewModel(application) {
     // Usamos StateFlow para poder observar la conexión
     private val _conexionEstablecida = MutableStateFlow(false)

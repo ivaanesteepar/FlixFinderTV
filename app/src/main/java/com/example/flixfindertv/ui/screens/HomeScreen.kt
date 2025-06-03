@@ -26,13 +26,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavController
 import com.example.flixfindertv.R
-import com.example.flixfindertv.room.entities.Genero1MovieEntity
-import com.example.flixfindertv.room.entities.Genero2MovieEntity
-import com.example.flixfindertv.room.entities.ProximasMovieEntity
 import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.ui.viewmodels.OfflineViewModel
 import com.example.flixfindertv.ui.viewmodels.OfflineViewModelFactory
 import com.example.flixfindertv.utils.BottomNavigationBar
+
 
 // Pantalla que muestra recomendaciones al usuario según sus gustos
 @Composable

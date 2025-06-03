@@ -17,7 +17,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-// ViewModel que maneja la obtención de las peliculas/series
+
 class MoviesViewModel : ViewModel() {
     private val db = FirebaseFirestore.getInstance()
 
