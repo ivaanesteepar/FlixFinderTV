@@ -6,7 +6,7 @@ from firebase_admin import credentials, firestore
 from cryptography.fernet import Fernet
 import base64
 
-
+# Configuración de la API de TMDb
 BASE_URL = 'https://api.themoviedb.org/3'
 
 # Inicializar Firebase
@@ -18,6 +18,7 @@ db = firestore.client()
 with open('config.json', 'r') as config_file:
     config = json.load(config_file)
     key = bytes(config['clave_encriptacion'], 'utf-8')
+print(key)
 
 # Inicializa el objeto Fernet con la clave
 cipher = Fernet(key)
@@ -27,7 +28,7 @@ doc_ref = db.collection('apiKeys').document('tmdbApiKey')
 doc = doc_ref.get()
 
 if doc.exists:
-    # Obtiene el valor del campo 'key' que está en base64
+    # Obtén el valor del campo 'key' que está en base64
     encrypted_base64 = doc.to_dict().get('key')
 
     # Decodifica la base64 a bytes
@@ -35,8 +36,8 @@ if doc.exists:
 
     # Desencripta la API key
     API_KEY = cipher.decrypt(encrypted_bytes).decode('utf-8')
-    
-    print("API Key recuperada:", API_KEY[:4] + '***')
+
+    print("API Key recuperada:", API_KEY)
 else:
     print("No se encontró el documento o la clave API no está almacenada.")
 
@@ -52,13 +53,13 @@ generos_collection = db.collection('generos')
 def obtener_trailer(tipo, id_contenido):
     url = f"{BASE_URL}/{tipo}/{id_contenido}/videos?api_key={API_KEY}&language=en-US"
     respuesta = requests.get(url)
-    
+
     if respuesta.status_code == 200:
         videos = respuesta.json().get('results', [])
         for video in videos:
             if video.get('type') == 'Trailer' and video.get('site') == 'YouTube':
                 return f"https://www.youtube.com/watch?v={video['key']}"
-    
+
     return None
 
 
@@ -87,7 +88,7 @@ def obtener_director(tipo, id_contenido):
             print(f"Error al obtener director para {tipo} ID {id_contenido}: {response.status_code}")
     except Exception as e:
         print(f"Excepción al obtener director: {e}")
-    
+
     return None, None
 
 
@@ -96,11 +97,11 @@ def obtener_generos(api_key):
     # Obtener géneros de películas
     url_movies = f"{BASE_URL}/genre/movie/list?api_key={api_key}&language=en-US"
     respuesta_movies = requests.get(url_movies)
-    
+
     # Obtener géneros de series
     url_tv = f"{BASE_URL}/genre/tv/list?api_key={api_key}&language=en-US"
     respuesta_tv = requests.get(url_tv)
-    
+
     # Verificar que las respuestas sean exitosas
     if respuesta_movies.status_code == 200 and respuesta_tv.status_code == 200:
         generos_movies = respuesta_movies.json()['genres']
@@ -128,7 +129,7 @@ def guardar_generos(generos):
             print(f"Género {genero['name']} guardado correctamente.")
         else:
             print(f"Género {genero['name']} ya existe, no se duplicará.")
-            
+
 
 def obtener_y_guardar_generos(api_key):
     generos = obtener_generos(api_key)
@@ -141,7 +142,7 @@ def obtener_y_guardar_generos(api_key):
 def obtener_pagina_actual():
     doc_ref = config_collection.document('pagina_actual')
     doc = doc_ref.get()
-    
+
     if doc.exists:
         return doc.to_dict().get('pagina', 51)  # Empezar desde la página 51 si no existe
     else:
@@ -153,7 +154,7 @@ def obtener_pagina_actual():
 def obtener_5_recientes(tipo, pagina):
     url = f"{BASE_URL}/{tipo}/popular?api_key={API_KEY}&page={pagina}"
     respuesta = requests.get(url)
-    
+
     if respuesta.status_code == 200:
         resultados = respuesta.json()['results']
 
@@ -184,7 +185,7 @@ def obtener_datos():
         respuesta = requests.get(url)
 
         if respuesta.status_code == 200:
-            peliculas = respuesta.json().get('results', [])  
+            peliculas = respuesta.json().get('results', [])
             todas_las_peliculas.extend(peliculas)
             ultima_pagina_peliculas = pagina  # Actualizar la última página exitosa
         else:
@@ -198,7 +199,7 @@ def obtener_datos():
         respuesta = requests.get(url)
 
         if respuesta.status_code == 200:
-            series = respuesta.json().get('results', [])  
+            series = respuesta.json().get('results', [])
             todas_las_series.extend(series)
             ultima_pagina_series = pagina  # Actualizar la última página exitosa
         else:
@@ -207,7 +208,7 @@ def obtener_datos():
 
     print(f"Última página de películas procesada: {ultima_pagina_peliculas}")
     print(f"Última página de series procesada: {ultima_pagina_series}")
-    
+
     return todas_las_peliculas, todas_las_series
 
 
@@ -215,7 +216,7 @@ def obtener_status_pelicula(movie_id):
     # Obtener el estado de una película desde TMDb
     url = f"{BASE_URL}/movie/{movie_id}?api_key={API_KEY}&language=en-US"
     respuesta = requests.get(url)
-    
+
     if respuesta.status_code == 200:
         datos = respuesta.json()
         return datos.get('status', 'Desconocido')  # Devuelve el status de la película
@@ -228,7 +229,7 @@ def obtener_status_serie(tv_id):
     # Obtener el estado de una serie desde TMDb
     url = f"{BASE_URL}/tv/{tv_id}?api_key={API_KEY}&language=en-US"
     respuesta = requests.get(url)
-    
+
     if respuesta.status_code == 200:
         datos = respuesta.json()
         return datos.get('status', 'Desconocido')  # Devuelve el status de la serie
@@ -237,8 +238,19 @@ def obtener_status_serie(tv_id):
         return 'Desconocido'
 
 
+def obtener_numero_temporadas_serie(tv_id):
+    url = f"{BASE_URL}/tv/{tv_id}?api_key={API_KEY}&language=es-ES"
+    respuesta = requests.get(url)
+    if respuesta.status_code == 200:
+        datos = respuesta.json()
+        return datos.get('number_of_seasons', 0)  # Devuelve 0 si no existe
+    else:
+        print(f"Error al obtener número de temporadas para serie {tv_id}: {respuesta.status_code}")
+        return 0
+
+
 def guardar_en_db(datos, coleccion, peliculas_eliminadas):
-    contador = 0  
+    contador = 0
 
     for item in datos:
         if str(item['id']) in peliculas_eliminadas:
@@ -249,16 +261,20 @@ def guardar_en_db(datos, coleccion, peliculas_eliminadas):
             status = obtener_status_pelicula(item['id'])
             trailer_url = obtener_trailer('movie', item['id'])
             director_nombre, director_foto_url = obtener_director('movie', item['id'])
+            numero_temporadas = None
+
         elif 'name' in item:  # Serie
             status = obtener_status_serie(item['id'])
             trailer_url = obtener_trailer('tv', item['id'])
             director_nombre, director_foto_url = obtener_director('tv', item['id'])
+            numero_temporadas = obtener_numero_temporadas_serie(item['id'])
 
         else:
             status = 'Desconocido'
             trailer_url = None
             director_nombre, director_foto_url = None, None
-        
+            numero_temporadas = None
+
         doc_ref = coleccion.document(str(item['id']))
         pelicula = {
             "id": str(item['id']),
@@ -278,8 +294,9 @@ def guardar_en_db(datos, coleccion, peliculas_eliminadas):
             "status": status,
             "esSerie": 'name' in item,
             "trailer": trailer_url,
-            "director_name": director_nombre,  # Almacenar el nombre del director
-            "director_photo_url": director_foto_url  # Almacenar la URL de la foto del director
+            "director_name": director_nombre,
+            "director_photo_url": director_foto_url,
+            "seasons": numero_temporadas
         }
 
         doc_ref.set(pelicula, merge=True)
@@ -288,6 +305,7 @@ def guardar_en_db(datos, coleccion, peliculas_eliminadas):
         contador += 1
 
     print(f"Se han guardado {contador} elementos.")
+
 
 
 
