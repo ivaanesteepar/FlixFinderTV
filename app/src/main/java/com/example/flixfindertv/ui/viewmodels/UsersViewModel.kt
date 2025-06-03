@@ -149,7 +149,8 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
             status = mapa["status"] as? String ?: "",
             trailer = mapa["trailer"] as? String,
             director_name = mapa["director_name"] as? String ?: "",
-            director_photo_url = mapa["director_photo_url"] as? String ?: ""
+            director_photo_url = mapa["director_photo_url"] as? String ?: "",
+            seasons = mapa["seasons"] as? Int ?: 0
         )
     }
 
@@ -770,7 +771,8 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
                 "status" to pelicula.status,
                 "trailer" to pelicula.trailer,
                 "director_name" to pelicula.director_name,
-                "director_photo_url" to pelicula.director_photo_url
+                "director_photo_url" to pelicula.director_photo_url,
+                "seasons" to pelicula.seasons
             )
 
             favoritesCollection.get().addOnSuccessListener { document ->

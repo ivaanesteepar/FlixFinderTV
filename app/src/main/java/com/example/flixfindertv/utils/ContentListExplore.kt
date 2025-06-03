@@ -42,13 +42,8 @@ fun ContentListExplore(
     listState: LazyListState,
 ) {
     val context = LocalContext.current
-
     val imageLoader = remember { ImageLoaderProvider.getImageLoader(context) }
-
     val moviesViewModel: MoviesViewModel = viewModel()
-    val genresViewModel: GenresViewModel = viewModel()
-    var movieGenre by remember { mutableStateOf("") }
-    val usersViewModel: UsersViewModel = viewModel()
 
 
     LazyRow(

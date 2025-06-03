@@ -56,7 +56,9 @@ fun MovieDetailsContent(
     originalLanguage: String?,
     status: String?,
     director: String?,
-    directorPhoto: String?
+    directorPhoto: String?,
+    seasons: Int?,
+    esSerie: Boolean
 ) {
     val context = LocalContext.current
     val viewModel: MoviesViewModel = viewModel()
@@ -206,6 +208,19 @@ fun MovieDetailsContent(
                 color = Color.White.copy(alpha = 0.7f),
                 modifier = Modifier.padding(start = 16.dp)
             )
+            if (esSerie){
+                Text(
+                    text = buildAnnotatedString {
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                            append("Seasons: ")
+                        }
+                        append(seasons.toString())
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White.copy(alpha = 0.7f),
+                    modifier = Modifier.padding(start = 16.dp)
+                )
+            }
         }
     }
 
