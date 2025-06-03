@@ -10,9 +10,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.flixfindertv.models.Peliculas
+import com.example.flixfindertv.room.dao.MovieDao
 import com.example.flixfindertv.room.database.AppDatabase
 import com.example.flixfindertv.room.entities.*
 import com.example.flixfindertv.room.repository.MovieRepository
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
@@ -94,6 +98,8 @@ class OfflineViewModel(application: Application) : AndroidViewModel(application)
     private val _seriesKids = MutableLiveData<List<PeliculasEntity>>(emptyList())
     val seriesKids: LiveData<List<PeliculasEntity>> = _seriesKids
 
+    private val movieDao: MovieDao = AppDatabase.getDatabase(application).movieDao()
+
     init {
         genresViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(application)
             .create(GenresViewModel::class.java)
@@ -104,6 +110,19 @@ class OfflineViewModel(application: Application) : AndroidViewModel(application)
         // Crear el repositorio con el DAO
         repository = MovieRepository(dao)
     }
+
+    val countGeneros1: StateFlow<Int> = movieDao.countGenero1Movies()
+        .stateIn(viewModelScope, SharingStarted.Lazily, 0)
+
+    val countGeneros2: StateFlow<Int> = movieDao.countGenero2Movies()
+        .stateIn(viewModelScope, SharingStarted.Lazily, 0)
+
+    val countProximas: StateFlow<Int> = movieDao.countProximasMovies()
+        .stateIn(viewModelScope, SharingStarted.Lazily, 0)
+
+
+
+
 
     fun guardarPeliculasEnRoom(
         genero1: List<Peliculas>,

@@ -503,7 +503,7 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
                                     if (!hayConexion) {
                                         Toast.makeText(
                                             context,
-                                            "No internet connection. Cannot log out",
+                                            "No internet connection. Logout operation could not be completed.",
                                             Toast.LENGTH_SHORT
                                         ).show()
                                         return@Button

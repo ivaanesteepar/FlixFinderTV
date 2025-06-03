@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.example.flixfindertv.room.entities.*
+import kotlinx.coroutines.flow.Flow
 
 // Interfaz que define las operaciones para gestionar películas y series en la base de datos
 @Dao
@@ -181,5 +182,16 @@ interface MovieDao {
 
     @Query("DELETE FROM favoritos WHERE userId = :userId")
     suspend fun borrarFavoritosDeUsuario(userId: String)
+
+
+    @Query("SELECT COUNT(*) FROM peliculas_genero1")
+    fun countGenero1Movies(): Flow<Int>
+
+    @Query("SELECT COUNT(*) FROM peliculas_genero2")
+    fun countGenero2Movies(): Flow<Int>
+
+    @Query("SELECT COUNT(*) FROM peliculas_proximas")
+    fun countProximasMovies(): Flow<Int>
+
 }
 

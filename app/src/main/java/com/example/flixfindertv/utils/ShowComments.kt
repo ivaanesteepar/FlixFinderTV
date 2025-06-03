@@ -244,7 +244,7 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                                 },
                                 modifier = Modifier.padding(end = 8.dp) // Espaciado entre el botón y el icono del corazón
                             ) {
-                                Text("Reply")
+                                Text("Reply", color = Color.Blue)
                             }
                             Row(
                                 verticalAlignment = Alignment.CenterVertically, // Alinea todos los íconos verticalmente al centro
@@ -589,7 +589,7 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                                     Column(
                                         modifier = Modifier
                                             .padding(4.dp)
-                                            .background(if (res.revision) Color(0xFFFFCDD2) else Color.Transparent)
+                                            .background(if (res.revision) Color(0xFFFFCDD2) else Color(0xFFEEEEEE))
                                     ) {
                                         var respuestaFotoPerfilUrl by remember { mutableStateOf("") }
 
@@ -880,7 +880,7 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                                                 // Show how many additional responses there are (only those not under review)
                                                 "See more responses (${respuestasAcontar.size})"
                                             },
-                                            color = MaterialTheme.colorScheme.primary
+                                            color = Color.Blue
                                         )
                                     }
                                 }
