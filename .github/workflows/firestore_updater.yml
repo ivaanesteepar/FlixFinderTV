@@ -30,4 +30,7 @@ jobs:
         run: echo "${{ secrets.FIREBASE_CERT }}" > update_service/flixfindertv-1f381-firebase-adminsdk-fbsvc-b62fc4096c.json
 
       - name: Ejecutar script
-        run: python update_service/database_update_service.py
+        run: |
+          cd update_service
+          python database_update_service.py
+
