@@ -27,7 +27,7 @@ jobs:
         run: echo "${{ secrets.CONFIG_FIREBASE }}" > update_service/config.json
 
       - name: Crear archivo firebase_cert.json
-        run: echo "${{ secrets.FIREBASE_CERT }}" > update_service/flixfindertv-1f381-firebase-adminsdk-fbsvc-b62fc4096c.json
+        run: printf '%s' "${{ secrets.FIREBASE_CERT }}" > update_service/flixfindertv-1f381-firebase-adminsdk-fbsvc-b62fc4096c.json
 
       - name: Ejecutar script
         run: |
