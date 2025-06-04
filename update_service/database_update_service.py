@@ -144,7 +144,7 @@ def obtener_y_guardar_generos(api_key):
         print("No se obtuvieron géneros.")
 
 
-def obtener_20_peliculas_recientes(paginas=10):
+def obtener_5_peliculas_recientes(paginas=20):
     resultados = []
     for pagina in range(1, paginas + 1):
         url = f"{BASE_URL}/movie/now_playing?api_key={API_KEY}&page={pagina}"
@@ -158,13 +158,13 @@ def obtener_20_peliculas_recientes(paginas=10):
 
     # Ordenar por fecha de estreno (release_date), descendente
     resultados_ordenados = sorted(resultados, key=lambda x: x.get('release_date', ''), reverse=True)
-    for pelicula in resultados_ordenados[:20]:
+    for pelicula in resultados_ordenados[:5]:
         print(f"ID: {pelicula.get('id')}, Fecha de estreno: {pelicula.get('release_date')}")
 
-    return resultados_ordenados[:20]
+    return resultados_ordenados[:5]
 
 
-def obtener_20_series_recientes(paginas=10):
+def obtener_5_series_recientes(paginas=20):
     resultados = []
     for pagina in range(1, paginas + 1):
         url = f"{BASE_URL}/tv/on_the_air?api_key={API_KEY}&page={pagina}"
@@ -178,10 +178,10 @@ def obtener_20_series_recientes(paginas=10):
 
     # Ordenar por fecha de primer episodio emitido (first_air_date), descendente
     resultados_ordenados = sorted(resultados, key=lambda x: x.get('first_air_date', ''), reverse=True)
-    for serie in resultados_ordenados[:20]:
+    for serie in resultados_ordenados[:5]:
         print(f"ID: {serie.get('id')}, Fecha de estreno: {serie.get('first_air_date')}")
 
-    return resultados_ordenados[:20]
+    return resultados_ordenados[:5]
 
 
 def obtener_datos():
@@ -360,9 +360,9 @@ def obtener_eliminadas():
     return peliculas_eliminadas, series_eliminadas
 
 
-def eliminar_20_antiguas(coleccion, peliculas_o_series_ordenadas):
+def eliminar_5_antiguas(coleccion, peliculas_o_series_ordenadas):
     # Obtener las primeras 5 películas o series más antiguas
-    peliculas_o_series_antiguas = peliculas_o_series_ordenadas[:20]
+    peliculas_o_series_antiguas = peliculas_o_series_ordenadas[:5]
 
     # Verificar si hay IDs duplicados en los elementos a eliminar
     ids = [item['id'] for item in peliculas_o_series_antiguas]
@@ -496,9 +496,9 @@ def obtener_y_guardar():
     print(f"Tamaño de peliculas_eliminadas: {len(peliculas_eliminadas)}")
     print(f"Tamaño de series_eliminadas: {len(series_eliminadas)}")
 
-    # Obtener las 20 películas y series más recientes de la página actual
-    peliculas_recientes = obtener_20_peliculas_recientes()
-    series_recientes = obtener_20_series_recientes()
+    # Obtener las 5 películas y series más recientes de la página actual
+    peliculas_recientes = obtener_5_peliculas_recientes()
+    series_recientes = obtener_5_series_recientes()
 
     # Ordenar las películas y series obtenidas por fecha de lanzamiento (más antiguas primero)
     peliculas_ordenadas = sorted(todas_las_peliculas, key=lambda x: x.get('release_date', ''), reverse=False)
@@ -506,19 +506,19 @@ def obtener_y_guardar():
 
     # Para las películas
     print(f"Eliminando películas más antiguas: {len(peliculas_ordenadas)} películas disponibles")
-    eliminar_20_antiguas(peliculas_collection, peliculas_ordenadas)
+    eliminar_5_antiguas(peliculas_collection, peliculas_ordenadas)
     
     peliculas_count = len(peliculas_collection.get())
-    print(f"Cantidad de películas en Firestore despues de eliminar 20 peliculas: {peliculas_count}")
+    print(f"Cantidad de películas en Firestore despues de eliminar 5 peliculas: {peliculas_count}")
 
     # Para las series
     print(f"Eliminando series más antiguas: {len(series_ordenadas)} series disponibles")
-    eliminar_20_antiguas(series_collection, series_ordenadas)
+    eliminar_5_antiguas(series_collection, series_ordenadas)
 
     series_count = len(series_collection.get())
-    print(f"Cantidad de series en Firestore despues de eliminar 20 series: {series_count}")
+    print(f"Cantidad de series en Firestore despues de eliminar 5 series: {series_count}")
 
-    # Guardar las 20 películas y series más recientes en la base de datos
+    # Guardar las 5 películas y series más recientes en la base de datos
     guardar_en_db(peliculas_recientes, peliculas_collection, peliculas_eliminadas)
     guardar_en_db(series_recientes, series_collection, series_eliminadas)
 
