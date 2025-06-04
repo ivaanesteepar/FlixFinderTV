@@ -1,9 +1,9 @@
 name: Actualización semanal de Firestore
 
 on:
-  #schedule:
-    #- cron: '0 9 * * 1'  # Lunes a las 09:00 UTC
-  workflow_dispatch:      # Ejecutable también manualmente
+  schedule:
+  - cron: '0 9 * * 1'  # Lunes a las 09:00 UTC
+  workflow_dispatch:   # Ejecutable también manualmente
 
 jobs:
   actualizar:
@@ -23,14 +23,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Crear archivo config.json
-        run: echo "${{ secrets.CONFIG_FIREBASE }}" > update_service/config.json
+      - name: Crear archivo config
+        run: |
+          echo '${{ secrets.CONFIG_FIREBASE }}' | base64 --decode > update_service/config.json
 
-      - name: Crear archivo firebase_cert.json
-        run: echo "${{ secrets.FIREBASE_CERT }}" > update_service/flixfindertv-1f381-firebase-adminsdk-fbsvc-b62fc4096c.json
+      - name: Crear archivo certificado
+        run: |
+          echo '${{ secrets.FIREBASE_CERT }}' | base64 --decode > update_service/flixfindertv-1f381-firebase-adminsdk-fbsvc-b62fc4096c.json
 
       - name: Ejecutar script
         run: |
           cd update_service
           python database_update_service.py
-
