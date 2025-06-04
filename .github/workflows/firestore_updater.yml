@@ -25,7 +25,7 @@ jobs:
 
       # Crear archivo de configuración desde secret
       - name: Crear archivo config.yaml
-        run: echo "${{ secrets.CONFIG_YAML }}" > update_service/config.yaml
+        run: echo "${{ secrets.CONFIG_FIREBASE }}" > update_service/config.json
 
       # Crear archivo certificado Firebase desde secret
       - name: Crear archivo firebase_cert.json
