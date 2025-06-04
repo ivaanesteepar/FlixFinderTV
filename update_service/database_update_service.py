@@ -1,3 +1,4 @@
+
 import requests
 import firebase_admin
 import time
@@ -97,8 +98,6 @@ def obtener_director(tipo, id_contenido):
     return None, None
 
 
-
-
 def obtener_generos(api_key):
     # Obtener géneros de películas
     url_movies = f"{BASE_URL}/genre/movie/list?api_key={api_key}&language=en-US"
@@ -145,36 +144,38 @@ def obtener_y_guardar_generos(api_key):
         print("No se obtuvieron géneros.")
 
 
-def obtener_pagina_actual():
-    doc_ref = config_collection.document('pagina_actual')
-    doc = doc_ref.get()
+def obtener_50_peliculas_recientes(paginas=10):
+    resultados = []
+    for pagina in range(1, paginas + 1):
+        url = f"{BASE_URL}/movie/now_playing?api_key={API_KEY}&page={pagina}"
+        respuesta = requests.get(url)
 
-    if doc.exists:
-        return doc.to_dict().get('pagina', 51)  # Empezar desde la página 51 si no existe
-    else:
-        # Si el documento no existe, crearlo con el valor predeterminado
-        doc_ref.set({'pagina': 51})
-        return 51  # Si no existe, comenzar desde la página 51
-
-
-def obtener_5_recientes(tipo, pagina):
-    url = f"{BASE_URL}/{tipo}/popular?api_key={API_KEY}&page={pagina}"
-    respuesta = requests.get(url)
-
-    if respuesta.status_code == 200:
-        resultados = respuesta.json()['results']
-
-        # Ajustamos el campo de fecha dependiendo del tipo (película o serie)
-        if tipo == 'movie':
-            return sorted(resultados, key=lambda x: x.get('release_date', ''), reverse=True)[:5]  # Películas por release_date
-        elif tipo == 'tv':
-            return sorted(resultados, key=lambda x: x.get('first_air_date', x.get('release_date_series', '')), reverse=True)[:5]  # Series por first_air_date
+        if respuesta.status_code == 200:
+            resultados_pagina = respuesta.json()['results']
+            resultados.extend(resultados_pagina)
         else:
-            print(f"Tipo desconocido: {tipo}")
-            return []
-    else:
-        print(f"Error al obtener datos de {tipo} en la página {pagina}")
-        return []
+            print(f"Error al obtener películas en la página {pagina}")
+
+    # Ordenar por fecha de estreno (release_date), descendente
+    resultados_ordenados = sorted(resultados, key=lambda x: x.get('release_date', ''), reverse=True)
+    return resultados_ordenados[:50]
+
+
+def obtener_50_series_recientes(paginas=10):
+    resultados = []
+    for pagina in range(1, paginas + 1):
+        url = f"{BASE_URL}/tv/on_the_air?api_key={API_KEY}&page={pagina}"
+        respuesta = requests.get(url)
+
+        if respuesta.status_code == 200:
+            resultados_pagina = respuesta.json()['results']
+            resultados.extend(resultados_pagina)
+        else:
+            print(f"Error al obtener series en la página {pagina}")
+
+    # Ordenar por fecha de primer episodio emitido (first_air_date), descendente
+    resultados_ordenados = sorted(resultados, key=lambda x: x.get('first_air_date', ''), reverse=True)
+    return resultados_ordenados[:50]
 
 
 def obtener_datos():
@@ -355,9 +356,9 @@ def obtener_eliminadas():
     return peliculas_eliminadas, series_eliminadas
 
 
-def eliminar_5_antiguas(coleccion, peliculas_o_series_ordenadas):
+def eliminar_50_antiguas(coleccion, peliculas_o_series_ordenadas):
     # Obtener las primeras 5 películas o series más antiguas
-    peliculas_o_series_antiguas = peliculas_o_series_ordenadas[:5]
+    peliculas_o_series_antiguas = peliculas_o_series_ordenadas[:50]
 
     # Verificar si hay IDs duplicados en los elementos a eliminar
     ids = [item['id'] for item in peliculas_o_series_antiguas]
@@ -484,8 +485,6 @@ def obtener_y_guardar():
         todas_las_peliculas, todas_las_series = obtener_todas_las_peliculas_y_series_firebase()
 
     # Continuar con el proceso de obtener y guardar las películas y series más recientes
-    # Obtener la página actual
-    pagina_actual = obtener_pagina_actual()
 
     peliculas_eliminadas, series_eliminadas = obtener_eliminadas()
 
@@ -493,9 +492,9 @@ def obtener_y_guardar():
     print(f"Tamaño de peliculas_eliminadas: {len(peliculas_eliminadas)}")
     print(f"Tamaño de series_eliminadas: {len(series_eliminadas)}")
 
-    # Obtener las 5 películas y series más recientes de la página actual
-    peliculas_recientes = obtener_5_recientes('movie', pagina_actual)
-    series_recientes = obtener_5_recientes('tv', pagina_actual)
+    # Obtener las 50 películas y series más recientes de la página actual
+    peliculas_recientes = obtener_50_peliculas_recientes()
+    series_recientes = obtener_50_series_recientes()
 
     # Ordenar las películas y series obtenidas por fecha de lanzamiento (más antiguas primero)
     peliculas_ordenadas = sorted(todas_las_peliculas, key=lambda x: x.get('release_date', ''), reverse=False)
@@ -503,19 +502,19 @@ def obtener_y_guardar():
 
     # Para las películas
     print(f"Eliminando películas más antiguas: {len(peliculas_ordenadas)} películas disponibles")
-    eliminar_5_antiguas(peliculas_collection, peliculas_ordenadas)
+    eliminar_50_antiguas(peliculas_collection, peliculas_ordenadas)
     
     peliculas_count = len(peliculas_collection.get())
-    print(f"Cantidad de películas en Firestore despues de eliminar 5 peliculas: {peliculas_count}")
+    print(f"Cantidad de películas en Firestore despues de eliminar 50 peliculas: {peliculas_count}")
 
     # Para las series
     print(f"Eliminando series más antiguas: {len(series_ordenadas)} series disponibles")
-    eliminar_5_antiguas(series_collection, series_ordenadas)
+    eliminar_50_antiguas(series_collection, series_ordenadas)
 
     series_count = len(series_collection.get())
-    print(f"Cantidad de series en Firestore despues de eliminar 5 series: {series_count}")
+    print(f"Cantidad de series en Firestore despues de eliminar 50 series: {series_count}")
 
-    # Guardar las 5 películas y series más recientes en la base de datos
+    # Guardar las 50 películas y series más recientes en la base de datos
     guardar_en_db(peliculas_recientes, peliculas_collection, peliculas_eliminadas)
     guardar_en_db(series_recientes, series_collection, series_eliminadas)
 
@@ -531,11 +530,6 @@ def obtener_y_guardar():
 
     contar_duplicados(peliculas_collection)
     contar_duplicados(series_collection)
-
-    # Aumentar la página actual en Firestore
-    pagina_actual += 1  # Incrementar la página en 1
-    config_collection.document('pagina_actual').set({'pagina': pagina_actual})
-    print(f"Página actual actualizada a {pagina_actual}.")
 
     
 if __name__ == "__main__":
