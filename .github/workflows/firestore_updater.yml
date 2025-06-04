@@ -24,4 +24,4 @@ jobs:
           pip install -r requirements.txt
 
       - name: Ejecutar script
-        run: python database_update_service
+        run: python update_service/database_update_service.py
