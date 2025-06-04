@@ -23,7 +23,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Crear archivo config.yaml
+      - name: Crear archivo config.json
         run: echo "${{ secrets.CONFIG_FIREBASE }}" > update_service/config.json
 
       - name: Crear archivo firebase_cert.json
