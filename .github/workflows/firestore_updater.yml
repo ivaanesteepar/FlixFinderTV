@@ -23,5 +23,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      # Crear archivo de configuración desde secret
+      - name: Crear archivo config.yaml
+        run: echo "${{ secrets.CONFIG_YAML }}" > update_service/config.yaml
+
+      # Crear archivo certificado Firebase desde secret
+      - name: Crear archivo firebase_cert.json
+        run: echo "${{ secrets.FIREBASE_CERT }}" > update_service/firebase_cert.json
+
       - name: Ejecutar script
         run: python update_service/database_update_service.py
