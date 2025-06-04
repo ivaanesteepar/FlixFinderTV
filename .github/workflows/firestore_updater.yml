@@ -1,0 +1,27 @@
+name: Actualización semanal de Firestore
+
+#on:
+  #schedule:
+    #- cron: '0 9 * * 1'  # Lunes a las 09:00 UTC
+  #workflow_dispatch:      # Ejecutable también manualmente
+
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clonar el repositorio
+        uses: actions/checkout@v2
+
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13.2'
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Ejecutar script
+        run: python database_update_service
