@@ -9,7 +9,7 @@
 </div>
 
 <div align="center">
-  <h1>Movie and Series Recommender Application</h1>
+  <h1>Personalized Audiovisual Content Discovery and Recommendation Application</h1>
 </div>
 
 <p align="center">
