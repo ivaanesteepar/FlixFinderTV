@@ -9,7 +9,7 @@
 </div>
 
 <div align="center">
-  <h1>Personalized Audiovisual Content Discovery and Recommendation Application</h1>
+  <h1>Audiovisual Content Discovery and Personalized Recommendation Application</h1>
 </div>
 
 <p align="center">
