@@ -361,66 +361,52 @@ def obtener_eliminadas():
 
 
 def eliminar_5_antiguas(coleccion, peliculas_o_series_ordenadas):
-    # Obtener las primeras 5 películas o series más antiguas
-    peliculas_o_series_antiguas = peliculas_o_series_ordenadas[:5]
-
-    # Verificar si hay IDs duplicados en los elementos a eliminar
-    ids = [item['id'] for item in peliculas_o_series_antiguas]
-    print(f"IDs a eliminar: {ids}")
-    print(f"IDs únicos a eliminar: {set(ids)}")
-    if len(ids) != len(set(ids)):
-        print("¡Alerta! Hay IDs duplicados en la lista de eliminación.")
-
-    # Inicializar un contador de eliminaciones
+    eliminados_ids = set()
     contador_eliminaciones = 0
+    i = 0
+    total_items = len(peliculas_o_series_ordenadas)
 
-    print(f"Se van a eliminar {len(peliculas_o_series_antiguas)} elementos")
+    while contador_eliminaciones < 5 and i < total_items:
+        item = peliculas_o_series_ordenadas[i]
+        id_actual = str(item['id'])
 
-    for item in peliculas_o_series_antiguas:
-        print(f"ID de documento a eliminar: {item['id']}")
-        # Verificar si es una película o una serie
-        if 'title' in item and item['title'] is not None:  # Es una película
-            titulo = item.get('title', 'No disponible')
-            fecha = item.get('release_date', 'Fecha no disponible')
+        if id_actual not in eliminados_ids:
+            eliminados_ids.add(id_actual)
 
-            # Imprimir información de la película a eliminar
-            print(f"Eliminando película: {titulo} - Fecha: {fecha}")
+            if 'title' in item and item['title'] is not None:  # Película
+                titulo = item.get('title', 'No disponible')
+                fecha = item.get('release_date', 'Fecha no disponible')
+                print(f"Eliminando película: {titulo} - Fecha: {fecha}")
 
-            # Eliminar el documento de la película
-            doc_ref = coleccion.document(str(item['id']))
-            doc_ref.delete()
+                doc_ref = coleccion.document(id_actual)
+                doc_ref.delete()
 
-            # Guardar el ID de la película eliminada en la colección 'eliminadas' (peliculas)
-            eliminadas_collection.document('peliculas').set({
-                'eliminadas': firestore.ArrayUnion([str(item['id'])])
-            }, merge=True)
+                eliminadas_collection.document('peliculas').set({
+                    'eliminadas': firestore.ArrayUnion([id_actual])
+                }, merge=True)
 
-            # Aumentar el contador de eliminaciones
+            elif 'name' in item and item['name'] is not None:  # Serie
+                titulo = item.get('name', 'No disponible')
+                fecha = item.get('release_date_series', item.get('first_air_date', 'Fecha no disponible'))
+                print(f"Eliminando serie: {titulo} - Fecha: {fecha}")
+
+                doc_ref = coleccion.document(id_actual)
+                doc_ref.delete()
+
+                eliminadas_collection.document('series').set({
+                    'eliminadas': firestore.ArrayUnion([id_actual])
+                }, merge=True)
+
             contador_eliminaciones += 1
+            time.sleep(1)  # si quieres mantener la pausa
 
-        elif 'name' in item and item['name'] is not None:  # Es una serie
-            titulo = item.get('name', 'No disponible')
-            fecha = item.get('release_date_series', item.get('first_air_date', 'Fecha no disponible'))
+        else:
+            print(f"ID duplicado detectado y saltado: {id_actual}")
 
-            # Imprimir información de la serie a eliminar
-            print(f"Eliminando serie: {titulo} - Fecha: {fecha}")
+        i += 1
 
-            # Eliminar el documento de la serie
-            doc_ref = coleccion.document(str(item['id']))
-            doc_ref.delete()
-
-            # Guardar el ID de la serie eliminada en la colección 'eliminadas' (series)
-            eliminadas_collection.document('series').set({
-                'eliminadas': firestore.ArrayUnion([str(item['id'])])
-            }, merge=True)
-
-            # Aumentar el contador de eliminaciones
-            contador_eliminaciones += 1
-        
-        time.sleep(1)
-
-    # Al final, imprimir cuántos elementos fueron eliminados
     print(f"Se eliminaron {contador_eliminaciones} elementos.")
+
 
 
 def contar_duplicados(coleccion):
