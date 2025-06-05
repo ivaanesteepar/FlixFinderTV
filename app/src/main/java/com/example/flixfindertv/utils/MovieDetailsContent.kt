@@ -58,7 +58,8 @@ fun MovieDetailsContent(
     director: String?,
     directorPhoto: String?,
     seasons: Int?,
-    esSerie: Boolean
+    esSerie: Boolean,
+    duration: Int?
 ) {
     val context = LocalContext.current
     val viewModel: MoviesViewModel = viewModel()
@@ -221,10 +222,22 @@ fun MovieDetailsContent(
                     modifier = Modifier.padding(start = 16.dp)
                 )
             }
+            else{
+                Text(
+                    text = buildAnnotatedString {
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                            append("Duration: ")
+                        }
+                        append("$duration min")
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White.copy(alpha = 0.7f),
+                    modifier = Modifier.padding(start = 16.dp)
+                )
+            }
         }
     }
 
-    // Descripción de la película o serie
     Spacer(modifier = Modifier.height(32.dp))
     Text(
         text = "Description",

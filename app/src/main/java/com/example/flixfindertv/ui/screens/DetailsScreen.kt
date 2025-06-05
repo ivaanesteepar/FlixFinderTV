@@ -70,6 +70,7 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
     var original_language by remember { mutableStateOf("") }
     var status by remember { mutableStateOf("") }
     var seasons by remember { mutableStateOf(0) }
+    var duracion by remember { mutableStateOf(0) }
     var director by remember { mutableStateOf("") }
     var directorPhoto by remember { mutableStateOf("") }
     val isDialogOpen = remember { mutableStateOf(false) }
@@ -115,6 +116,7 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                     status = it.status
                     voteCount = it.vote_count
                     seasons = it.seasons ?: 0
+                    duracion = it.duration ?: 0
 
                     movieBannerUrl = it.backdrop_path?.takeIf { path -> path.isNotEmpty() }
                         ?.let { path -> "https://image.tmdb.org/t/p/w500$path" }
@@ -262,7 +264,8 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                 director = director,
                 directorPhoto = directorPhoto,
                 seasons = seasons,
-                esSerie = esSerie
+                esSerie = esSerie,
+                duration = duracion
             )
             if (hayConexion) {
                 Spacer(modifier = Modifier.height(16.dp))

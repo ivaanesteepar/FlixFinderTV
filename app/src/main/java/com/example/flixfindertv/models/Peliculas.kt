@@ -24,7 +24,8 @@ data class Peliculas(
     val trailer: String? = null,
     val director_name: String? = "",
     val director_photo_url: String? = "",
-    val seasons: Int? = null
+    val seasons: Int? = null,
+    val duration: Int? = null
 ) {
     val titulo: String
         get() = title ?: name ?: "Título desconocido"

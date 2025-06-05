@@ -118,16 +118,13 @@ def obtener_generos(api_key):
 
 
 def guardar_generos(generos):
-    # Colección de géneros en Firestore
-    generos_collection = db.collection('generos')
-
     for genero in generos:
         # Comprobar si el género ya existe en Firestore
         doc_ref = generos_collection.document(str(genero['id']))
         doc = doc_ref.get()
 
         if not doc.exists:  # Si el género no existe, lo guardamos
-            generos_collection.document(str(genero['id'])).set({
+            doc_ref.set({
                 'id': genero['id'],
                 'name': genero['name']
             })
@@ -144,44 +141,85 @@ def obtener_y_guardar_generos(api_key):
         print("No se obtuvieron géneros.")
 
 
+def obtener_ids_existentes(coleccion):
+    docs = db.collection(coleccion).stream()
+    return {doc.id for doc in docs}
+
+
 def obtener_5_peliculas_recientes(paginas=20):
+    ids_existentes = obtener_ids_existentes("peliculas")  # IDs que ya están en Firestore
     resultados = []
+    peliculas_validas = []
+
     for pagina in range(1, paginas + 1):
         url = f"{BASE_URL}/movie/now_playing?api_key={API_KEY}&page={pagina}"
         respuesta = requests.get(url)
 
         if respuesta.status_code == 200:
-            resultados_pagina = respuesta.json()['results']
+            resultados_pagina = respuesta.json().get('results', [])
             resultados.extend(resultados_pagina)
         else:
             print(f"Error al obtener películas en la página {pagina}")
 
-    # Ordenar por fecha de estreno (release_date), descendente
     resultados_ordenados = sorted(resultados, key=lambda x: x.get('release_date', ''), reverse=True)
-    for pelicula in resultados_ordenados[:5]:
-        print(f"ID: {pelicula.get('id')}, Fecha de estreno: {pelicula.get('release_date')}")
 
-    return resultados_ordenados[:5]
+    for pelicula in resultados_ordenados:
+        id_pelicula = str(pelicula.get('id'))
+
+        if id_pelicula not in ids_existentes:
+            print(f"Película nueva encontrada: {id_pelicula}")
+            peliculas_validas.append(pelicula)
+            if len(peliculas_validas) == 5:
+                break
+        else:
+            print(f"Película ya existente en Firestore: {id_pelicula}")
+
+    if len(peliculas_validas) < 5:
+        print(f"Solo se encontraron {len(peliculas_validas)} películas nuevas.")
+
+    print("\nPelículas nuevas seleccionadas:")
+    for p in peliculas_validas:
+        print(f"ID: {p.get('id')}, Fecha de estreno: {p.get('release_date')}")
+
+    return peliculas_validas
 
 
 def obtener_5_series_recientes(paginas=20):
+    ids_existentes = obtener_ids_existentes("series")  # IDs que ya están en Firestore
     resultados = []
+    series_validas = []
+
     for pagina in range(1, paginas + 1):
         url = f"{BASE_URL}/tv/on_the_air?api_key={API_KEY}&page={pagina}"
         respuesta = requests.get(url)
 
         if respuesta.status_code == 200:
-            resultados_pagina = respuesta.json()['results']
+            resultados_pagina = respuesta.json().get('results', [])
             resultados.extend(resultados_pagina)
         else:
             print(f"Error al obtener series en la página {pagina}")
 
-    # Ordenar por fecha de primer episodio emitido (first_air_date), descendente
     resultados_ordenados = sorted(resultados, key=lambda x: x.get('first_air_date', ''), reverse=True)
-    for serie in resultados_ordenados[:5]:
-        print(f"ID: {serie.get('id')}, Fecha de estreno: {serie.get('first_air_date')}")
 
-    return resultados_ordenados[:5]
+    for serie in resultados_ordenados:
+        id_serie = str(serie.get('id'))
+
+        if id_serie not in ids_existentes:
+            print(f"Serie nueva encontrada: {id_serie}")
+            series_validas.append(serie)
+            if len(series_validas) == 5:
+                break
+        else:
+            print(f"Serie ya existente en Firestore: {id_serie}")
+
+    if len(series_validas) < 5:
+        print(f"Solo se encontraron {len(series_validas)} series nuevas.")
+
+    print("\nSeries nuevas seleccionadas:")
+    for s in series_validas:
+        print(f"ID: {s.get('id')}, Fecha de estreno: {s.get('first_air_date')}")
+
+    return series_validas
 
 
 def obtener_datos():
@@ -225,6 +263,19 @@ def obtener_datos():
     return todas_las_peliculas, todas_las_series
 
 
+def obtener_duracion_pelicula(movie_id):
+    # Obtener la duración de una película desde TMDb
+    url = f"{BASE_URL}/movie/{movie_id}?api_key={API_KEY}&language=en-US"
+    respuesta = requests.get(url)
+
+    if respuesta.status_code == 200:
+        datos = respuesta.json()
+        return datos.get('runtime')  # Devuelve la duración en minutos (puede ser None)
+    else:
+        print(f"Error al obtener la duración de la película con ID {movie_id}")
+        return None
+
+
 def obtener_status_pelicula(movie_id):
     # Obtener el estado de una película desde TMDb
     url = f"{BASE_URL}/movie/{movie_id}?api_key={API_KEY}&language=en-US"
@@ -266,36 +317,34 @@ def guardar_en_db(datos, coleccion, peliculas_eliminadas):
     contador = 0
 
     for item in datos:
-        if str(item['id']) in peliculas_eliminadas:
-            print(f"La {coleccion.id[:-1]} con ID {item['id']} ya fue eliminada y no se guardará.")
+        item_id = str(item['id'])
+        if item_id in peliculas_eliminadas:
+            print(f"La {coleccion.id[:-1]} con ID {item_id} ya fue eliminada y no se guardará.")
             continue
 
-        if 'title' in item:  # Película
-            status = obtener_status_pelicula(item['id'])
-            trailer_url = obtener_trailer('movie', item['id'])
-            director_nombre, director_foto_url = obtener_director('movie', item['id'])
-            numero_temporadas = None
+        es_serie = 'name' in item
+        tipo = 'tv' if es_serie else 'movie'
 
-        elif 'name' in item:  # Serie
-            status = obtener_status_serie(item['id'])
-            trailer_url = obtener_trailer('tv', item['id'])
-            director_nombre, director_foto_url = obtener_director('tv', item['id'])
-            numero_temporadas = obtener_numero_temporadas_serie(item['id'])
-
+        # Obtener información específica según sea película o serie
+        if es_serie:
+            status = obtener_status_serie(item_id)
+            numero_temporadas = obtener_numero_temporadas_serie(item_id)
+            duracion = None  # No se obtiene duración para series
         else:
-            status = 'Desconocido'
-            trailer_url = None
-            director_nombre, director_foto_url = None, None
+            status = obtener_status_pelicula(item_id)
             numero_temporadas = None
+            duracion = obtener_duracion_pelicula(item_id)  # Devuelve la duracion en minutos
 
-        doc_ref = coleccion.document(str(item['id']))
+        trailer_url = obtener_trailer(tipo, item_id)
+        director_nombre, director_foto_url = obtener_director(tipo, item_id)
+
         pelicula = {
-            "id": str(item['id']),
-            "title": item.get('title', None),
-            "name": item.get('name', None),
+            "id": item_id,
+            "title": item.get('title'),
+            "name": item.get('name'),
             "overview": item.get('overview', ''),
-            "release_date": item.get('release_date', None),
-            "release_date_series": item.get('first_air_date', None),
+            "release_date": item.get('release_date'),
+            "release_date_series": item.get('first_air_date'),
             "poster_path": item.get('poster_path', ''),
             "vote_average": str(item.get('vote_average', '0.0')),
             "vote_count": str(item.get('vote_count', '0')),
@@ -305,19 +354,22 @@ def guardar_en_db(datos, coleccion, peliculas_eliminadas):
             "backdrop_path": item.get('backdrop_path', ''),
             "popularity": item.get('popularity', 0.0),
             "status": status,
-            "esSerie": 'name' in item,
+            "esSerie": es_serie,
             "trailer": trailer_url,
             "director_name": director_nombre,
             "director_photo_url": director_foto_url,
-            "seasons": numero_temporadas
+            "seasons": numero_temporadas,
+            "duration": duracion  # Aquí añadimos la duración para películas
         }
 
+        doc_ref = coleccion.document(item_id)
         doc_ref.set(pelicula, merge=True)
-        print(f"Guardando {coleccion.id[:-1]} con ID {item['id']}...")
 
+        print(f"Guardando {coleccion.id[:-1]} con ID {item_id}...")
         contador += 1
 
     print(f"Se han guardado {contador} elementos.")
+
 
 
 # Función para obtener todas las películas y series de Firebase
