@@ -99,6 +99,7 @@ class OfflineViewModel(application: Application) : AndroidViewModel(application)
 
     private val movieDao: MovieDao = AppDatabase.getDatabase(application).movieDao()
 
+
     init {
         genresViewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(application)
             .create(GenresViewModel::class.java)
@@ -120,7 +121,10 @@ class OfflineViewModel(application: Application) : AndroidViewModel(application)
         .stateIn(viewModelScope, SharingStarted.Lazily, 0)
 
 
-
+    suspend fun obtenerFavoritoPorId(id: String): Peliculas? {
+        val favorito = movieDao.getFavoritoById(id)
+        return favorito?.pelicula
+    }
 
 
     fun guardarPeliculasEnRoom(

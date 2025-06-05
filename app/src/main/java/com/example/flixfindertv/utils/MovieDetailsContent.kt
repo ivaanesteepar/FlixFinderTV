@@ -59,14 +59,16 @@ fun MovieDetailsContent(
     directorPhoto: String?,
     seasons: Int?,
     esSerie: Boolean,
-    duration: Int?
+    duration: Int?,
+    popularity: Double?,
+    voteCount: String?,
+    voteAverage: String?
 ) {
     val context = LocalContext.current
     val viewModel: MoviesViewModel = viewModel()
-    val voteAverage by viewModel.voteAverage.collectAsState()
-    val popularity by viewModel.popularity.collectAsState()
-    val voteCount by viewModel.voteCount.collectAsState()
-    val truncatedVoteAvg = (voteAverage * 10).toInt() / 10.0
+    val truncatedVoteAvg = voteAverage?.toDoubleOrNull()?.let {
+        (it * 10).toInt() / 10.0
+    } ?: 0.0
     val cappedVoteAvg = minOf(truncatedVoteAvg, 10.0) // Asegura que la media no sea mayor a 10
     val voteAvgFormatted = if (cappedVoteAvg % 1.0 == 0.0) {
         cappedVoteAvg.toInt().toString()
@@ -75,11 +77,12 @@ fun MovieDetailsContent(
     }
 
     val imageLoader = remember { ImageLoaderProvider.getImageLoader(context) }
+    val voteAvgDouble = voteAverage?.toDoubleOrNull() ?: 0.0
 
     val color = when {
-        voteAverage < 5.0 -> Color(0xFFFF6F61) // Rojo
-        voteAverage <= 7.5 -> Color(0xFF00B0FF) // Azul
-        voteAverage <= 10.0 -> Color(0xFF2ECC71) // Verde
+        voteAvgDouble < 5.0 -> Color(0xFFFF6F61) // Rojo
+        voteAvgDouble <= 7.5 -> Color(0xFF00B0FF) // Azul
+        voteAvgDouble <= 10.0 -> Color(0xFF2ECC71) // Verde
         else -> Color(0xFF2ECC71)
     }
 

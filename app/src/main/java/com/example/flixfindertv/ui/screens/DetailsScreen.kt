@@ -18,7 +18,6 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,12 +38,17 @@ import com.example.flixfindertv.ui.viewmodels.CommentsViewModel
 import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.ui.viewmodels.GenresViewModel
 import com.example.flixfindertv.ui.viewmodels.MoviesViewModel
+import com.example.flixfindertv.ui.viewmodels.OfflineViewModel
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 import com.example.flixfindertv.utils.ImageLoaderProvider
 import com.example.flixfindertv.utils.MovieDetailsContent
+import com.example.flixfindertv.utils.PeliculaHelper.cargarDatosDesdePelicula
 import com.example.flixfindertv.utils.validateComment
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
 // Función que muestra la pantalla de detalles de una película o serie
@@ -55,6 +59,7 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
     val commentsViewModel: CommentsViewModel = viewModel()
     val moviesViewModel: MoviesViewModel = viewModel()
     val genresViewModel: GenresViewModel = viewModel()
+    val offlineViewModel: OfflineViewModel = viewModel()
     var movie by remember { mutableStateOf<Peliculas?>(null) }
     var movieId by remember { mutableStateOf("") }
     var movieTitle by remember { mutableStateOf("") }
@@ -107,52 +112,79 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
             .document(id)
             .get()
             .addOnSuccessListener { document ->
-                movie = document.toObject(Peliculas::class.java)
-                movie?.let {
-                    movieId = it.id
-                    movieTitle = it.title ?: it.name ?: ""
-                    movieDescription = it.overview
-                    original_language = it.original_language
-                    status = it.status
-                    voteCount = it.vote_count
-                    seasons = it.seasons ?: 0
-                    duracion = it.duration ?: 0
-
-                    movieBannerUrl = it.backdrop_path?.takeIf { path -> path.isNotEmpty() }
-                        ?.let { path -> "https://image.tmdb.org/t/p/w500$path" }
-
-
-                    movieCoverUrl = it.poster_path?.takeIf { path -> path.isNotEmpty() }
-                        ?.let { path -> "https://image.tmdb.org/t/p/w500$path" } ?: ""
-
-
-                    moviePopularity = it.popularity
-                    director = it.director_name ?: ""
-                    directorPhoto = it.director_photo_url ?: ""
-
-                    val genreIds = it.genre_ids
-                    if (genreIds.isNotEmpty()) {
-                        genresViewModel.fetchGenreNames(genreIds) { genres ->
-                            movieGenre = genres.joinToString(", ")
+                if (document.exists()) {
+                    val result = document.toObject(Peliculas::class.java)
+                    result?.let {
+                        movie = it
+                        cargarDatosDesdePelicula(
+                            pelicula = it,
+                            esSerie = esSerie,
+                            genresViewModel = genresViewModel,
+                            usersViewModel = usersViewModel,
+                            setMovieId = { movieId = it },
+                            setMovieTitle = { movieTitle = it },
+                            setMovieDescription = { movieDescription = it ?: "" },
+                            setOriginalLanguage = { original_language = it },
+                            setStatus = { status = it },
+                            setVoteCount = { voteCount = it },
+                            setSeasons = { seasons = it },
+                            setDuracion = { duracion = it },
+                            setMovieBannerUrl = { movieBannerUrl = it },
+                            setMovieCoverUrl = { movieCoverUrl = it },
+                            setMoviePopularity = { moviePopularity = it },
+                            setDirector = { director = it },
+                            setDirectorPhoto = { directorPhoto = it },
+                            setMovieGenre = { movieGenre = it },
+                            setReleaseDate = { releaseDate = it },
+                            setVoteAverage = { voteAverage = it },
+                            setTrailerUrl = { trailerUrl = it }
+                        )
+                    }
+                } else {
+                    // No existe en Firestore → intenta buscar en Room
+                    CoroutineScope(Dispatchers.IO).launch {
+                        val peliculaLocal = offlineViewModel.obtenerFavoritoPorId(id)
+                        withContext(Dispatchers.Main) {
+                            if (peliculaLocal != null) {
+                                movie = peliculaLocal
+                                cargarDatosDesdePelicula(
+                                    pelicula = peliculaLocal,
+                                    esSerie = esSerie,
+                                    genresViewModel = genresViewModel,
+                                    usersViewModel = usersViewModel,
+                                    setMovieId = { movieId = it },
+                                    setMovieTitle = { movieTitle = it },
+                                    setMovieDescription = { movieDescription = it ?: "" },
+                                    setOriginalLanguage = { original_language = it },
+                                    setStatus = { status = it },
+                                    setVoteCount = { voteCount = it },
+                                    setSeasons = { seasons = it },
+                                    setDuracion = { duracion = it },
+                                    setMovieBannerUrl = { movieBannerUrl = it },
+                                    setMovieCoverUrl = { movieCoverUrl = it },
+                                    setMoviePopularity = { moviePopularity = it },
+                                    setDirector = { director = it },
+                                    setDirectorPhoto = { directorPhoto = it },
+                                    setMovieGenre = { movieGenre = it },
+                                    setReleaseDate = { releaseDate = it },
+                                    setVoteAverage = { voteAverage = it },
+                                    setTrailerUrl = { trailerUrl = it }
+                                )
+                            } else {
+                                errorMessage.value = "No se encontró la película o serie."
+                            }
+                            println("movie popularity en local: $moviePopularity")
                         }
-                    } else {
-                        movieGenre = "Genre not available"
                     }
-
-                    releaseDate = if (esSerie) {
-                        it.release_date_series ?: "Date not available"
-                    } else {
-                        it.release_date ?: "Date not available"
-                    }
-
-                    voteAverage = it.vote_average
-                    trailerUrl = it.trailer.toString()
-
-                    usersViewModel.checkIfFavorite(id, esSerie)
                 }
             }
+            .addOnFailureListener {
+                errorMessage.value = "Error al cargar los datos de Firestore."
+            }
+
         commentsViewModel.getComments(id)
     }
+
     val commentsList by commentsViewModel.comments.collectAsState()
 
     Box(
@@ -265,7 +297,10 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                 directorPhoto = directorPhoto,
                 seasons = seasons,
                 esSerie = esSerie,
-                duration = duracion
+                duration = duracion,
+                popularity = moviePopularity,
+                voteCount = voteCount,
+                voteAverage = voteAverage
             )
             if (hayConexion) {
                 Spacer(modifier = Modifier.height(16.dp))

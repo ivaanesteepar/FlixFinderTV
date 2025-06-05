@@ -78,7 +78,7 @@ fun HomeScreen(
     val prevGenero2 = remember { mutableStateOf(genresViewModel.nombreGenero2.value) }
 
     val countGenero1 by offlineViewModel.countGeneros1.collectAsState(initial = 0)
-    val countGenero2 by offlineViewModel.countGeneros1.collectAsState(initial = 0)
+    val countGenero2 by offlineViewModel.countGeneros2.collectAsState(initial = 0)
     val countProximas by offlineViewModel.countProximas.collectAsState(initial = 0)
 
     var genero1 by rememberSaveable { mutableStateOf(false) }
