@@ -68,3 +68,10 @@ Bachelor's Degree in Computer Engineering - University of Burgos</p>
   <li><strong>Smooth and Modern Interface</strong>: Using Jetpack Compose, it achieves an intuitive and attractive user interface.</li>
   <li><strong>Advanced Search</strong>: Allows users to search movies and TV shows by title and genre, thanks to integration with the TMDB API.</li>
 </ul>
+
+## License
+
+This project is licensed under the [GNU General Public License v3.0 (GPLv3)](https://www.gnu.org/licenses/gpl-3.0.en.html).  
+You can see more details by opening the **LICENSE** file included in this repository.
+
+</div>
