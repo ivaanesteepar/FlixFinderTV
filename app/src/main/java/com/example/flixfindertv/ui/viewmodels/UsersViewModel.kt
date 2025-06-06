@@ -63,6 +63,51 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
 
     val userId = FirebaseAuth.getInstance().currentUser?.uid
 
+    fun newUsersFunction(
+        generosSeleccionados: List<String>,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        if (generosSeleccionados.size != 2) {
+            onError("You must select two genres")
+            return
+        }
+
+        val userId = auth.currentUser?.uid
+        if (userId == null) {
+            onError("Could not retrieve the current user")
+            return
+        }
+
+        val userRef = firestore.collection("usuarios").document(userId)
+
+        firestore.runTransaction { transaction ->
+            val snapshot = transaction.get(userRef)
+            val generosFavoritos =
+                snapshot.get("generosFavoritos") as? Map<String, Long> ?: emptyMap()
+
+            val nuevosGeneros = generosFavoritos.toMutableMap()
+
+            generosSeleccionados.forEach { genero ->
+                val currentCount = nuevosGeneros[genero] ?: 0L
+                nuevosGeneros[genero] = currentCount + 1
+            }
+
+            transaction.update(
+                userRef,
+                mapOf(
+                    "esNuevo" to false,
+                    "generosFavoritos" to nuevosGeneros
+                )
+            )
+        }.addOnSuccessListener {
+            onSuccess()
+        }.addOnFailureListener { e ->
+            onError("Error al guardar la selección: ${e.message}")
+        }
+    }
+
+
 
     fun cargarFavoritasDesdeFirestore(
         userId: String,

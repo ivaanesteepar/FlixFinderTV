@@ -15,8 +15,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.flixfindertv.R
+import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -36,8 +38,7 @@ fun NewQuestionsScreen(navController: NavHostController) {
     var generosSeleccionados by remember { mutableStateOf<List<String>>(emptyList()) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
-    val auth = FirebaseAuth.getInstance()
-    val firestore = FirebaseFirestore.getInstance()
+    val viewModel: UsersViewModel = viewModel()
 
     Box(
         modifier = Modifier
@@ -103,45 +104,17 @@ fun NewQuestionsScreen(navController: NavHostController) {
 
             Button(
                 onClick = {
-                    if (generosSeleccionados.size == 2) {
-                        val userId = auth.currentUser?.uid
-                        if (userId != null) {
-                            val userRef = firestore.collection("usuarios").document(userId)
-
-                            firestore.runTransaction { transaction ->
-                                val snapshot = transaction.get(userRef)
-                                val generosFavoritos =
-                                    snapshot.get("generosFavoritos") as? Map<String, Long> ?: emptyMap()
-
-                                val nuevosGeneros = generosFavoritos.toMutableMap()
-
-                                // Incrementamos contador para los géneros seleccionados o inicializamos en 1
-                                generosSeleccionados.forEach { genero ->
-                                    val currentCount = nuevosGeneros[genero] ?: 0L
-                                    nuevosGeneros[genero] = currentCount + 1
-                                }
-
-                                // Actualizamos el documento
-                                transaction.update(userRef, mapOf(
-                                    "esNuevo" to false,
-                                    "generosFavoritos" to nuevosGeneros
-                                ))
-                            }.addOnSuccessListener {
-                                navController.navigate("home")
-                            }.addOnFailureListener { e ->
-                                errorMessage = "Error al guardar la selección: ${e.message}"
-                            }
-                        } else {
-                            errorMessage = "Could not retrieve the current user"
-                        }
-                    } else {
-                        errorMessage = "You must select two genres"
-                    }
+                    viewModel.newUsersFunction(
+                        generosSeleccionados = generosSeleccionados,
+                        onSuccess = { navController.navigate("home") },
+                        onError = { error -> errorMessage = error }
+                    )
                 },
                 enabled = generosSeleccionados.isNotEmpty()
             ) {
                 Text(text = "Aceptar")
             }
+
         }
     }
 }
