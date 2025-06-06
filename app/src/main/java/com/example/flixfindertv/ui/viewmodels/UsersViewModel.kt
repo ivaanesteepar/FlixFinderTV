@@ -455,11 +455,9 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun updateFavoriteGenre(movieGenre: String) {
-        println("movie genres que recibe el update: $movieGenre")
         val firstGenre = movieGenre.split(",").first().trim()
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
         val userDocRef = FirebaseFirestore.getInstance().collection("usuarios").document(userId)
-        val maxGeneros = 2
 
         FirebaseFirestore.getInstance().runTransaction { transaction ->
             val snapshot = transaction.get(userDocRef)
@@ -468,30 +466,17 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
             val nuevosGeneros = generosFavoritos.toMutableMap()
 
             if (nuevosGeneros.containsKey(firstGenre)) {
-                // Ya existe, actualizamos timestamp
-                nuevosGeneros[firstGenre] = System.currentTimeMillis()
-                println("Género ya existe, se actualiza timestamp: $firstGenre")
+                val contadorActual = nuevosGeneros[firstGenre]?.toInt() ?: 0
+                nuevosGeneros[firstGenre] = contadorActual + 1
+                println("Género ya existe, contador incrementado: $firstGenre = ${contadorActual + 1}")
             } else {
-                if (nuevosGeneros.size < maxGeneros) {
-                    // Hay espacio, agregamos nuevo género
-                    nuevosGeneros[firstGenre] = System.currentTimeMillis()
-                    println("Género agregado: $firstGenre")
-                } else {
-                    // Reemplazamos el más antiguo
-                    val generoMasAntiguo = nuevosGeneros.minByOrNull { (_, timestamp) -> timestamp.toLong() }?.key
-                    if (generoMasAntiguo != null) {
-                        nuevosGeneros.remove(generoMasAntiguo)
-                        nuevosGeneros[firstGenre] = System.currentTimeMillis()
-                        println("Género reemplazado: $generoMasAntiguo por $firstGenre")
-                    }
-                }
+                nuevosGeneros[firstGenre] = 1
+                println("Nuevo género agregado con contador 1: $firstGenre")
             }
 
-            // Actualizamos el documento dentro de la transacción
             transaction.update(userDocRef, "generosFavoritos", nuevosGeneros)
-            println("Géneros favoritos actualizados dentro de la transacción: $nuevosGeneros")
+            println("Géneros favoritos actualizados: $nuevosGeneros")
 
-            // El bloque debe devolver algo, pero no nos interesa aquí.
             null
         }.addOnSuccessListener {
             println("Transacción completada con éxito")

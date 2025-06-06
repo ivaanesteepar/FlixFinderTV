@@ -108,21 +108,29 @@ fun NewQuestionsScreen(navController: NavHostController) {
                         if (userId != null) {
                             val userRef = firestore.collection("usuarios").document(userId)
 
-                            val timestamp = System.currentTimeMillis()
-                            val generosConFecha = generosSeleccionados.associateWith { timestamp }
+                            firestore.runTransaction { transaction ->
+                                val snapshot = transaction.get(userRef)
+                                val generosFavoritos =
+                                    snapshot.get("generosFavoritos") as? Map<String, Long> ?: emptyMap()
 
-                            val datos = mapOf(
-                                "esNuevo" to false,
-                                "generosFavoritos" to generosConFecha
-                            )
+                                val nuevosGeneros = generosFavoritos.toMutableMap()
 
-                            userRef.update(datos)
-                                .addOnSuccessListener {
-                                    navController.navigate("home")
+                                // Incrementamos contador para los géneros seleccionados o inicializamos en 1
+                                generosSeleccionados.forEach { genero ->
+                                    val currentCount = nuevosGeneros[genero] ?: 0L
+                                    nuevosGeneros[genero] = currentCount + 1
                                 }
-                                .addOnFailureListener { e ->
-                                    errorMessage = "Error al guardar la selección: ${e.message}"
-                                }
+
+                                // Actualizamos el documento
+                                transaction.update(userRef, mapOf(
+                                    "esNuevo" to false,
+                                    "generosFavoritos" to nuevosGeneros
+                                ))
+                            }.addOnSuccessListener {
+                                navController.navigate("home")
+                            }.addOnFailureListener { e ->
+                                errorMessage = "Error al guardar la selección: ${e.message}"
+                            }
                         } else {
                             errorMessage = "Could not retrieve the current user"
                         }

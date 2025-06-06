@@ -44,29 +44,33 @@ Bachelor's Degree in Computer Engineering - University of Burgos</p>
 
 <h2>Description</h2>
 
-<p>This project involves the development of an Android application for recommending movies and TV shows, using modern technologies such as Jetpack Compose for the user interface and Firebase as the backend. The app offers personalized recommendations based on a dataset of movies and TV shows stored in Firebase.</p>
+<p>This project involves the development of an Android application focused primarily on the <strong>discovery of new audiovisual content</strong>, complemented by personalized recommendations to enhance the user experience. Using modern technologies such as Jetpack Compose for the user interface and Firebase as the backend, the app helps users explore a wide variety of movies and TV shows, tailored to their tastes and preferences.</p>
 
 <p>The application features an intuitive and pleasant user interface, designed to provide a smooth and modern experience. Leveraging the advantages of Jetpack Compose, navigation between screens is simple and accessible. Additionally, the design adapts efficiently to different screen sizes, providing a consistent experience across mobile devices and tablets.</p>
 
-<p>The app is designed to allow users to comfortably and personally discover new movies and TV shows according to their tastes and preferences.</p>
+<p>The app is designed to allow users to comfortably and personally <strong>discover and explore new movies and TV shows</strong> according to their tastes and preferences, making content discovery the main focus while also providing personalized recommendations.</p>
+
 
 <h2>Technologies Used</h2>
 
 <ul>
   <li>Jetpack Compose for designing and building the user interface in a modern and efficient way.</li>
   <li>Firebase for cloud storage of movie and TV show data and user authentication if needed.</li>
-  <li>Gemini AI for implementing a small Trivia feature.</li>
+  <li>Gemini AI for implementing a small Trivia feature and for moderating user comments by filtering inappropriate content.</li>
   <li>TMDB API to access a large database of movies and TV shows, improving the variety and quality of suggestions.</li>
   <li>Kotlin as the programming language used for Android app development.</li>
 </ul>
 
+
 <h2>Main Features</h2>
 
 <ul>
-  <li>Personalized recommendations that provide movie and TV show suggestions based on a dataset.</li>
+  <li>Explore and discover new movies and TV shows across a wide range of genres and categories, prioritizing content discovery.</li>
+  <li>Personalized recommendations that complement the discovery experience by suggesting movies and TV shows based on user preferences.</li>
   <li>Smooth and modern interface using Jetpack Compose to achieve an intuitive and attractive user experience.</li>
   <li>Advanced search allowing users to find movies and TV shows by title and genre, thanks to integration with the TMDB API.</li>
 </ul>
+
 
 <h2>App Functionality</h2>
 <ul>

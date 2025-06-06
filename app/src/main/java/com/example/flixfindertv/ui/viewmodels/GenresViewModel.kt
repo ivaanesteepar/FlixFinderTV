@@ -165,20 +165,19 @@ class GenresViewModel : ViewModel() {
         }
     }
 
-    // Obtiene los géneros favoritos del usuario
     private fun obtenerGenerosFavoritos(userId: String, callback: (List<String>) -> Unit) {
         viewModelScope.launch {
             try {
                 val doc = db.collection("usuarios").document(userId).get().await()
-                val generosFavoritos =
-                    doc.get("generosFavoritos") as? Map<String, Long> ?: emptyMap()
-                val generosOrdenados = generosFavoritos.keys.toList()
+                val generosFavoritos = doc.get("generosFavoritos") as? Map<String, Number> ?: emptyMap()
 
-                if (generosOrdenados.size >= 2) {
-                    callback(listOf(generosOrdenados[0], generosOrdenados[1]))
-                } else {
-                    callback(emptyList())  // Si no hay suficientes géneros, devolvemos lista vacía
-                }
+                // Ordenar géneros por contador (de mayor a menor) y tomar los dos primeros
+                val top2Generos = generosFavoritos.entries
+                    .sortedByDescending { it.value.toInt() }
+                    .take(2)
+                    .map { it.key }
+
+                callback(top2Generos)
             } catch (e: Exception) {
                 e.printStackTrace()
                 callback(emptyList())
