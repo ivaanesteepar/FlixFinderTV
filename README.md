@@ -61,17 +61,7 @@ Bachelor's Degree in Computer Engineering - University of Burgos</p>
   <li><strong>Kotlin</strong>: Programming language used for Android app development.</li>
 </ul>
 
-<h2>Main Features</h2>
+<h2>License</h2>
 
-<ul>
-  <li><strong>Personalized Recommendations</strong>: Provides movie and TV show suggestions based on a dataset.</li>
-  <li><strong>Smooth and Modern Interface</strong>: Using Jetpack Compose, it achieves an intuitive and attractive user interface.</li>
-  <li><strong>Advanced Search</strong>: Allows users to search movies and TV shows by title and genre, thanks to integration with the TMDB API.</li>
-</ul>
-
-## License
-
-This project is licensed under the [GNU General Public License v3.0 (GPLv3)](https://www.gnu.org/licenses/gpl-3.0.en.html).  
-You can see more details by opening the **LICENSE** file included in this repository.
-
-</div>
+<p>This project is licensed under the GNU General Public License v3.0 (GPLv3)</p>
+<p>You can see more details by opening the <strong>LICENSE</strong> file included in this repository.</p>
