@@ -86,7 +86,7 @@ Bachelor's Degree in Computer Engineering - University of Burgos</p>
 
 <h2>How to Install and Run the APK</h2>
 <ol>
-  <li>Download the latest APK file from the <a href="releases/latest.apk" target="_blank" rel="noopener noreferrer">Releases section</a>.</li>
+  <li>Download the latest APK file from the <li>Download the latest APK file from the <a href="https://github.com/ivaanesteepar/FlixFinderTV/releases/latest" target="_blank" rel="noopener noreferrer">Releases section</a>.</li>
   <li>On your Android device, enable installation from unknown sources in Settings &gt; Security (if not already enabled).</li>
   <li>Open the downloaded APK file to start the installation process.</li>
   <li>Follow the on-screen instructions to install the app.</li>
