@@ -37,7 +37,7 @@ jobs:
         run: ls -l gradlew
 
       - name: Ejecutar tests
-        run: ./gradlew  testDebugUnitTest
+        run: ./gradlew testDebugUnitTest
 
       - name: Generar reporte de cobertura
         run: ./gradlew jacocoTestReport

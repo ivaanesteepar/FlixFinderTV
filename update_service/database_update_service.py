@@ -20,21 +20,21 @@ with open('config.json', 'r') as config_file:
     config = json.load(config_file)
     key = bytes(config['clave_encriptacion'], 'utf-8')
 
-# Inicializa el objeto Fernet con la clave
+# Inicializar el objeto Fernet con la clave
 cipher = Fernet(key)
 
-# Recupera el documento de Firebase
+# Recuperar el documento de Firebase
 doc_ref = db.collection('apiKeys').document('tmdbApiKey')
 doc = doc_ref.get()
 
 if doc.exists:
-    # Obtén el valor del campo 'key' que está en base64
+    # Se obtiene el valor del campo "key" que está en base64
     encrypted_base64 = doc.to_dict().get('key')
 
-    # Decodifica la base64 a bytes
+    # Se decodifica la base64 a bytes
     encrypted_bytes = base64.b64decode(encrypted_base64)
 
-    # Desencripta la API key
+    # Se desencripta la API key
     API_KEY = cipher.decrypt(encrypted_bytes).decode('utf-8')
 
     print("API Key recuperada")
@@ -50,6 +50,7 @@ eliminadas_collection = db.collection('eliminadas')
 generos_collection = db.collection('generos')
 
 
+# Función que obtiene el tráiler desde la API
 def obtener_trailer(tipo, id_contenido):
     url = f"{BASE_URL}/{tipo}/{id_contenido}/videos?api_key={API_KEY}&language=en-US"
     respuesta = requests.get(url)
@@ -63,6 +64,7 @@ def obtener_trailer(tipo, id_contenido):
     return None
 
 
+# Función que obtiene el director o el productor ejecutivo desde la API
 def obtener_director(tipo, id_contenido):
     url = f"{BASE_URL}/{tipo}/{id_contenido}/credits"
     params = {
@@ -98,6 +100,7 @@ def obtener_director(tipo, id_contenido):
     return None, None
 
 
+# Función que obtiene los géneros desde la API
 def obtener_generos(api_key):
     # Obtener géneros de películas
     url_movies = f"{BASE_URL}/genre/movie/list?api_key={api_key}&language=en-US"
@@ -117,6 +120,7 @@ def obtener_generos(api_key):
         return []
 
 
+# Función para guardar los géneros en Firestore
 def guardar_generos(generos):
     for genero in generos:
         # Comprobar si el género ya existe en Firestore
@@ -133,6 +137,7 @@ def guardar_generos(generos):
             print(f"Género {genero['name']} ya existe, no se duplicará.")
 
 
+# Función que maneja la obtención y el guardado de los géneros en Firestore
 def obtener_y_guardar_generos(api_key):
     generos = obtener_generos(api_key)
     if generos:
@@ -141,13 +146,15 @@ def obtener_y_guardar_generos(api_key):
         print("No se obtuvieron géneros.")
 
 
+# Función que obtiene los ids de una lista
 def obtener_ids_existentes(coleccion):
     docs = db.collection(coleccion).stream()
     return {doc.id for doc in docs}
 
 
+# Función que obtiene las 5 películas más recientes desde la API
 def obtener_5_peliculas_recientes(paginas=20):
-    ids_existentes = obtener_ids_existentes("peliculas")  # IDs que ya están en Firestore
+    ids_existentes = obtener_ids_existentes("peliculas")  # Ids que ya están en Firestore
     resultados = []
     peliculas_validas = []
 
@@ -184,6 +191,7 @@ def obtener_5_peliculas_recientes(paginas=20):
     return peliculas_validas
 
 
+# Función que obtiene las 5 series más recientes desde la API
 def obtener_5_series_recientes(paginas=20):
     ids_existentes = obtener_ids_existentes("series")  # IDs que ya están en Firestore
     resultados = []
@@ -221,7 +229,7 @@ def obtener_5_series_recientes(paginas=20):
 
     return series_validas
 
-
+# Función que obtiene las 50 primeras películas y series desde la API (se usa cuando la base de datos está vacía)
 def obtener_datos():
     todas_las_peliculas = []
     todas_las_series = []
@@ -263,6 +271,7 @@ def obtener_datos():
     return todas_las_peliculas, todas_las_series
 
 
+# Función que obtiene la duración de las películas desde la API
 def obtener_duracion_pelicula(movie_id):
     # Obtener la duración de una película desde TMDb
     url = f"{BASE_URL}/movie/{movie_id}?api_key={API_KEY}&language=en-US"
@@ -276,6 +285,7 @@ def obtener_duracion_pelicula(movie_id):
         return None
 
 
+# Función que devuelve el estado de las películas desde la API
 def obtener_status_pelicula(movie_id):
     # Obtener el estado de una película desde TMDb
     url = f"{BASE_URL}/movie/{movie_id}?api_key={API_KEY}&language=en-US"
@@ -283,12 +293,13 @@ def obtener_status_pelicula(movie_id):
 
     if respuesta.status_code == 200:
         datos = respuesta.json()
-        return datos.get('status', 'Desconocido')  # Devuelve el status de la película
+        return datos.get('status', 'Desconocido')
     else:
         print(f"Error al obtener el estado de la película con ID {movie_id}")
         return 'Desconocido'
 
 
+# Función que devuelve el estado de las series desde la API
 def obtener_status_serie(tv_id):
     # Obtener el estado de una serie desde TMDb
     url = f"{BASE_URL}/tv/{tv_id}?api_key={API_KEY}&language=en-US"
@@ -296,23 +307,25 @@ def obtener_status_serie(tv_id):
 
     if respuesta.status_code == 200:
         datos = respuesta.json()
-        return datos.get('status', 'Desconocido')  # Devuelve el status de la serie
+        return datos.get('status', 'Desconocido')
     else:
         print(f"Error al obtener el estado de la serie con ID {tv_id}")
         return 'Desconocido'
 
 
+# Función que devuelve el número de temporadas de las series desde la API
 def obtener_numero_temporadas_serie(tv_id):
     url = f"{BASE_URL}/tv/{tv_id}?api_key={API_KEY}&language=es-ES"
     respuesta = requests.get(url)
     if respuesta.status_code == 200:
         datos = respuesta.json()
-        return datos.get('number_of_seasons', 0)  # Devuelve 0 si no existe
+        return datos.get('number_of_seasons', 0)
     else:
         print(f"Error al obtener número de temporadas para serie {tv_id}: {respuesta.status_code}")
         return 0
 
 
+# Función que guarda películas y series en Firestore
 def guardar_en_db(datos, coleccion, peliculas_eliminadas):
     contador = 0
 
@@ -359,7 +372,7 @@ def guardar_en_db(datos, coleccion, peliculas_eliminadas):
             "director_name": director_nombre,
             "director_photo_url": director_foto_url,
             "seasons": numero_temporadas,
-            "duration": duracion  # Aquí añadimos la duración para películas
+            "duration": duracion
         }
 
         doc_ref = coleccion.document(item_id)
@@ -372,7 +385,7 @@ def guardar_en_db(datos, coleccion, peliculas_eliminadas):
 
 
 
-# Función para obtener todas las películas y series de Firebase
+# Función que obtiene todas las películas y series de Firebase
 def obtener_todas_las_peliculas_y_series_firebase():
     # Obtener todas las películas
     peliculas_docs = peliculas_collection.stream()
@@ -388,7 +401,7 @@ def obtener_todas_las_peliculas_y_series_firebase():
     return todas_las_peliculas, todas_las_series
 
 
-# Función para obtener las películas y series eliminadas previamente
+# Función que obtiene las películas y series eliminadas previamente
 def obtener_eliminadas():
     peliculas_eliminadas_ref = eliminadas_collection.document('peliculas')
     series_eliminadas_ref = eliminadas_collection.document('series')
@@ -412,6 +425,7 @@ def obtener_eliminadas():
     return peliculas_eliminadas, series_eliminadas
 
 
+# Función que elimina las 5 películas y series más antiguas de Firestore
 def eliminar_5_antiguas(coleccion, peliculas_o_series_ordenadas):
     eliminados_ids = set()
     contador_eliminaciones = 0
@@ -450,7 +464,7 @@ def eliminar_5_antiguas(coleccion, peliculas_o_series_ordenadas):
                 }, merge=True)
 
             contador_eliminaciones += 1
-            time.sleep(1)  # si quieres mantener la pausa
+            time.sleep(1)
 
         else:
             print(f"ID duplicado detectado y saltado: {id_actual}")
@@ -460,7 +474,7 @@ def eliminar_5_antiguas(coleccion, peliculas_o_series_ordenadas):
     print(f"Se eliminaron {contador_eliminaciones} elementos.")
 
 
-
+# Funcion que cuenta los duplicados de una lista
 def contar_duplicados(coleccion):
     # Obtener todos los documentos de la colección
     documentos = coleccion.get()
@@ -483,6 +497,7 @@ def contar_duplicados(coleccion):
         print(f"ID duplicado: {doc_id} - Contador: {count}")
 
 
+# Función principal
 def obtener_y_guardar():
     peliculas_eliminadas = []
     series_eliminadas = []
