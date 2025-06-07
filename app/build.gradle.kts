@@ -115,6 +115,10 @@ tasks.register<JacocoReport>("jacocoTestReport") {
     val debugTree = fileTree("${layout.buildDirectory.get().asFile}/tmp/kotlin-classes/debug") {
         exclude(fileFilter)
         include("**/ui/viewmodels/**")
+        include("**/ui/screens/ProfileScreenTest")
+        include("**/ui/screens/RegisterScreenTest")
+        include("**/ui/screens/LoginScreenTest")
+        include("**/ui/screens/ForgotPasswordScreenTest")
     }
 
     // Fuentes
