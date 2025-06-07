@@ -110,7 +110,7 @@ class UsersViewModelTest {
 
 
     @Test
-    fun test_saveToFavorites_actualizaFavoritos_siUsuarioNoNulo() {
+    fun `saveToFavorites actualiza favoritos si usuario no nulo`() {
         // Usamos los mocks ya creados en setUp: auth, firestore, etc.
 
         val favoritesCollection = mockk<DocumentReference>()
