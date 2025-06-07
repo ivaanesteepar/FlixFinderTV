@@ -506,8 +506,8 @@ fun DetailsScreen(navController: NavHostController, id: String, esSerie: Boolean
                                     // Aumentar el contador de comentarios en Firebase
                                     moviesViewModel.incrementUserCommentCount(userId)
 
-                                    // Si le damos una buena puntuación (por lo menos 3 estrellas), recomendamos el genero
-                                    if (selectedStars.value > 6) {
+                                    // Si le damos una buena puntuación (por lo menos 3 estrellas), recomendamos el género
+                                    if (selectedStars.value >= 6) {
                                         usersViewModel.updateFavoriteGenre(movieGenre)
                                     }
 
