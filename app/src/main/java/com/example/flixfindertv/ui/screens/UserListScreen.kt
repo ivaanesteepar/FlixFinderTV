@@ -161,7 +161,7 @@ fun UserListScreen(navController: NavController, uid: String, isFollowing: Boole
                     Text(
                         text = "You need an internet connection to view followers/following",
                         color = Color.Gray,
-                        textAlign = TextAlign.Center // Esto asegura que el texto esté centrado
+                        textAlign = TextAlign.Center
                     )
                 }
             }

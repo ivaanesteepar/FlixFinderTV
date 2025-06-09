@@ -204,7 +204,7 @@ fun ProfileScreen(navController: NavController, uid: String, isComment: Boolean)
     val conexionViewModel: ConexionViewModel = viewModel()
     val hayConexion by conexionViewModel.conexionEstablecida.collectAsState()
 
-    var userName by remember { mutableStateOf("Usuario desconocido") }
+    var userName by remember { mutableStateOf("Unknown User") }
     var userProfilePic by remember { mutableStateOf("") }
     var followingCount by remember { mutableStateOf(0) }
     var followersCount by remember { mutableStateOf(0) }

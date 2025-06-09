@@ -60,7 +60,7 @@ fun HomeScreen(
     val peliculasGenero2 by genresViewModel.peliculasGenero2.observeAsState(emptyList())
     val peliculasProximas by moviesViewModel.listaPeliculasProximas.observeAsState(emptyList())
 
-    // Listas de películas/series para los géneros
+    // Listas de películas/series offline para los géneros
     val peliculasGenero1Offline by offlineViewModel.listaPeliculasGenero1.observeAsState(emptyList())
     val peliculasGenero2Offline by offlineViewModel.listaPeliculasGenero2.observeAsState(emptyList())
     val peliculasProximasOffline by offlineViewModel.listaPeliculasProximas.observeAsState(emptyList())
@@ -81,9 +81,9 @@ fun HomeScreen(
     val countGenero2 by offlineViewModel.countGeneros2.collectAsState(initial = 0)
     val countProximas by offlineViewModel.countProximas.collectAsState(initial = 0)
 
-    var genero1 by rememberSaveable { mutableStateOf(false) }
-    var genero2 by rememberSaveable { mutableStateOf(false) }
-    var proximas by rememberSaveable { mutableStateOf(false) }
+    var flagGenero1 by rememberSaveable { mutableStateOf(false) }
+    var flagGenero2 by rememberSaveable { mutableStateOf(false) }
+    var flagProximas by rememberSaveable { mutableStateOf(false) }
 
 
     LaunchedEffect(Unit) {
@@ -103,30 +103,27 @@ fun HomeScreen(
 
     LaunchedEffect(countGenero1) {
         if (countGenero1 > 0) {
-            if (!genero1) {
-                println("countProximas: $countProximas -> cargando próximas películas offline")
+            if (!flagGenero1) {
                 offlineViewModel.loadGenero1Movies()
-                genero1 = true
+                flagGenero1 = true
             }
         }
     }
 
     LaunchedEffect(countGenero2) {
         if (countGenero2 > 0) {
-            if (!genero2) {
-                println("countProximas: $countProximas -> cargando próximas películas offline")
+            if (!flagGenero2) {
                 offlineViewModel.loadGenero2Movies()
-                genero2 = true
+                flagGenero2 = true
             }
         }
     }
 
     LaunchedEffect(countProximas) {
         if (countProximas > 0) {
-            if (!proximas) {
-                println("countProximas: $countProximas -> cargando próximas películas offline")
+            if (!flagProximas) {
                 offlineViewModel.loadProximasMovies()
-                proximas = true
+                flagProximas = true
             }
         }
     }
@@ -153,7 +150,7 @@ fun HomeScreen(
                 genresViewModel.limpiarPeliculasGenero2()
                 if (uid != null) {
                     genresViewModel.obtenerPeliculasYSeriesGenero2(nombreGenero2)
-                    listStateGenero1.scrollToItem(0)
+                    listStateGenero2.scrollToItem(0)
                 }
             }
         }
@@ -214,8 +211,6 @@ fun HomeScreen(
             offlineViewModel.guardarPeliculasEnRoom(peliculasGenero1, peliculasGenero2, peliculasProximas)
         }
     }
-
-    println("peliculas proximas offline: $peliculasProximasOffline")
 
     Scaffold(
         bottomBar = {
