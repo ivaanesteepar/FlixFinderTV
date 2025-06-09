@@ -60,6 +60,7 @@ Bachelor's Degree in Computer Engineering - University of Burgos</p>
   <li>Gemini AI for trivia and comment moderation.</li>
   <li>TMDB API to access a wide variety of movie and TV show data.</li>
   <li>Kotlin for Android development.</li>
+  <li>Python for the automated weekly data update service.</li>
 </ul>
 
 
@@ -79,6 +80,7 @@ Bachelor's Degree in Computer Engineering - University of Burgos</p>
   <li>Comment moderation using AI to filter inappropriate content.</li>
   <li>Ability to add movies and shows to favorites.</li>
   <li>Responsive UI adapting to different screen sizes.</li>
+  <li>Automated weekly update of the movie and TV show catalog using a Python-based service, which synchronizes the Firestore database with the latest data from TMDB.</li>
 </ul>
 
 
