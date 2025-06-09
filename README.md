@@ -96,3 +96,4 @@ Bachelor's Degree in Computer Engineering - University of Burgos</p>
 
 <p>This project is licensed under the GNU General Public License v3.0 (GPLv3).</p>
 <p>More details in the <a href="LICENSE" target="_blank" rel="noopener noreferrer">LICENSE</a> file.</p>
+![License](https://img.shields.io/github/license/USERNAME/REPO)
