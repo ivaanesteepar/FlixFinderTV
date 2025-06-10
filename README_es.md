@@ -76,7 +76,7 @@ Grado en Ingeniería Informática - Universidad de Burgos</p>
   <li>Selección de géneros favoritos para recomendaciones personalizadas.</li>
   <li>Listas personalizadas con películas recomendadas, series y próximos estrenos.</li>
   <li>Soporte para modo offline para navegar sin conexión.</li>
-  <li>Minijuego de trivias sobre cine con tecnología de Gemini AI.</li>
+  <li>Minijuego de trivia sobre cine a través de Gemini AI.</li>
   <li>Moderación de comentarios usando IA para filtrar contenido inapropiado.</li>
   <li>Posibilidad de añadir películas y series a favoritos.</li>
   <li>UI adaptable a diferentes tamaños de pantalla.</li>
