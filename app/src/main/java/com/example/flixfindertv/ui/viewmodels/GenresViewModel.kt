@@ -42,11 +42,11 @@ class GenresViewModel : ViewModel() {
 
 
     fun limpiarPeliculasGenero1() {
-        _peliculasGenero1.postValue(emptyList()) // Vacía la lista antes de actualizarla
+        _peliculasGenero1.postValue(emptyList())
     }
 
     fun limpiarPeliculasGenero2() {
-        _peliculasGenero2.postValue(emptyList()) // Vacía la lista del segundo género
+        _peliculasGenero2.postValue(emptyList())
     }
 
     fun fetchGenreNames(genreIds: List<Int>, onResult: (List<String>) -> Unit) {
@@ -123,8 +123,7 @@ class GenresViewModel : ViewModel() {
 
         } catch (e: Exception) {
             e.printStackTrace()
-            // Si hay un error, podrías manejarlo, por ejemplo, con un mensaje de error
-            peliculasPorGenero.value = emptyList()  // O devolver una lista vacía en caso de error
+            peliculasPorGenero.value = emptyList()  // Devolver una lista vacía en caso de error
         }
     }
 
@@ -264,7 +263,7 @@ class GenresViewModel : ViewModel() {
                         // Actualizar la lista sin duplicados
                         _peliculasGenero1.value = peliculasActuales + peliculasNoDuplicadas
 
-                        // Verificar si hemos cargado suficientes elementos (100 en este caso)
+                        // Verificar si hemos cargado suficientes elementos
                         if (_peliculasGenero1.value!!.size >= 100) {
                             lastVisibleGenero1 = null
                         }

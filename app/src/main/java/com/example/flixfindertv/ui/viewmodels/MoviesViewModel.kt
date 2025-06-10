@@ -114,7 +114,7 @@ class MoviesViewModel : ViewModel() {
 
         FirebaseFirestore.getInstance().runTransaction { transaction ->
             val snapshot = transaction.get(userRef)
-            val currentCount = snapshot.getLong("numComentarios")?.toInt() ?: 0 // Convertir a Int
+            val currentCount = snapshot.getLong("numComentarios")?.toInt() ?: 0
             transaction.update(userRef, "numComentarios", currentCount + 1)
         }.addOnFailureListener {
             Log.e("Firestore", "Error incrementando numComentarios en usuarios", it)
@@ -122,14 +122,13 @@ class MoviesViewModel : ViewModel() {
     }
 
     fun observeMovieDetails(movieId: String) {
-        if (movieId.isBlank()) return // Evita errores si el ID es vacío o nulo
+        if (movieId.isBlank()) return // Evitar errores si el ID es vacío o nulo
 
-        // Primero intenta buscar en la colección "peliculas"
+        // Intentar buscar en la colección "peliculas"
         db.collection("peliculas").document(movieId)
             .addSnapshotListener { snapshot, _ ->
                 snapshot?.let {
-                    if (it.exists()) { // Verifica que el documento exista
-                        // Manejo correcto del vote_average (puede ser String en Firestore)
+                    if (it.exists()) { // Verificar que el documento exista
                         val voteAverage = when (val vote = it.get("vote_average")) {
                             is String -> vote.toDoubleOrNull() ?: 0.0
                             is Number -> vote.toDouble()
@@ -137,22 +136,18 @@ class MoviesViewModel : ViewModel() {
                         }
                         _voteAverage.value = voteAverage
 
-                        // Manejo correcto de popularity (es Double en Firestore)
                         val popularity = it.getDouble("popularity") ?: 0.0
                         _popularity.value = popularity
 
-                        // Manejo correcto de vote_count (es String en Firestore)
                         val voteCountStr = it.getString("vote_count") ?: "0"
-                        val voteCount = voteCountStr.toLongOrNull() ?: 0L  // Convertimos el String a Long, si no puede se usa 0L
+                        val voteCount = voteCountStr.toLongOrNull() ?: 0L
 
-                        _voteCount.value = voteCount.toString() // Convertimos a String para mostrar en la UI
+                        _voteCount.value = voteCount.toString()
                     } else {
-                        // Si no se encuentra en "peliculas", busca en "series"
                         db.collection("series").document(movieId)
                             .addSnapshotListener { seriesSnapshot, _ ->
                                 seriesSnapshot?.let {
-                                    if (it.exists()) { // Verifica que el documento exista en "series"
-                                        // Manejo correcto del vote_average (puede ser String en Firestore)
+                                    if (it.exists()) {
                                         val voteAverage = when (val vote = it.get("vote_average")) {
                                             is String -> vote.toDoubleOrNull() ?: 0.0
                                             is Number -> vote.toDouble()
@@ -160,17 +155,14 @@ class MoviesViewModel : ViewModel() {
                                         }
                                         _voteAverage.value = voteAverage
 
-                                        // Manejo correcto de popularity (es Double en Firestore)
                                         val popularity = it.getDouble("popularity") ?: 0.0
                                         _popularity.value = popularity
 
-                                        // Manejo correcto de vote_count (es String en Firestore)
                                         val voteCountStr = it.getString("vote_count") ?: "0"
-                                        val voteCount = voteCountStr.toLongOrNull() ?: 0L  // Convertimos el String a Long, si no puede se usa 0L
+                                        val voteCount = voteCountStr.toLongOrNull() ?: 0L
 
-                                        _voteCount.value = voteCount.toString() // Convertimos a String para mostrar en la UI
+                                        _voteCount.value = voteCount.toString()
                                     } else {
-                                        // Si tampoco se encuentra en "series", aseguramos que los valores sean 0
                                         _voteAverage.value = 0.0
                                         _popularity.value = 0.0
                                         _voteCount.value = "0"
@@ -487,7 +479,7 @@ class MoviesViewModel : ViewModel() {
 
         viewModelScope.launch {
             try {
-                // Obtener la fecha actual en formato String (por ejemplo: "2024-04-10")
+                // Obtener la fecha actual en formato String
                 val currentDateString = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(
                     Date()
                 )

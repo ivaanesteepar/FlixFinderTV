@@ -108,7 +108,6 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
     }
 
 
-
     fun cargarFavoritasDesdeFirestore(
         userId: String,
         repository: MovieRepository
@@ -208,7 +207,6 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
             .document(uid)
             .addSnapshotListener { documentSnapshot, exception ->
                 if (exception != null) {
-                    // Aquí podrías exponer un estado de error si quieres
                     return@addSnapshotListener
                 }
                 if (documentSnapshot != null && documentSnapshot.exists()) {
@@ -253,7 +251,7 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
 
-        // Comprobar nombre de usuario disponible (excluyendo el usuario actual)
+        // Comprobar nombre de usuario disponible
         firestore.collection("usuarios")
             .whereEqualTo("nombre", userName)
             .get()
@@ -494,7 +492,7 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
         // Verificar si el UID es válido
         if (uid != null) {
             // Obtenemos el estado de logueo del usuario usando su UID
-            return sharedPreferences.getBoolean("is_logged_in_$uid", false)  // Devuelve 'false' si no está logueado
+            return sharedPreferences.getBoolean("is_logged_in_$uid", false)  // Devuelve false si no está logueado
         }
         return false
     }
@@ -761,7 +759,7 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
                     // Obtener las listas de favoritos del documento como una lista de mapas
                     val favoriteList = document.get(fieldToCheck) as? List<Map<String, Any>> ?: emptyList()
 
-                    // Comprobar si la película o serie está en los favoritos (buscando por id)
+                    // Comprobar si la película o serie está en los favoritos
                     _isFavorite.value = favoriteList.any { it["id"] == id }
                 } else {
                     _isFavorite.value = false
@@ -835,7 +833,6 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
-
 
     fun saveToLocalFavorites(context: Context, pelicula: Peliculas, userId: String?) {
         if (userId == null) return  // Si no hay usuario, no se guarda nada
@@ -973,13 +970,13 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
 
             // Mapear la lista de FavoritoEntity a una lista de Peliculas
             val peliculas = favoritos?.map { favorito ->
-                favorito.pelicula // Accedemos directamente a la propiedad 'pelicula' de FavoritoEntity
+                favorito.pelicula
             }
 
             // Actualizar el estado con la lista de películas favoritas
             if (peliculas != null) {
                 favouriteMovies.value = peliculas
-            } // Usamos .value para modificar el estado de la UI
+            }
         }
     }
 

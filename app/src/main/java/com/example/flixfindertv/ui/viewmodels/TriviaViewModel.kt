@@ -62,7 +62,7 @@ open class TriviaViewModel(private val context: Context, lifecycleOwner: Lifecyc
         }.launchIn(viewModelScope)
     }
 
-    // Cuando la actividad/fragmento esté activo, re-registrar el observer
+    // Cuando la actividad/fragmento esté activo, reregistrar el observer
     fun registerLanguageObserver(lifecycleOwner: LifecycleOwner) {
         val lifecycleObserver = LanguageLifecycleObserver(_languageState)
         lifecycleOwner.lifecycle.addObserver(lifecycleObserver)

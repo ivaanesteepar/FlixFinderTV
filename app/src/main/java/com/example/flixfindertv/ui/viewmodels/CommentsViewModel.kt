@@ -458,7 +458,6 @@ class CommentsViewModel : ViewModel() {
                 _comments.value = comentariosList
             }
             .addOnFailureListener {
-                // Manejar el error si ocurre
             }
     }
 
@@ -485,7 +484,6 @@ class CommentsViewModel : ViewModel() {
                 getComments(idContenido)
             }
             .addOnFailureListener {
-                // Manejar el error si ocurre
             }
     }
 
@@ -541,7 +539,6 @@ class CommentsViewModel : ViewModel() {
                 getComments(idContenido)  // Actualiza la lista de comentarios si lo deseas
             }
             .addOnFailureListener { e ->
-                // Manejar el error si ocurre
                 println("Error al enviar respuesta: ${e.message}")
             }
     }

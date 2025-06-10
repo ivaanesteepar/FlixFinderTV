@@ -26,6 +26,7 @@ import com.example.flixfindertv.ui.viewmodels.MoviesViewModel
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 import com.google.firebase.auth.FirebaseAuth
 
+
 // Composable que gestiona las rutas de navegación de la app FlixFinderTV según el estado de autenticación del usuario
 @Composable
 fun FlixFinderTVroutes(modifier: Modifier = Modifier, navController: NavHostController) {

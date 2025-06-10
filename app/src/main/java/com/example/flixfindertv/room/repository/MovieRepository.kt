@@ -73,22 +73,18 @@ class MovieRepository(private val movieDao: MovieDao) {
         return movieDao.getPeliculasFavoritas(userId)
     }
 
-    // Insertar una película o serie en los favoritos
     suspend fun insertFavorito(favorito: FavoritoEntity) {
         movieDao.insertFavorito(favorito)
     }
 
-    // Insertar varias películas o series en los favoritos
     suspend fun insertFavoritos(favoritos: List<FavoritoEntity>) {
         movieDao.insertFavoritos(favoritos)
     }
 
-    // Eliminar una película o serie de los favoritos
     suspend fun deleteFavorito(favorito: FavoritoEntity) {
         movieDao.deleteFavorito(favorito)
     }
-
-    // Obtener un favorito por ID
+    
     suspend fun getFavoritoById(id: String): FavoritoEntity? {
         return movieDao.getFavoritoById(id)
     }
