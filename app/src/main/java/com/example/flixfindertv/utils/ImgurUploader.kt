@@ -4,7 +4,6 @@ import android.util.Log
 import com.example.flixfindertv.BuildConfig
 import com.example.flixfindertv.models.ImgurResponse
 import com.example.flixfindertv.network.ImgurApiService
-import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.MediaType.Companion.toMediaTypeOrNull

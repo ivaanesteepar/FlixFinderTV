@@ -9,7 +9,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,7 +22,6 @@ import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import com.example.flixfindertv.R
 import com.example.flixfindertv.models.Peliculas
-import com.example.flixfindertv.ui.viewmodels.ConexionViewModel
 import com.example.flixfindertv.ui.viewmodels.GenresViewModel
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 
@@ -47,7 +45,7 @@ fun ContentListSearch (movie: Peliculas, navController: NavHostController) {
             },
         shape = MaterialTheme.shapes.small.copy(CornerSize(16.dp)),
         colors = CardDefaults.cardColors(
-            containerColor = if (isSerie) Color(0xFF4DB6AC) else Color(0xFF42A5F5) // Cambia los colores si es necesario
+            containerColor = if (isSerie) Color(0xFF4DB6AC) else Color(0xFF42A5F5)
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {

@@ -305,7 +305,7 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                                         Icon(
                                             imageVector = Icons.Filled.Publish,
                                             contentDescription = "Publicar",
-                                            tint = Color.Blue, // Puedes cambiar el color aquí
+                                            tint = Color.Blue,
                                             modifier = Modifier.size(30.dp) // Tamaño del icono dentro del botón
                                         )
                                     }
@@ -325,7 +325,7 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                                         Icon(
                                             imageVector = Icons.Filled.Delete,
                                             contentDescription = "Eliminar comentario",
-                                            tint = Color.Red, // Puedes cambiar el color aquí
+                                            tint = Color.Red,
                                             modifier = Modifier.size(30.dp) // Tamaño del icono dentro del botón
                                         )
                                     }
@@ -483,7 +483,6 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                                             // Modificar el campo 'revision' directamente (en tu caso lo pones en false)
                                             comentario.revision = false
 
-                                            // Asegúrate de que la UI se actualice con el cambio
                                             viewModel.updateCommentReviewStatus(
                                                 comentario.idContenido, comentario.id,
                                                 onSuccess = {
@@ -519,7 +518,7 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                         }
 
                         if (comentario.respuestas.isNotEmpty()) {
-                            // Verifica si alguna respuesta no está en revisión o si el usuario es admin
+                            // Verificar si alguna respuesta no está en revisión o si el usuario es admin
                             val shouldShowDivider = comentario.respuestas.any { !it.revision || isUserAdmin }
 
                             // Solo mostrar el divisor si alguna respuesta no está en revisión o si el usuario es admin
@@ -788,7 +787,7 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                                                         dismissButton = {
                                                             Button(
                                                                 onClick = {
-                                                                    showPublishDialogRes.value = false // Close the dialog
+                                                                    showPublishDialogRes.value = false
                                                                 }
                                                             ) {
                                                                 Text("No")
@@ -801,7 +800,7 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                                                 if (showDeleteDialogRes.value) {
                                                     AlertDialog(
                                                         onDismissRequest = {
-                                                            showDeleteDialogRes.value = false // Close the dialog if clicked outside
+                                                            showDeleteDialogRes.value = false
                                                         },
                                                         title = {
                                                             Text("Confirm Deletion")
@@ -819,15 +818,13 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                                                                             showDeleteDialogRes.value = false
                                                                             println("Response deleted")
 
-                                                                            // Filter out the deleted responses
                                                                             val updatedRespuestas = comentario.respuestas.filterNot { it.id == res.id }
                                                                             comentario.respuestas = updatedRespuestas
 
-                                                                            // Update the list of responses in the UI
                                                                             respuestasParaMostrar.value = if (comentario.respuestas.size > 2 && !showAllResponses) {
-                                                                                comentario.respuestas.take(2).toMutableList() // Take only the first 2 responses if not showing all
+                                                                                comentario.respuestas.take(2).toMutableList()
                                                                             } else {
-                                                                                comentario.respuestas.toMutableList() // Show all responses if applicable
+                                                                                comentario.respuestas.toMutableList()
                                                                             }
                                                                         },
                                                                         onFailure = { exception ->
@@ -842,7 +839,7 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                                                         dismissButton = {
                                                             Button(
                                                                 onClick = {
-                                                                    showDeleteDialogRes.value = false // Close the dialog
+                                                                    showDeleteDialogRes.value = false
                                                                 }
                                                             ) {
                                                                 Text("No")
@@ -877,7 +874,6 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
                                             text = if (showAllResponses) {
                                                 "See less"
                                             } else {
-                                                // Show how many additional responses there are (only those not under review)
                                                 "See more responses (${respuestasAcontar.size})"
                                             },
                                             color = Color.Blue
@@ -892,7 +888,6 @@ fun ShowComments(navController: NavController, commentsList: List<Comentarios>, 
             }
         }
     }
-
 
 }
 
