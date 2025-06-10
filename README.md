@@ -1,6 +1,6 @@
 <p align="right">
-  <a href="README.md" title="English README">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/a/ae/Flag_of_the_United_Kingdom.svg" alt="English" width="30" height="20" style="border:1px solid #ddd;"/>
+  <a href="README_es.md" title="Spanish README">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/9/9a/Flag_of_Spain.svg" alt="Spanish" width="30" height="20" style="border:1px solid #ddd;"/>
   </a>
 </p>
 
