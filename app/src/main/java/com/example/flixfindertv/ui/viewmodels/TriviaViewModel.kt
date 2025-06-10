@@ -22,7 +22,6 @@ class TriviaViewModelFactory(
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        // Verificar que la clase es TriviaViewModel
         if (modelClass.isAssignableFrom(TriviaViewModel::class.java)) {
             return TriviaViewModel(context, lifecycleOwner) as T
         }
@@ -141,14 +140,12 @@ open class TriviaViewModel(private val context: Context, lifecycleOwner: Lifecyc
                         }
                     })
 
-                    // Asignar el resultado a la variable global 'explanation'
+                    // Asignar el resultado a la variable global "explanation"
                     evaluation.text?.let { result ->
                         explanation = result
                     }
 
-                    // Luego puedes actualizar la UI con la explicación si lo deseas
                     explanation?.let {
-                        // Aquí puedes actualizar el estado de la UI con la explicación
                         _uiState.value = UiState.Success(it)
                     }
 
