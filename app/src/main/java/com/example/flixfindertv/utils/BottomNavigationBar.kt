@@ -28,7 +28,7 @@ fun BottomNavigationBar(navController: NavController, uid: String) {
         )
 
         items.forEach { item ->
-            // Obtén la ruta de la pantalla actual
+            // Obtener la ruta de la pantalla actual
             val currentRoute = navController.currentBackStackEntry?.destination?.route
             val isSelected = currentRoute?.startsWith(item.ruta) == true
 
@@ -47,7 +47,7 @@ fun BottomNavigationBar(navController: NavController, uid: String) {
                         color = if (isSelected) Color(0xFF42A5F5) else Color.White
                     )
                 },
-                selected = isSelected, // Marca como seleccionado
+                selected = isSelected, // Marcar como seleccionado
                 colors = NavigationBarItemDefaults.colors(
                     indicatorColor = Color.Transparent,
                 ),
