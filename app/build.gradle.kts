@@ -10,11 +10,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.flixfindertv"
+    namespace = "com.ivaanesteepar.flixfindertv"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.flixfindertv"
+        applicationId = "com.ivaanesteepar.flixfindertv"
         minSdk = 24
         targetSdk = 35
         versionCode = 1

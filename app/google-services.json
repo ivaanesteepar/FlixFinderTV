@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:961227804740:android:0b333743ae0c2155442c11",
+        "mobilesdk_app_id": "1:961227804740:android:1424b1fbedc9d67d442c11",
         "android_client_info": {
-          "package_name": "com.example.flixfindertv"
+          "package_name": "com.ivaanesteepar.flixfindertv"
         }
       },
       "oauth_client": [],
