@@ -9,6 +9,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,62 +27,67 @@ import com.example.flixfindertv.ui.viewmodels.GenresViewModel
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
 
 @Composable
-fun ContentListSearch (movie: Peliculas, navController: NavHostController) {
-    val isSerie = movie.esSerie
+fun ContentListSearch(movie: Peliculas, navController: NavHostController) {
     val usersViewModel: UsersViewModel = viewModel()
-    val genresViewModel: GenresViewModel = viewModel()
-    var movieGenre by remember { mutableStateOf("") }
+    val isAdult by usersViewModel.esAdulto.collectAsState()
 
-    genresViewModel.fetchGenreNames(movie.genre_ids) { genres ->
-        movieGenre = genres.joinToString(", ")
-    }
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-            .clickable {
-                navController.navigate("detalles/${movie.id}/${isSerie}")
-                usersViewModel.updateFavoriteGenre(movieGenre)
-            },
-        shape = MaterialTheme.shapes.small.copy(CornerSize(16.dp)),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isSerie) Color(0xFF4DB6AC) else Color(0xFF42A5F5)
-        )
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            val imagePainter = if (movie.poster_path != null) {
-                rememberAsyncImagePainter("https://image.tmdb.org/t/p/w500${movie.poster_path}")
-            } else {
-                rememberAsyncImagePainter(R.drawable.no_poster_image)  // Imagen local si no hay poster_path
+    // Solo mostrar el contenido si es adulto o la película no es para adultos
+    if (isAdult || !movie.adult) {
+        val isSerie = movie.esSerie
+        val genresViewModel: GenresViewModel = viewModel()
+        var movieGenre by remember { mutableStateOf("") }
+
+        genresViewModel.fetchGenreNames(movie.genre_ids) { genres ->
+            movieGenre = genres.joinToString(", ")
+        }
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .clickable {
+                    navController.navigate("detalles/${movie.id}/${isSerie}")
+                    usersViewModel.updateFavoriteGenre(movieGenre)
+                },
+            shape = MaterialTheme.shapes.small.copy(CornerSize(16.dp)),
+            colors = CardDefaults.cardColors(
+                containerColor = if (isSerie) Color(0xFF4DB6AC) else Color(0xFF42A5F5)
+            )
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                val imagePainter = if (movie.poster_path != null) {
+                    rememberAsyncImagePainter("https://image.tmdb.org/t/p/w500${movie.poster_path}")
+                } else {
+                    rememberAsyncImagePainter(R.drawable.no_poster_image)
+                }
+
+                Image(
+                    painter = imagePainter,
+                    contentDescription = "Portada de ${movie.title}",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+                val displayTitle = movie.title ?: movie.name ?: "Título no disponible"
+                Text(
+                    text = displayTitle,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontSize = 18.sp,
+                    color = Color.Black
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = movie.overview.ifBlank { "No hay descripción disponible" },
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontSize = 14.sp,
+                    color = Color.Black,
+                    maxLines = 6,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                )
             }
-
-            // Cargar la imagen
-            Image(
-                painter = imagePainter,
-                contentDescription = "Portada de ${movie.title}",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-            val displayTitle = movie.title ?: movie.name ?: "Título no disponible"
-            Text(
-                text = displayTitle,
-                style = MaterialTheme.typography.titleMedium,
-                fontSize = 18.sp,
-                color = Color.Black
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = movie.overview.ifBlank { "No hay descripción disponible" },
-                style = MaterialTheme.typography.bodyMedium,
-                fontSize = 14.sp,
-                color = Color.Black,
-                maxLines = 6,  // Limita el texto a 6 líneas
-                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis // Agrega "..." al final si el texto es más largo
-            )
         }
     }
 }
+
 

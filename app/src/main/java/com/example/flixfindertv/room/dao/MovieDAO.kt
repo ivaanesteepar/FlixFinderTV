@@ -92,8 +92,8 @@ interface MovieDao {
     @Query("SELECT * FROM peliculas WHERE esSerie = 0 ORDER BY popularity DESC LIMIT 10")
     suspend fun getAllMoviesPopulares(): List<PeliculasEntity>
 
-    @Query("SELECT * FROM peliculas WHERE esSerie = 0 ORDER BY release_date DESC LIMIT 10")
-    suspend fun getAllMoviesUltimosLanzamientos(): List<PeliculasEntity>
+    @Query("SELECT * FROM peliculas WHERE esSerie = 0 AND release_date < :fechaActual ORDER BY release_date DESC LIMIT 10")
+    suspend fun getAllMoviesUltimosLanzamientos(fechaActual: String): List<PeliculasEntity>
 
     @Query("SELECT * FROM peliculas WHERE genero LIKE '%Action%' AND esSerie = 0 LIMIT 10")
     suspend fun getAllMoviesAccion(): List<PeliculasEntity>
@@ -119,8 +119,8 @@ interface MovieDao {
     @Query("SELECT * FROM peliculas WHERE esSerie = 1 ORDER BY popularity DESC LIMIT 10")
     suspend fun getAllSeriesPopulares(): List<PeliculasEntity>
 
-    @Query("SELECT * FROM peliculas WHERE esSerie = 1 ORDER BY release_date_series DESC LIMIT 10")
-    suspend fun getAllSeriesUltimosLanzamientos(): List<PeliculasEntity>
+    @Query("SELECT * FROM peliculas WHERE esSerie = 1 and release_date_series < :fechaActual ORDER BY release_date_series DESC LIMIT 10")
+    suspend fun getAllSeriesUltimosLanzamientos(fechaActual: String): List<PeliculasEntity>
 
     @Query("SELECT * FROM peliculas WHERE genero LIKE '%Action & Adventure%' AND esSerie = 1 LIMIT 10")
     suspend fun getAllSeriesAccionAventura(): List<PeliculasEntity>

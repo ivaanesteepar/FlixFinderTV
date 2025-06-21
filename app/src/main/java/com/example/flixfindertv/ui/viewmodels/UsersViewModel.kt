@@ -29,7 +29,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
-
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 class UsersViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -58,10 +61,61 @@ class UsersViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _usuarioState = MutableStateFlow<Usuarios?>(null)
     val usuarioState: StateFlow<Usuarios?> = _usuarioState
-
     private var listenerRegistration: ListenerRegistration? = null
-
     val userId = FirebaseAuth.getInstance().currentUser?.uid
+    private val _esAdulto = MutableStateFlow(false)
+    val esAdulto: StateFlow<Boolean> = _esAdulto
+
+    private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+
+    fun updateFechaNacimiento(fechaNacimiento: String) {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
+
+        if (userId != null) {
+            firestore.collection("usuarios")
+                .document(userId)
+                .update("fechaNacimiento", fechaNacimiento)
+        }
+    }
+
+    fun checkIfUserIsAdult() {
+        val userId = auth.currentUser?.uid ?: return
+
+        firestore.collection("usuarios").document(userId).get()
+            .addOnSuccessListener { document ->
+                if (document != null && document.exists()) {
+                    val fechaNacimientoStr = document.getString("fechaNacimiento")
+
+                    fechaNacimientoStr?.let {
+                        val fechaNacimiento = try {
+                            dateFormat.parse(it)
+                        } catch (e: Exception) {
+                            null
+                        }
+
+                        fechaNacimiento?.let { date ->
+                            _esAdulto.value = isAdult(date)
+                        }
+                    }
+                }
+            }
+            .addOnFailureListener {
+                _esAdulto.value = false
+            }
+    }
+
+    private fun isAdult(birthDate: Date): Boolean {
+        val calendarNacimiento = Calendar.getInstance().apply { time = birthDate }
+        val calendarHoy = Calendar.getInstance()
+
+        var edad = calendarHoy.get(Calendar.YEAR) - calendarNacimiento.get(Calendar.YEAR)
+
+        if (calendarHoy.get(Calendar.DAY_OF_YEAR) < calendarNacimiento.get(Calendar.DAY_OF_YEAR)) {
+            edad--
+        }
+
+        return edad >= 18
+    }
 
     fun newUsersFunction(
         generosSeleccionados: List<String>,

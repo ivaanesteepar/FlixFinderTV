@@ -13,16 +13,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.flixfindertv.R
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
+import com.example.flixfindertv.utils.DateOfBirth.EditableDatePicker
 
-// Pantalla que permite a un usuario nuevo seleccionar 2 géneros que mas le gusten
 @Composable
 fun NewQuestionsScreen(navController: NavHostController) {
     val generos = listOf(
@@ -37,84 +36,131 @@ fun NewQuestionsScreen(navController: NavHostController) {
 
     var generosSeleccionados by remember { mutableStateOf<List<String>>(emptyList()) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var mostrarFechaNacimiento by remember { mutableStateOf(false) }
+    var fechaNacimiento by remember { mutableStateOf("") }
 
     val viewModel: UsersViewModel = viewModel()
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
         Image(
             painter = painterResource(id = R.drawable.fondo_app),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-                .padding(top=56.dp)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "Which are your favourite genres?",
-                fontSize = 20.sp,
-                color = Color.White
-            )
-            Spacer(modifier = Modifier.height(32.dp))
 
-            // Usando Column en lugar de LazyColumn
-            generos.chunked(3).forEach { filaGeneros ->  // Agrupar en filas de 3
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    filaGeneros.forEach { genero ->
-                        Box(modifier = Modifier.weight(1f)) {  // Se aplica el peso de cada Card
-                            GeneroCard(
-                                genero = genero,
-                                isSelected = generosSeleccionados.contains(genero),
-                                onClick = {
-                                    if (generosSeleccionados.contains(genero)) { // Si deseleccionamos el género
-                                        generosSeleccionados = generosSeleccionados - genero
-                                        errorMessage = null
-                                    } else if (generosSeleccionados.size < 2) { // Si seleccionamos el género
-                                        generosSeleccionados = generosSeleccionados + genero
-                                        errorMessage = null
-                                    } else {
-                                        errorMessage = "You can only select up to 2 genres"
+        if (!mostrarFechaNacimiento) {
+            // Pantalla selección de géneros
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+                    .padding(top = 56.dp)
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "1/2",
+                    color = Color.White,
+                    fontSize = 16.sp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+                Text(
+                    text = "Which are your favourite genres?",
+                    fontSize = 20.sp,
+                    color = Color.White
+                )
+                Spacer(modifier = Modifier.height(32.dp))
+
+                generos.chunked(3).forEach { filaGeneros ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        filaGeneros.forEach { genero ->
+                            Box(modifier = Modifier.weight(1f)) {
+                                GeneroCard(
+                                    genero = genero,
+                                    isSelected = generosSeleccionados.contains(genero),
+                                    onClick = {
+                                        if (generosSeleccionados.contains(genero)) {
+                                            generosSeleccionados = generosSeleccionados - genero
+                                            errorMessage = null
+                                        } else if (generosSeleccionados.size < 2) {
+                                            generosSeleccionados = generosSeleccionados + genero
+                                            errorMessage = null
+                                        } else {
+                                            errorMessage = "You can only select up to 2 genres"
+                                        }
                                     }
-
-                                }
-                            )
+                                )
+                            }
                         }
                     }
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
-                Spacer(modifier = Modifier.height(8.dp))
+
+                errorMessage?.let {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(text = it, color = Color.Red, fontSize = 14.sp)
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = {
+                        if (generosSeleccionados.size == 2) {
+                            mostrarFechaNacimiento = true
+                        } else {
+                            errorMessage = "Please select 2 genres"
+                        }
+                    },
+                    enabled = generosSeleccionados.isNotEmpty()
+                ) {
+                    Text(text = "Continue")
+                }
             }
-
-            errorMessage?.let {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(text = it, color = Color.Red, fontSize = 14.sp)
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Button(
-                onClick = {
-                    viewModel.newUsersFunction(
-                        generosSeleccionados = generosSeleccionados,
-                        onSuccess = { navController.navigate("home") },
-                        onError = { error -> errorMessage = error }
-                    )
-                },
-                enabled = generosSeleccionados.isNotEmpty()
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+                    .padding(top = 56.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = "Aceptar")
+                Text(
+                    text = "2/2",
+                    color = Color.White,
+                    fontSize = 16.sp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+                Text(
+                    text = "When is your birthday?",
+                    fontSize = 20.sp,
+                    color = Color.White
+                )
+                Spacer(modifier = Modifier.height(32.dp))
+                EditableDatePicker(
+                    fecha = fechaNacimiento,
+                    onFechaChange = { fechaNacimiento = it },
+                    error = errorMessage,
+                    onContinue = {
+                        viewModel.updateFechaNacimiento(fechaNacimiento)
+                        viewModel.newUsersFunction(
+                            generosSeleccionados = generosSeleccionados,
+                            onSuccess = { navController.navigate("home") },
+                            onError = { error -> errorMessage = error }
+                        )
+                    },
+                    setError = { errorMessage = it }
+                )
             }
-
         }
     }
 }

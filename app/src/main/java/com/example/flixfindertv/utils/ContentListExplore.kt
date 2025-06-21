@@ -12,28 +12,22 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import coil.ImageLoader
 import coil.compose.rememberAsyncImagePainter
-import coil.disk.DiskCache
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.example.flixfindertv.R
 import com.example.flixfindertv.models.Peliculas
-import com.example.flixfindertv.ui.viewmodels.GenresViewModel
 import com.example.flixfindertv.ui.viewmodels.MoviesViewModel
 import com.example.flixfindertv.ui.viewmodels.UsersViewModel
-import java.io.File
 
 @Composable
 fun ContentListExplore(
@@ -41,9 +35,22 @@ fun ContentListExplore(
     navController: NavController,
     listState: LazyListState,
 ) {
+    val usersViewModel: UsersViewModel = viewModel()
+    val isAdult by usersViewModel.esAdulto.collectAsState()
+
+    LaunchedEffect(Unit) {
+        usersViewModel.checkIfUserIsAdult()
+    }
+
     val context = LocalContext.current
     val imageLoader = remember { ImageLoaderProvider.getImageLoader(context) }
     val moviesViewModel: MoviesViewModel = viewModel()
+
+    val filteredMovies = if (isAdult) {
+        movies
+    } else {
+        movies.filter { !it.adult }
+    }
 
 
     LazyRow(
@@ -53,7 +60,7 @@ fun ContentListExplore(
         state = listState,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        itemsIndexed(movies.filter { !moviesViewModel.containsNonLatinCharacters(it.titulo) }) { _, movie ->
+        itemsIndexed(filteredMovies.filter { !moviesViewModel.containsNonLatinCharacters(it.titulo) }) { _, movie ->
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.width(120.dp)

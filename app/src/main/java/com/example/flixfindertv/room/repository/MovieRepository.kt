@@ -2,6 +2,9 @@ package com.example.flixfindertv.room.repository
 
 import com.example.flixfindertv.room.dao.MovieDao
 import com.example.flixfindertv.room.entities.*
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 // Repositorio que gestiona las operaciones CRUD sobre películas y series a través del MovieDao
 class MovieRepository(private val movieDao: MovieDao) {
@@ -36,7 +39,11 @@ class MovieRepository(private val movieDao: MovieDao) {
     suspend fun getAllMoviesGenero2() = movieDao.getAllMoviesGenero2()
     suspend fun getAllMoviesProximas() = movieDao.getAllMoviesProximas()
     suspend fun getAllMoviesPopulares() = movieDao.getAllMoviesPopulares()
-    suspend fun getAllMoviesUltimosLanzamientos() = movieDao.getAllMoviesUltimosLanzamientos()
+    suspend fun getAllMoviesUltimosLanzamientos(): List<PeliculasEntity> {
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val fechaActual = dateFormat.format(Date())
+        return movieDao.getAllMoviesUltimosLanzamientos(fechaActual)
+    }
     suspend fun getAllMoviesAccion() = movieDao.getAllMoviesAccion()
     suspend fun getAllMoviesRomance() = movieDao.getAllMoviesRomance()
     suspend fun getAllMoviesFamilia() = movieDao.getAllMoviesFamilia()
@@ -46,7 +53,11 @@ class MovieRepository(private val movieDao: MovieDao) {
     suspend fun getAllMoviesCienciaFiccion() = movieDao.getAllMoviesCienciaFiccion()
 
     suspend fun getAllSeriesPopulares() = movieDao.getAllSeriesPopulares()
-    suspend fun getAllSeriesUltimosLanzamientos() = movieDao.getAllSeriesUltimosLanzamientos()
+    suspend fun getAllSeriesUltimosLanzamientos(): List<PeliculasEntity> {
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val fechaActual = dateFormat.format(Date())
+        return movieDao.getAllSeriesUltimosLanzamientos(fechaActual)
+    }
     suspend fun getAllSeriesAccionAventura() = movieDao.getAllSeriesAccionAventura()
     suspend fun getAllSeriesAnimacion() = movieDao.getAllSeriesAnimacion()
     suspend fun getAllSeriesComedia() = movieDao.getAllSeriesComedia()
