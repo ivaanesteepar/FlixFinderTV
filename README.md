@@ -39,10 +39,8 @@
   </a>
 </p>
 
-<div align="center">
-  <p><strong>Final Degree Project</strong><br/>
-  Bachelor's Degree in Computer Engineering - University of Burgos</p>
-</div>
+<p><strong>Final Degree Project</strong><br/>
+Bachelor's Degree in Computer Engineering - University of Burgos</p>
 
 
 <h2>🔍 Description</h2>
