@@ -43,7 +43,7 @@
 Bachelor's Degree in Computer Engineering - University of Burgos</p>
 
 
-<h2>Description</h2>
+<h2>🔍 Description</h2>
 
 <p>This project involves the development of an Android application focused primarily on the <strong>discovery of new audiovisual content</strong>, complemented by personalized recommendations to enhance the user experience. Using modern technologies such as Jetpack Compose for the user interface and Firebase as the backend, the app helps users explore a wide variety of movies and TV shows, tailored to their tastes and preferences.</p>
 
@@ -52,7 +52,7 @@ Bachelor's Degree in Computer Engineering - University of Burgos</p>
 <p>The app is designed to allow users to comfortably and personally <strong>discover and explore new movies and TV shows</strong> according to their tastes and preferences, making content discovery the main focus while also providing personalized recommendations.</p>
 
 
-<h2>Technologies Used</h2>
+<h2>🛠️ Technologies Used</h2>
 
 <ul>
   <li>Jetpack Compose for the user interface.</li>
@@ -64,7 +64,7 @@ Bachelor's Degree in Computer Engineering - University of Burgos</p>
 </ul>
 
 
-<h2>Main Features</h2>
+<h2>✨ Main Features</h2>
 
 <ul>
   <li>Explore and discover movies and TV shows across a wide range of genres and categories.</li>
@@ -84,7 +84,7 @@ Bachelor's Degree in Computer Engineering - University of Burgos</p>
 </ul>
 
 
-<h2>How to Install and Run the APK</h2>
+<h2>⚙️ How to Install and Run the APK</h2>
 <ol>
   <li>Download the latest APK file from the <a href="https://github.com/ivaanesteepar/FlixFinderTV/releases/latest" target="_blank" rel="noopener noreferrer">Releases section</a>.</li>
   <li>Enable installation from unknown sources on your Android device (Settings &gt; Security).</li>
@@ -94,7 +94,7 @@ Bachelor's Degree in Computer Engineering - University of Burgos</p>
 </ol>
 
 
-<h2>License</h2>
+<h2>📄 License</h2>
 
 <p>This project is licensed under the GNU General Public License v3.0 (GPLv3).</p>
 <p>More details in the <a href="LICENSE" target="_blank" rel="noopener noreferrer">LICENSE</a> file.</p>
