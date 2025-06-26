@@ -43,7 +43,7 @@
 Grado en Ingeniería Informática - Universidad de Burgos</p>
 
 
-<h2>Descripción</h2>
+<h2>🔍 Descripción</h2>
 
 <p>Este proyecto consiste en el desarrollo de una aplicación Android centrada principalmente en el <strong>descubrimiento de nuevo contenido audiovisual</strong>, complementado con recomendaciones personalizadas para mejorar la experiencia del usuario. Utilizando tecnologías modernas como Jetpack Compose para la interfaz de usuario y Firebase como backend, la app ayuda a los usuarios a explorar una amplia variedad de películas y series, adaptadas a sus gustos y preferencias.</p>
 
@@ -52,7 +52,7 @@ Grado en Ingeniería Informática - Universidad de Burgos</p>
 <p>La app está diseñada para permitir a los usuarios <strong>descubrir y explorar nuevas películas y series</strong> de forma cómoda y personal según sus gustos y preferencias, haciendo del descubrimiento de contenido el foco principal al tiempo que ofrece recomendaciones personalizadas.</p>
 
 
-<h2>Tecnologías utilizadas</h2>
+<h2>🛠️ Tecnologías utilizadas</h2>
 
 <ul>
   <li>Jetpack Compose para la interfaz de usuario.</li>
@@ -64,7 +64,7 @@ Grado en Ingeniería Informática - Universidad de Burgos</p>
 </ul>
 
 
-<h2>Principales características</h2>
+<h2>✨ Principales características</h2>
 
 <ul>
   <li>Explorar y descubrir películas y series en diversos géneros y categorías.</li>
@@ -84,7 +84,7 @@ Grado en Ingeniería Informática - Universidad de Burgos</p>
 </ul>
 
 
-<h2>Cómo instalar y ejecutar el APK</h2>
+<h2>📥 Cómo instalar y ejecutar el APK</h2>
 <ol>
   <li>Descarga el último archivo APK desde la <a href="https://github.com/ivaanesteepar/FlixFinderTV/releases/latest" target="_blank" rel="noopener noreferrer">sección de Releases</a>.</li>
   <li>Activa la instalación desde orígenes desconocidos en tu dispositivo Android (Ajustes > Seguridad).</li>
@@ -94,7 +94,7 @@ Grado en Ingeniería Informática - Universidad de Burgos</p>
 </ol>
 
 
-<h2>Licencia</h2>
+<h2>📄 Licencia</h2>
 
 <p>Este proyecto está licenciado bajo la Licencia Pública General GNU v3.0 (GPLv3).</p>
 <p>Más detalles en el archivo <a href="LICENSE" target="_blank" rel="noopener noreferrer">LICENSE</a>.</p>
