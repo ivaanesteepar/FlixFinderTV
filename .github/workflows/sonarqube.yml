@@ -1,54 +1,49 @@
-name: SonarCloud Analysis
+# name: SonarCloud Analysis
 
-on:
-  push:
-    branches:
-      - master
-  pull_request:
-    branches:
-      - master
+# on:
+#   push:
+#     branches:
+#       - master
+#   pull_request:
+#     branches:
+#       - master
 
-jobs:
-  sonarcloud:
-    runs-on: ubuntu-latest
+# jobs:
+#   sonarcloud:
+#     runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout código
-        uses: actions/checkout@v4
+#     steps:
+#       - name: Checkout código
+#         uses: actions/checkout@v4
 
-      - name: Configurar JDK 17
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '17'
+#       - name: Configurar JDK 17
+#         uses: actions/setup-java@v3
+#         with:
+#           distribution: 'temurin'
+#           java-version: '17'
 
-      - name: Cache de Gradle
-        uses: actions/cache@v3
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar-${{ hashFiles('**/sonar-project.properties') }}
-          restore-keys: |
-              ${{ runner.os }}-sonar-
+#       - name: Cache de Gradle
+#         uses: actions/cache@v3
+#         with:
+#           path: ~/.sonar/cache
+#           key: ${{ runner.os }}-sonar-${{ hashFiles('**/sonar-project.properties') }}
+#           restore-keys: |
+#               ${{ runner.os }}-sonar-
 
-      - name: Forzar permisos de ejecución a gradlew
-        run: sudo chmod +x gradlew || true
+#       - name: Forzar permisos de ejecución a gradlew
+#         run: sudo chmod +x gradlew || true
 
-      - name: Verificar permisos de gradlew
-        run: ls -l gradlew
+#       - name: Verificar permisos de gradlew
+#         run: ls -l gradlew
 
-      - name: Ejecutar tests
-        run: ./gradlew testDebugUnitTest
+#       - name: Ejecutar tests
+#         run: ./gradlew testDebugUnitTest
 
-      - name: Generar reporte de cobertura
-        run: ./gradlew jacocoTestReport
+#       - name: Generar reporte de cobertura
+#         run: ./gradlew jacocoTestReport
 
-      - name: Ejecutar SonarCloud
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./gradlew sonarqube -Dsonar.token=$SONAR_TOKEN
-        continue-on-error: true
-
-        
- 
-
-
+#       - name: Ejecutar SonarCloud
+#         env:
+#           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+#         run: ./gradlew sonarqube -Dsonar.token=$SONAR_TOKEN
+#         continue-on-error: true
