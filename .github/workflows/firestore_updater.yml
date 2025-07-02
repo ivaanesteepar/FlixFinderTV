@@ -2,8 +2,8 @@ name: Actualización semanal de Firestore
 
 on:
   schedule:
-  - cron: '0 9 * * 1'  # Lunes a las 09:00 UTC
-  workflow_dispatch:   # Ejecutable también manualmente
+  - cron: '0 9 * * 1'
+  workflow_dispatch: 
 
 jobs:
   actualizar:
