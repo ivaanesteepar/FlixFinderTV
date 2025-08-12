@@ -12,29 +12,29 @@
   <h1>FlixFinderTV</h1>
 </div>
 
-<p align="center">
-  <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV">
+<p align="center" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 5px;">
+  <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV" style="text-decoration: none;">
     <img src="https://sonarcloud.io/api/project_badges/measure?project=ivaanesteepar_FlixFinderTV&metric=security_rating" alt="Security Rating"/>
   </a>
-  <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV">
+  <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV" style="text-decoration: none;">
     <img src="https://sonarcloud.io/api/project_badges/measure?project=ivaanesteepar_FlixFinderTV&metric=bugs" alt="Bugs"/>
   </a>
-  <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV">
+  <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV" style="text-decoration: none;">
     <img src="https://sonarcloud.io/api/project_badges/measure?project=ivaanesteepar_FlixFinderTV&metric=code_smells" alt="Code Smells"/>
   </a>
-  <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV">
+  <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV" style="text-decoration: none;">
     <img src="https://sonarcloud.io/api/project_badges/measure?project=ivaanesteepar_FlixFinderTV&metric=sqale_rating" alt="Maintainability Rating"/>
   </a>
-  <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV">
+  <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV" style="text-decoration: none;">
     <img src="https://sonarcloud.io/api/project_badges/measure?project=ivaanesteepar_FlixFinderTV&metric=reliability_rating" alt="Reliability Rating"/>
   </a>
-  <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV">
+  <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV" style="text-decoration: none;">
     <img src="https://sonarcloud.io/api/project_badges/measure?project=ivaanesteepar_FlixFinderTV&metric=vulnerabilities" alt="Vulnerabilities"/>
   </a>
-  <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV">
+  <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV" style="text-decoration: none;">
     <img src="https://sonarcloud.io/api/project_badges/measure?project=ivaanesteepar_FlixFinderTV&metric=duplicated_lines_density" alt="Duplicated Lines"/>
   </a>
-  <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV">
+  <a href="https://sonarcloud.io/summary/new_code?id=ivaanesteepar_FlixFinderTV" style="text-decoration: none;">
     <img src="https://sonarcloud.io/api/project_badges/measure?project=ivaanesteepar_FlixFinderTV&metric=ncloc" alt="Lines of Code"/>
   </a>
 </p>
